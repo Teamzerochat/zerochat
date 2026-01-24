@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZeroChat - Phase 1 Implementation Plan</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0d1117;
+            --bg-secondary: #161b22;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #58a6ff;
+            --border: #30363d;
+            --code-bg: #161b22;
+            --success: #3fb950;
+            --warning: #d29922;
+            --error: #f85149;
+            --caution: #db6d28;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: var(--bg-secondary);
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 0.3em;
+            color: var(--error);
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 0.3em;
+        }
+
+        h2 {
+            font-size: 2em;
+            margin-top: 2em;
+            margin-bottom: 0.8em;
+            color: var(--accent);
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 0.3em;
+        }
+
+        h3 {
+            font-size: 1.5em;
+            margin-top: 1.5em;
+            margin-bottom: 0.6em;
+            color: var(--text-primary);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1em;
+            margin-bottom: 2em;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5em 0;
+            background: var(--code-bg);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        th,
+        td {
+            padding: 12px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--bg-primary);
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .alert {
+            padding: 16px;
+            margin: 1.5em 0;
+            border-left: 4px solid;
+            border-radius: 4px;
+        }
+
+        .alert-caution {
+            background: rgba(219, 109, 40, 0.1);
+            border-color: var(--caution);
+        }
+
+        .alert strong {
+            display: block;
+            margin-bottom: 0.5em;
+            font-size: 1.1em;
+        }
+
+        .mermaid {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 2em 0;
+        }
+
+        ul,
+        ol {
+            margin-left: 2em;
+            margin-bottom: 1em;
+        }
+
+        li {
+            margin: 0.5em 0;
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 2em 0;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: var(--accent);
+            color: white;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-right: 8px;
+        }
+
+        .badge-danger {
+            background: var(--error);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 2em 0;
+        }
+
+        .card {
+            background: var(--code-bg);
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .card h4 {
+            color: var(--accent);
+            margin-top: 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔒 ZeroChat - Phase 1 (Live Chat Only)</h1>
+        <p class="subtitle">
+            <strong>Threat Model:</strong> State-level adversaries<br>
+            <strong>User Profile:</strong> Journalists, activists, whistleblowers<br>
+            <strong>Design:</strong> Anonymity over availability
+        </p>
+
+        <div class="alert alert-caution">
+            <strong>⚠️ Phase 1 Limitations</strong>
+            <ul>
+                <li><strong>Both users MUST be online</strong> - No offline messaging</li>
+                <li>No delivery guarantees</li>
+                <li>No persistent sessions</li>
+                <li>No direct P2P (relay-only WebRTC)</li>
+                <li>Connection failure preferred over metadata leakage</li>
+            </ul>
+            <p style="margin-top: 1em;"><em>Dead-drop offline messaging planned for Phase 2</em></p>
+        </div>
+
+        <hr>
+
+        <h2>Architecture Decisions</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Component</th>
+                    <th>Choice</th>
+                    <th>Rationale</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Mixnet</strong></td>
+                    <td>Self-hosted NYM</td>
+                    <td>Full control, no paid services</td>
+                </tr>
+                <tr>
+                    <td><strong>WebRTC</strong></td>
+                    <td><span class="badge badge-danger">RELAY-ONLY</span></td>
+                    <td>Prevents IP disclosure</td>
+                </tr>
+                <tr>
+                    <td><strong>ICE</strong></td>
+                    <td>Relay candidates ONLY</td>
+                    <td>Host/srflx blocked</td>
+                </tr>
+                <tr>
+                    <td><strong>Keys</strong></td>
+                    <td>Passphrase → Argon2id</td>
+                    <td>Keystore NOT trusted</td>
+                </tr>
+                <tr>
+                    <td><strong>Offline</strong></td>
+                    <td>NOT IMPLEMENTED</td>
+                    <td>Phase 2 only</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <hr>
+
+        <h2>Technology Stack</h2>
+        <div class="grid">
+            <div class="card">
+                <h4>Core</h4>
+                <ul>
+                    <li><strong>Language:</strong> Kotlin 1.9+</li>
+                    <li><strong>Min SDK:</strong> API 26</li>
+                    <li><strong>UI:</strong> Jetpack Compose</li>
+                    <li><strong>DI:</strong> Hilt</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4>Anonymity</h4>
+                <ul>
+                    <li><strong>Mixnet:</strong> Self-hosted NYM</li>
+                    <li><strong>WebRTC:</strong> Relay-only mode</li>
+                    <li><strong>ICE:</strong> Blocked host/srflx</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4>Crypto</h4>
+                <ul>
+                    <li><strong>Library:</strong> Lazysodium</li>
+                    <li><strong>KDF:</strong> Argon2id (512MB)</li>
+                    <li><strong>E2E:</strong> Session ratchet</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4>Storage</h4>
+                <ul>
+                    <li><strong>DB:</strong> SQLCipher</li>
+                    <li><strong>Key:</strong> Passphrase-based</li>
+                    <li><strong>NO:</strong> Metadata, contacts</li>
+                </ul>
+            </div>
+        </div>
+
+        <hr>
+
+        <h2>Working Flow - Phase 1 (Live Chat Only)</h2>
+        <div class="mermaid">
+            sequenceDiagram
+            participant UserA as User A
+            participant AppA as App A
+            participant NymA as Nym A
+            participant Mixnet as NYM Mixnet
+            participant NymB as Nym B
+            participant AppB as App B
+            participant UserB as User B
+            participant Relay as TURN Relay
+
+            Note over UserA,UserB: Phase 1: Unlock and Initialize
+
+            UserA->>AppA: Enter passphrase
+            AppA->>AppA: Argon2id KDF (512MB)
+            AppA->>AppA: Unwrap SQLCipher key
+            AppA->>NymA: Initialize mixnet
+            NymA->>Mixnet: Connect to self-hosted gateway
+            Mixnet-->>AppA: Nym address
+
+            UserB->>AppB: Enter passphrase
+            AppB->>AppB: Argon2id KDF
+            AppB->>NymB: Initialize mixnet
+            Mixnet-->>AppB: Nym address
+
+            Note over UserA,UserB: Exchange addresses (Signal, QR code)
+
+            Note over UserA,UserB: Phase 2: SPAKE2+ Authentication
+
+            UserA->>AppA: Enter shared secret
+            UserB->>AppB: Enter SAME secret
+            AppA->>Mixnet: Send commitment
+            Mixnet->>AppB: Deliver
+            AppB->>Mixnet: Send response
+            Mixnet->>AppA: Deliver
+
+            Note over AppA,AppB: Session keys match
+
+            Note over UserA,UserB: Phase 3: WebRTC Signaling (Relay-Only)
+
+            AppA->>AppA: Configure RELAY-ONLY mode
+            AppA->>AppA: Block host and srflx
+            AppA->>Mixnet: Encrypted SDP offer
+            Mixnet->>AppB: Deliver
+            AppB->>Mixnet: Encrypted SDP answer
+
+            Note over AppA,AppB: ICE: relay candidates only
+
+            Note over UserA,UserB: Phase 4: Oblivious TURN Connection
+
+            AppA->>Relay: Via NYM proxy
+            AppB->>Relay: Via NYM proxy
+            Note over Relay: Sees proxy IP NOT user IP
+
+            Note over AppA,AppB: DataChannel established (IP-safe)
+
+            Note over UserA,UserB: Phase 5: Live Encrypted Chat
+
+            UserA->>AppA: Type message
+            AppA->>AppA: Encrypt (session ratchet)
+            AppA->>Relay: Send ciphertext
+            Relay->>AppB: Relay (cannot decrypt)
+            AppB->>AppB: Decrypt
+            AppB-->>UserB: Display message
+
+            UserB->>AppA: Reply
+            Note over UserA,UserB: Real-time E2E encrypted chat
+
+            Note over UserA,UserB: Phase 6: Session End (Ephemeral)
+
+            UserA->>AppA: Close app
+            AppA->>AppA: DESTROY ratchet state
+            AppA->>AppA: Clear KEK from RAM
+            AppA->>Relay: Close DataChannel
+
+            Note over AppA: No persistent state remains
+        </div>
+
+        <hr>
+
+        <h2>Architecture</h2>
+        <div class="mermaid">
+            flowchart TB
+            Pass[User Passphrase] -->|Argon2id 512MB| KEK[KEK in RAM only]
+            Duress[Duress Passphrase] -->|Wipe| KEK
+            KEK --> DB[(SQLCipher)]
+
+            Session[Session Ratchet<br />Ephemeral] --> NYM[NYM Mixnet<br />Self-hosted]
+            WEBRTC[WebRTC<br />RELAY-ONLY] --> TURN[Oblivious TURN]
+        </div>
+
+        <hr>
+
+        <h2>Key Security Properties</h2>
+        <ul>
+            <li><strong>Unlinkability:</strong> NYM mixnet prevents traffic correlation</li>
+            <li><strong>IP Protection:</strong> Relay-only WebRTC, oblivious TURN</li>
+            <li><strong>Metadata Resistance:</strong> No queues, receipts, persistent state</li>
+            <li><strong>Coercion Resistance:</strong> Duress passphrase destroys keys</li>
+            <li><strong>Seizure Resistance:</strong> Passphrase required (NOT Keystore)</li>
+            <li><strong>Live Only:</strong> Both users must be online (no offline messaging)</li>
+        </ul>
+
+        <hr>
+
+        <footer
+            style="margin-top: 3em; padding-top: 2em; border-top: 1px solid var(--border); text-align: center; color: var(--text-secondary);">
+            <p style="color: var(--error); font-weight: bold;">PHASE 1: LIVE COMMUNICATION ONLY</p>
+            <p style="margin-top: 0.5em;">Both users must be online • No offline messaging • State-level threat model
+            </p>
+            <p style="font-size: 0.85em; margin-top: 1em;">ZeroChat - Journalist-Grade Anonymous Messaging</p>
+        </footer>
+    </div>
+
+    <script>
+        mermaid.initialize({
+            startOnLoad: true,
+            theme: 'default',
+            sequence: {
+                useMaxWidth: true,
+                wrap: true
+            }
+        });
+    </script>
+</body>
+
+</html>

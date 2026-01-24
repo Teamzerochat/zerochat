@@ -1,0 +1,6 @@
+.env
+*.keystore
+*.jks
+/build
+/.idea
+/local.properties
