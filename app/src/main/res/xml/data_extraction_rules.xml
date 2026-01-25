@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<data-extraction-rules>
+    <!-- Security: Disable all cloud backup and data extraction -->
+    <cloud-backup>
+        <!-- Nothing should be backed up -->
+    </cloud-backup>
+    <device-transfer>
+        <!-- Nothing should be transferred -->
+    </device-transfer>
+</data-extraction-rules>

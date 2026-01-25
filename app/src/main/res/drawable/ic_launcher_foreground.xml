@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Lock icon for ZeroChat -->
+    <path
+        android:fillColor="#58A6FF"
+        android:pathData="M54,24c-8.284,0 -15,6.716 -15,15v9H36c-3.314,0 -6,2.686 -6,6v24c0,3.314 2.686,6 6,6h36c3.314,0 6,-2.686 6,-6V54c0,-3.314 -2.686,-6 -6,-6h-3V39c0,-8.284 -6.716,-15 -15,-15zM54,30c4.971,0 9,4.029 9,9v9H45V39c0,-4.971 4.029,-9 9,-9zM54,60a6,6 0,1 1,0 12,6 6,0 0,1 0,-12z"/>
+</vector>

@@ -3,11 +3,11 @@
 **Focus:** Live communication only (no offline/dead-drop messaging yet)
 
 ## Phase 1: Core Security Foundation
-- [ ] Implement Argon2id KDF (512MB memory, 3 iterations)
-- [ ] Create passphrase-based key hierarchy (Pass → KEK → DB key)
-- [ ] Add duress passphrase detection + irreversible key wipe
-- [ ] Implement volatile KEK (RAM-only, secure wipe on exit)
-- [ ] SQLCipher integration with wrapped key
+- [x] Implement Argon2id KDF (512MB memory, 3 iterations)
+- [x] Create passphrase-based key hierarchy (Pass → KEK → DB key)
+- [x] Add duress passphrase detection + irreversible key wipe
+- [x] Implement volatile KEK (RAM-only, secure wipe on exit)
+- [x] SQLCipher integration with wrapped key
 
 ## Phase 2: Self-Hosted NYM Integration  
 - [ ] Set up Rust toolchain for Android

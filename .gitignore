@@ -1,6 +1,27 @@
-.env
+# Build outputs
+/build/
+/app/build/
+/.gradle/
+
+# IDE
+/.idea/
+*.iml
+.DS_Store
+
+# Local properties
+local.properties
+
+# Logs
+*.log
+crash.log
+fulllog.log
+fulllog.txt
+
+# Credentials (never commit)
 *.keystore
 *.jks
-/build
-/.idea
-/local.properties
+google-services.json
+
+# Debug/Test files
+*.apk
+*.aab
