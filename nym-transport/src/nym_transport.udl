@@ -1,0 +1,33 @@
+namespace nym_transport {};
+
+[Error]
+enum TransportError {
+    "NotConnected",
+    "ConnectionFailed",
+    "SendFailed",
+};
+
+dictionary RendezvousMessage {
+    sequence<u8> sender_handle;
+    sequence<u8> payload;
+};
+
+interface NymTransportClient {
+    constructor();
+    
+    [Throws=TransportError]
+    void connect(string gateway_url);
+    
+    void disconnect();
+    
+    boolean is_connected();
+    
+    [Throws=TransportError]
+    RendezvousMessage? poll_rendezvous(string point_id);
+    
+    [Throws=TransportError]
+    void send_message(sequence<u8> handle, sequence<u8> payload);
+    
+    [Throws=TransportError]
+    void publish_at_rendezvous(string point_id, sequence<u8> my_handle);
+};

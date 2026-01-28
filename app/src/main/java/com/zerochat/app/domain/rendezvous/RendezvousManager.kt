@@ -3,6 +3,7 @@ package com.zerochat.app.domain.rendezvous
 import com.goterl.lazysodium.LazySodiumAndroid
 import com.goterl.lazysodium.SodiumAndroid
 import com.goterl.lazysodium.interfaces.GenericHash
+import com.zerochat.app.domain.transport.NymTransport
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -21,7 +22,9 @@ import kotlin.random.Random
  * - UI-01: Never expose rendezvous to UI
  */
 @Singleton
-class RendezvousManager @Inject constructor() {
+class RendezvousManager @Inject constructor(
+    private val transport: NymTransport
+) {
     
     private val sodium: LazySodiumAndroid = LazySodiumAndroid(SodiumAndroid())
     
@@ -103,6 +106,17 @@ class RendezvousManager @Inject constructor() {
     }
     
     /**
+     * Publish our handle at a rendezvous point
+     * Called during handshake to signal our presence
+     */
+    suspend fun publishAtRendezvous(rendezvous: RendezvousPoint, myHandle: ByteArray): Result<Unit> {
+        if (!isValid(rendezvous)) {
+            return Result.failure(IllegalStateException("Rendezvous expired"))
+        }
+        return transport.publishAtRendezvous(rendezvous.id, myHandle)
+    }
+    
+    /**
      * Poll rendezvous with constant-rate + jitter
      * Returns flow of poll results
      */
@@ -112,13 +126,12 @@ class RendezvousManager @Inject constructor() {
         while (attempts < MAX_POLL_ATTEMPTS && isValid(rendezvous)) {
             emit(PollResult.Polling(attempts + 1, MAX_POLL_ATTEMPTS))
             
-            // TODO: Actual NYM mixnet poll
-            // For now, simulate polling
-            val found = false  // Will be replaced with actual NYM client call
+            // Poll via NYM mixnet transport
+            val response = transport.pollRendezvous(rendezvous.id)
             
-            if (found) {
+            if (response != null) {
                 markConsumed(rendezvous)
-                emit(PollResult.Found)
+                emit(PollResult.Found(response.senderHandle))
                 return@flow
             }
             
@@ -163,7 +176,14 @@ data class RendezvousPoint(
  */
 sealed class PollResult {
     data class Polling(val attempt: Int, val max: Int) : PollResult()
-    object Found : PollResult()
+    data class Found(val peerHandle: ByteArray) : PollResult() {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (javaClass != other?.javaClass) return false
+            return peerHandle.contentEquals((other as Found).peerHandle)
+        }
+        override fun hashCode(): Int = peerHandle.contentHashCode()
+    }
     object Timeout : PollResult()
     object Expired : PollResult()
 }

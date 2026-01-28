@@ -1,0 +1,14 @@
+C:\Users\hp\StudioProjects\zerochat\nym-transport\target\x86_64-linux-android\release\deps\serde-08a5ef1fd273b680.d: C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\hp\StudioProjects\zerochat\nym-transport\target\x86_64-linux-android\release\build\serde-b871871379024b13\out/private.rs
+
+C:\Users\hp\StudioProjects\zerochat\nym-transport\target\x86_64-linux-android\release\deps\libserde-08a5ef1fd273b680.rlib: C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\hp\StudioProjects\zerochat\nym-transport\target\x86_64-linux-android\release\build\serde-b871871379024b13\out/private.rs
+
+C:\Users\hp\StudioProjects\zerochat\nym-transport\target\x86_64-linux-android\release\deps\libserde-08a5ef1fd273b680.rmeta: C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs C:\Users\hp\StudioProjects\zerochat\nym-transport\target\x86_64-linux-android\release\build\serde-b871871379024b13\out/private.rs
+
+C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\lib.rs:
+C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\integer128.rs:
+C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\mod.rs:
+C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\de.rs:
+C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\serde-1.0.228\src\private\ser.rs:
+C:\Users\hp\StudioProjects\zerochat\nym-transport\target\x86_64-linux-android\release\build\serde-b871871379024b13\out/private.rs:
+
+# env-dep:OUT_DIR=C:\\Users\\hp\\StudioProjects\\zerochat\\nym-transport\\target\\x86_64-linux-android\\release\\build\\serde-b871871379024b13\\out

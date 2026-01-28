@@ -1,0 +1,23 @@
+[package]
+name = "nym-transport"
+version = "0.1.0"
+edition = "2021"
+description = "NYM mixnet transport layer for ZeroChat"
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+name = "nym_transport"
+
+[dependencies]
+# UniFFI for Kotlin bindings
+uniffi = { version = "0.25", features = ["cli"] }
+
+# Minimal dependencies for now - NYM SDK added later
+thiserror = "1.0"
+
+[build-dependencies]
+uniffi = { version = "0.25", features = ["build"] }
+
+[[bin]]
+name = "uniffi-bindgen"
+path = "uniffi-bindgen.rs"

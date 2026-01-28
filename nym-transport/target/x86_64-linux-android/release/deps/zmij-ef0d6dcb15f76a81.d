@@ -1,0 +1,9 @@
+C:\Users\hp\StudioProjects\zerochat\nym-transport\target\x86_64-linux-android\release\deps\zmij-ef0d6dcb15f76a81.d: C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\zmij-1.0.17\src\lib.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\zmij-1.0.17\src\stdarch_x86.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\zmij-1.0.17\src\traits.rs
+
+C:\Users\hp\StudioProjects\zerochat\nym-transport\target\x86_64-linux-android\release\deps\libzmij-ef0d6dcb15f76a81.rlib: C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\zmij-1.0.17\src\lib.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\zmij-1.0.17\src\stdarch_x86.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\zmij-1.0.17\src\traits.rs
+
+C:\Users\hp\StudioProjects\zerochat\nym-transport\target\x86_64-linux-android\release\deps\libzmij-ef0d6dcb15f76a81.rmeta: C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\zmij-1.0.17\src\lib.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\zmij-1.0.17\src\stdarch_x86.rs C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\zmij-1.0.17\src\traits.rs
+
+C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\zmij-1.0.17\src\lib.rs:
+C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\zmij-1.0.17\src\stdarch_x86.rs:
+C:\Users\hp\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\zmij-1.0.17\src\traits.rs:

@@ -58,7 +58,7 @@ fun UnlockScreen(
         Spacer(modifier = Modifier.height(8.dp))
         
         Text(
-            text = "Journalist-Grade Anonymous Messaging",
+            text = "Your Secure Vault",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
@@ -104,30 +104,6 @@ fun UnlockScreen(
                 Spacer(modifier = Modifier.width(8.dp))
             }
             Text("Unlock")
-        }
-        
-        Spacer(modifier = Modifier.height(48.dp))
-        
-        // Security warning
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-            ),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "⚠️ High-Risk Communication Only",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "• Both users must be online\n• No message delivery guarantees\n• No offline messaging",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
         }
     }
 }

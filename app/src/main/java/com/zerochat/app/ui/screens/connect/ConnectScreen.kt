@@ -160,12 +160,5 @@ fun ConnectScreen(
         }
         
         Spacer(modifier = Modifier.height(16.dp))
-        
-        // Privacy notice
-        Text(
-            text = "No addresses or identifiers are exchanged",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
     }
 }
