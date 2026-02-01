@@ -51,6 +51,16 @@ class ConnectViewModel @Inject constructor(
                     return@launch
                 }
                 
+                // Generate my ephemeral routing handle (RH-01)
+                val myHandle = routingHandleManager.generateMyHandle()
+                
+                // Publish my handle at the rendezvous point
+                rendezvousManager.publishAtRendezvous(rendezvous, myHandle)
+                    .onFailure {
+                        _uiState.value = ConnectUiState.Error
+                        return@launch
+                    }
+                
                 // Poll rendezvous with constant rate (PL-01)
                 rendezvousManager.pollRendezvous(rendezvous).collect { result ->
                     when (result) {
@@ -59,9 +69,7 @@ class ConnectViewModel @Inject constructor(
                         }
                         
                         is PollResult.Found -> {
-                            // Generate my ephemeral handle
-                            routingHandleManager.generateMyHandle()
-                            
+                            // Received peer's handle - connection established
                             // TODO: Exchange handles via SPAKE2+ encrypted channel
                             // For now, simulate successful connection
                             

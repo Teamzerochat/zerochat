@@ -1,0 +1,206 @@
+//! NYM Transport - Real mixnet integration for ZeroChat
+//!
+//! Connects to NYM public mainnet using nym-sdk.
+//! Uses ephemeral keys (no disk storage) for zero-trust compliance.
+
+#![allow(unused)]
+#![allow(warnings)]
+
+use nym_sdk::mixnet::{MixnetClient, MixnetClientBuilder, Recipient, ReconstructedMessage, AnonymousSenderTag};
+use nym_sdk::mixnet::MixnetMessageSender;
+use std::sync::Arc;
+use std::time::Duration;
+use thiserror::Error;
+use tokio::runtime::Runtime;
+use tokio::sync::Mutex;
+
+// Using UDL-driven bindings (see build.rs)
+uniffi::include_scaffolding!("nym_transport");
+
+/// Transport errors
+#[derive(Error, Debug)]
+pub enum TransportError {
+    #[error("Not connected to mixnet")]
+    NotConnected,
+    #[error("Connection failed: {reason}")]
+    ConnectionFailed { reason: String },
+    #[error("Send failed: {reason}")]
+    SendFailed { reason: String },
+    #[error("Invalid address: {reason}")]
+    InvalidAddress { reason: String },
+    #[error("Runtime error: {reason}")]
+    RuntimeError { reason: String },
+}
+
+#[derive(Debug, Clone)]
+pub struct RendezvousMessage {
+    pub sender_handle: Vec<u8>,
+    pub payload: Vec<u8>,
+}
+
+#[derive(Debug)]
+pub struct ConnectionInfo {
+    pub my_address: String,
+    pub connected: bool,
+}
+
+// Object defined in UDL
+pub struct NymTransportClient {
+    runtime: Runtime,
+    state: Arc<Mutex<ClientState>>,
+}
+
+#[derive(Default)]
+struct ClientState {
+    client: Option<Arc<MixnetClient>>,
+    my_address: Option<String>,
+}
+
+impl NymTransportClient {
+    /// Create a new transport client
+    pub fn new() -> Self {
+        #[cfg(target_os = "android")]
+        {
+            android_logger::init_once(
+                android_logger::Config::default()
+                    .with_max_level(log::LevelFilter::Info)
+                    .with_tag("NymTransport"),
+            );
+        }
+
+        let runtime = Runtime::new().expect("Failed to create Tokio runtime");
+        
+        Self {
+            runtime,
+            state: Arc::new(Mutex::new(ClientState::default())),
+        }
+    }
+
+    /// Connect to NYM public mainnet
+    /// Returns the client's NYM address
+    pub fn connect(&self, _gateway_url: String) -> Result<String, TransportError> {
+        log::info!("Connecting to NYM public mainnet...");
+        
+        let state = self.state.clone();
+        self.runtime.block_on(async move {
+            let disconnected_client = MixnetClientBuilder::new_ephemeral()
+                .build()
+                .map_err(|e: nym_sdk::Error| {
+                    log::error!("NYM client build failed: {}", e);
+                    TransportError::ConnectionFailed {
+                        reason: e.to_string(),
+                    }
+                })?;
+
+            let client = disconnected_client
+                .connect_to_mixnet()
+                .await
+                .map_err(|e| {
+                    log::error!("NYM connection failed: {}", e);
+                    TransportError::ConnectionFailed {
+                        reason: e.to_string(),
+                    }
+                })?;
+
+            let address = client.nym_address().to_string();
+            log::info!("Connected! Address: {}", address);
+
+            let mut st = state.lock().await;
+            st.client = Some(Arc::new(client));
+            st.my_address = Some(address.clone());
+
+            Ok(address)
+        })
+    }
+
+    /// Disconnect from mixnet
+    pub fn disconnect(&self) {
+        log::info!("Disconnecting from NYM...");
+        self.runtime.block_on(async {
+            let mut state = self.state.lock().await;
+            state.client = None;
+            state.my_address = None;
+        });
+    }
+
+    /// Check if connected
+    pub fn is_connected(&self) -> bool {
+        self.runtime.block_on(async {
+            let state = self.state.lock().await;
+            state.client.is_some()
+        })
+    }
+
+    /// Get connection info
+    pub fn get_connection_info(&self) -> ConnectionInfo {
+        self.runtime.block_on(async {
+            let state = self.state.lock().await;
+            ConnectionInfo {
+                my_address: state.my_address.clone().unwrap_or_default(),
+                connected: state.client.is_some(),
+            }
+        })
+    }
+
+    /// Poll rendezvous point (stub for now)
+    pub fn poll_rendezvous(&self, _point_id: String) -> Result<Option<RendezvousMessage>, TransportError> {
+        if !self.is_connected() {
+            return Err(TransportError::NotConnected);
+        }
+        Ok(None)
+    }
+
+    /// Send message through mixnet
+    pub fn send_message(&self, handle: Vec<u8>, payload: Vec<u8>) -> Result<(), TransportError> {
+        log::info!("Sending message ({} bytes)", payload.len());
+        
+        let state = self.state.clone();
+        self.runtime.block_on(async move {
+            let st = state.lock().await;
+            let client = st.client.as_ref()
+                .ok_or(TransportError::NotConnected)?;
+
+            // Convert handle to NYM address string
+            let address_str = String::from_utf8(handle)
+                .map_err(|e| TransportError::InvalidAddress {
+                    reason: format!("Invalid UTF-8: {}", e),
+                })?;
+
+            let recipient = Recipient::try_from_base58_string(&address_str)
+                .map_err(|e| TransportError::InvalidAddress {
+                    reason: e.to_string(),
+                })?;
+
+            client
+                .send_plain_message(recipient, &payload)
+                .await
+                .map_err(|e| {
+                    log::error!("Send failed: {}", e);
+                    TransportError::SendFailed {
+                        reason: e.to_string(),
+                    }
+                })?;
+
+            log::info!("Message sent successfully");
+            Ok(())
+        })
+    }
+
+    /// Publish at rendezvous (stub for now)
+    pub fn publish_at_rendezvous(&self, _point_id: String, _my_handle: Vec<u8>) -> Result<(), TransportError> {
+        if !self.is_connected() {
+            return Err(TransportError::NotConnected);
+        }
+        Ok(())
+    }
+
+    /// Receive message with timeout (stub for now - will implement properly later)
+    pub fn receive_message(&self, _timeout_ms: u64) -> Result<Option<RendezvousMessage>, TransportError> {
+        if !self.is_connected() {
+            return Err(TransportError::NotConnected);
+        }
+        // TODO: Implement actual message receiving with NYM SDK
+        // The API for receiving messages needs to be researched further
+        Ok(None)
+    }
+}

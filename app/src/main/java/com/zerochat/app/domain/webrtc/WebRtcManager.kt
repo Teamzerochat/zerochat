@@ -1,7 +1,6 @@
 package com.zerochat.app.domain.webrtc
 
 import android.content.Context
-import io.getstream.webrtc.android.ktx.PeerConnection
 import org.webrtc.*
 import javax.inject.Inject
 import javax.inject.Singleton

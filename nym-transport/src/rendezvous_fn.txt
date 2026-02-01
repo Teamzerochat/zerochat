@@ -1,0 +1,7 @@
+﻿/// Derive a deterministic NYM Recipient address from rendezvous ID
+fn derive_rendezvous_recipient(rendezvous_id: &str) -> Result<Recipient, TransportError> {
+    Recipient::try_from_base58_string(rendezvous_id)
+        .map_err(|e| TransportError::InvalidAddress {
+            reason: format!("Invalid rendezvous: {}", e),
+        })
+}

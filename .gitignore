@@ -2,6 +2,8 @@
 /build/
 /app/build/
 /.gradle/
+/nym-transport/target/
+target/
 
 # IDE
 /.idea/

@@ -1,12 +1,15 @@
 package com.zerochat.app.domain.rendezvous
 
+import android.util.Log
 import com.goterl.lazysodium.LazySodiumAndroid
 import com.goterl.lazysodium.SodiumAndroid
 import com.goterl.lazysodium.interfaces.GenericHash
 import com.zerochat.app.domain.transport.NymTransport
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.random.Random
@@ -27,8 +30,10 @@ class RendezvousManager @Inject constructor(
 ) {
     
     private val sodium: LazySodiumAndroid = LazySodiumAndroid(SodiumAndroid())
+    private var nymConnected = false
     
     companion object {
+        private const val TAG = "RendezvousManager"
         const val EPOCH_DURATION_SECONDS = 300  // 5 minutes
         const val RENDEZVOUS_LENGTH = 32
         const val POLL_INTERVAL_MS = 10_000L  // 10 seconds
@@ -37,10 +42,31 @@ class RendezvousManager @Inject constructor(
         
         private const val RENDEZVOUS_SALT = "zerochat-rendezvous-v1"
         private const val EPOCH_INFO = "epoch-meeting-point"
+        private const val NYM_GATEWAY_URL = "https://mainnet-gateway.nymtech.net"  // Public mainnet
     }
     
     // Track consumed rendezvous points (in-memory only)
     private val consumedRendezvous = mutableSetOf<String>()
+    
+    /**
+     * Ensure NYM connection is established before any operations
+     */
+    private suspend fun ensureConnected() {
+        if (!nymConnected && !transport.isConnected()) {
+            Log.i(TAG, "Connecting to NYM mixnet...")
+            // Run on IO dispatcher to avoid blocking main thread (connection takes ~7 seconds)
+            withContext(kotlinx.coroutines.Dispatchers.IO) {
+                val result = transport.connect(NYM_GATEWAY_URL)
+                if (result.isSuccess) {
+                    nymConnected = true
+                    Log.i(TAG, "NYM connection established")
+                } else {
+                    Log.e(TAG, "Failed to connect to NYM: ${result.exceptionOrNull()?.message}")
+                    throw result.exceptionOrNull() ?: Exception("NYM connection failed")
+                }
+            }
+        }
+    }
     
     /**
      * Derive rendezvous point from shared secret and current epoch
@@ -110,6 +136,7 @@ class RendezvousManager @Inject constructor(
      * Called during handshake to signal our presence
      */
     suspend fun publishAtRendezvous(rendezvous: RendezvousPoint, myHandle: ByteArray): Result<Unit> {
+        ensureConnected()
         if (!isValid(rendezvous)) {
             return Result.failure(IllegalStateException("Rendezvous expired"))
         }
@@ -121,6 +148,9 @@ class RendezvousManager @Inject constructor(
      * Returns flow of poll results
      */
     fun pollRendezvous(rendezvous: RendezvousPoint): Flow<PollResult> = flow {
+        // Ensure NYM connection before polling
+        ensureConnected()
+        
         var attempts = 0
         
         while (attempts < MAX_POLL_ATTEMPTS && isValid(rendezvous)) {

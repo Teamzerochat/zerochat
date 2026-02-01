@@ -1,0 +1,4 @@
+﻿let client_arc = st.client.as_ref()
+    .ok_or(TransportError::NotConnected)?;
+// Lock client for mutable access  
+let mut client = client_arc.lock().await;

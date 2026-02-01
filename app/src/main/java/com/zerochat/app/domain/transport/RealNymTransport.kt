@@ -1,5 +1,6 @@
 package com.zerochat.app.domain.transport
 
+import android.util.Log
 import uniffi.nym_transport.NymTransportClient
 import uniffi.nym_transport.TransportException
 import uniffi.nym_transport.RendezvousMessage as FfiRendezvousMessage
@@ -14,20 +15,33 @@ import javax.inject.Singleton
 @Singleton
 class RealNymTransport @Inject constructor() : NymTransport {
     
+    companion object {
+        private const val TAG = "RealNymTransport"
+    }
+    
     // FFI client instance - lazy init to avoid issues if native lib not loaded
     private var client: NymTransportClient? = null
+    private var myNymAddress: String? = null
     
     private fun getOrCreateClient(): NymTransportClient {
-        return client ?: NymTransportClient().also { client = it }
+        return client ?: NymTransportClient().also { 
+            client = it
+            Log.i(TAG, "Created NymTransportClient instance")
+        }
     }
     
     override suspend fun connect(gatewayUrl: String): Result<Unit> {
         return try {
-            getOrCreateClient().connect(gatewayUrl)
+            Log.i(TAG, "Attempting to connect to NYM mixnet...")
+            val address = getOrCreateClient().connect(gatewayUrl)
+            myNymAddress = address
+            Log.i(TAG, "Successfully connected! NYM Address: $address")
             Result.success(Unit)
         } catch (e: TransportException) {
+            Log.e(TAG, "Connection failed: ${e.message}", e)
             Result.failure(e)
         } catch (e: Exception) {
+            Log.e(TAG, "Unexpected error during connection: ${e.message}", e)
             Result.failure(e)
         }
     }

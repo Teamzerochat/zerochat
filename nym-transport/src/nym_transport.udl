@@ -5,6 +5,8 @@ enum TransportError {
     "NotConnected",
     "ConnectionFailed",
     "SendFailed",
+    "InvalidAddress",
+    "RuntimeError",
 };
 
 dictionary RendezvousMessage {
@@ -12,15 +14,23 @@ dictionary RendezvousMessage {
     sequence<u8> payload;
 };
 
+dictionary ConnectionInfo {
+    string my_address;
+    boolean connected;
+};
+
 interface NymTransportClient {
     constructor();
     
+    // Connect to NYM public mainnet (gateway_url ignored, uses mainnet)
     [Throws=TransportError]
-    void connect(string gateway_url);
+    string connect(string gateway_url);
     
     void disconnect();
     
     boolean is_connected();
+    
+    ConnectionInfo get_connection_info();
     
     [Throws=TransportError]
     RendezvousMessage? poll_rendezvous(string point_id);
@@ -30,4 +40,7 @@ interface NymTransportClient {
     
     [Throws=TransportError]
     void publish_at_rendezvous(string point_id, sequence<u8> my_handle);
+    
+    [Throws=TransportError]
+    RendezvousMessage? receive_message(u64 timeout_ms);
 };

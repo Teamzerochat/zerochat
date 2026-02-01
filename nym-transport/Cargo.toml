@@ -6,14 +6,31 @@ description = "NYM mixnet transport layer for ZeroChat"
 
 [lib]
 crate-type = ["cdylib", "staticlib"]
-name = "nym_transport"
+name = "uniffi_nym_transport"
 
 [dependencies]
-# UniFFI for Kotlin bindings
+# NYM SDK - connect to public mainnet (free)
+nym-sdk = "1.20"
+
+# Async runtime for NYM SDK
+tokio = { version = "1.0", features = ["rt-multi-thread", "sync", "time", "macros"] }
+
+# UniFFI for Kotlin/Android bindings
 uniffi = { version = "0.25", features = ["cli"] }
 
-# Minimal dependencies for now - NYM SDK added later
+# Error handling
 thiserror = "1.0"
+
+# Cryptography for deterministic rendezvous address
+sha2 = "0.10"
+hkdf = "0.12"
+bs58 = "0.5"
+
+# Logging
+log = "0.4"
+
+[target.'cfg(target_os = "android")'.dependencies]
+android_logger = "0.14"
 
 [build-dependencies]
 uniffi = { version = "0.25", features = ["build"] }
@@ -21,3 +38,4 @@ uniffi = { version = "0.25", features = ["build"] }
 [[bin]]
 name = "uniffi-bindgen"
 path = "uniffi-bindgen.rs"
+

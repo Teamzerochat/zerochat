@@ -4,8 +4,8 @@ import android.content.Context
 import com.zerochat.app.domain.crypto.KeyManager
 import com.zerochat.app.domain.rendezvous.RendezvousManager
 import com.zerochat.app.domain.routing.RoutingHandleManager
-import com.zerochat.app.domain.transport.MockNymTransport
 import com.zerochat.app.domain.transport.NymTransport
+import com.zerochat.app.domain.transport.RealNymTransport
 import com.zerochat.app.domain.webrtc.WebRtcConfig
 import com.zerochat.app.domain.webrtc.WebRtcManager
 import dagger.Module
@@ -31,9 +31,8 @@ object AppModule {
     @Provides
     @Singleton
     fun provideNymTransport(): NymTransport {
-        // Native lib is ready! Switch to RealNymTransport() when NYM gateway is available
-        // return RealNymTransport()  // Uncomment when gateway is set up
-        return MockNymTransport()  // Using mock for now
+        // Real NYM SDK integration enabled!
+        return RealNymTransport()
     }
     
     @Provides

@@ -47,7 +47,7 @@ open class RustBuffer : Structure() {
 
     companion object {
         internal fun alloc(size: Int = 0) = rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_nym_transport_rustbuffer_alloc(size, status)
+            _UniFFILib.INSTANCE.ffi_uniffi_nym_transport_rustbuffer_alloc(size, status)
         }.also {
             if(it.data == null) {
                throw RuntimeException("RustBuffer.alloc() returned null data pointer (size=${size})")
@@ -63,7 +63,7 @@ open class RustBuffer : Structure() {
         }
 
         internal fun free(buf: RustBuffer.ByValue) = rustCall() { status ->
-            _UniFFILib.INSTANCE.ffi_nym_transport_rustbuffer_free(buf, status)
+            _UniFFILib.INSTANCE.ffi_uniffi_nym_transport_rustbuffer_free(buf, status)
         }
     }
 
@@ -383,151 +383,159 @@ internal interface _UniFFILib : Library {
         }
     }
 
-    fun uniffi_nym_transport_fn_free_nymtransportclient(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_uniffi_nym_transport_fn_free_nymtransportclient(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_nym_transport_fn_constructor_nymtransportclient_new(_uniffi_out_err: RustCallStatus, 
+    fun uniffi_uniffi_nym_transport_fn_constructor_nymtransportclient_new(_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun uniffi_nym_transport_fn_method_nymtransportclient_connect(`ptr`: Pointer,`gatewayUrl`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_connect(`ptr`: Pointer,`gatewayUrl`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_disconnect(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_nym_transport_fn_method_nymtransportclient_disconnect(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun uniffi_nym_transport_fn_method_nymtransportclient_is_connected(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_get_connection_info(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_is_connected(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun uniffi_nym_transport_fn_method_nymtransportclient_poll_rendezvous(`ptr`: Pointer,`pointId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_poll_rendezvous(`ptr`: Pointer,`pointId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_nym_transport_fn_method_nymtransportclient_publish_at_rendezvous(`ptr`: Pointer,`pointId`: RustBuffer.ByValue,`myHandle`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_publish_at_rendezvous(`ptr`: Pointer,`pointId`: RustBuffer.ByValue,`myHandle`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_nym_transport_fn_method_nymtransportclient_send_message(`ptr`: Pointer,`handle`: RustBuffer.ByValue,`payload`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun ffi_nym_transport_rustbuffer_alloc(`size`: Int,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_receive_message(`ptr`: Pointer,`timeoutMs`: Long,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_nym_transport_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_send_message(`ptr`: Pointer,`handle`: RustBuffer.ByValue,`payload`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun ffi_uniffi_nym_transport_rustbuffer_alloc(`size`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_nym_transport_rustbuffer_free(`buf`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): Unit
-    fun ffi_nym_transport_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Int,_uniffi_out_err: RustCallStatus, 
+    fun ffi_uniffi_nym_transport_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_nym_transport_rust_future_continuation_callback_set(`callback`: UniFffiRustFutureContinuationCallbackType,
+    fun ffi_uniffi_nym_transport_rustbuffer_free(`buf`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun ffi_nym_transport_rust_future_poll_u8(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_uniffi_nym_transport_rustbuffer_reserve(`buf`: RustBuffer.ByValue,`additional`: Int,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun ffi_uniffi_nym_transport_rust_future_continuation_callback_set(`callback`: UniFffiRustFutureContinuationCallbackType,
     ): Unit
-    fun ffi_nym_transport_rust_future_cancel_u8(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_poll_u8(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
-    fun ffi_nym_transport_rust_future_free_u8(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_cancel_u8(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_complete_u8(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun ffi_uniffi_nym_transport_rust_future_free_u8(`handle`: Pointer,
+    ): Unit
+    fun ffi_uniffi_nym_transport_rust_future_complete_u8(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun ffi_nym_transport_rust_future_poll_i8(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_uniffi_nym_transport_rust_future_poll_i8(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
-    fun ffi_nym_transport_rust_future_cancel_i8(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_cancel_i8(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_free_i8(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_free_i8(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_complete_i8(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun ffi_uniffi_nym_transport_rust_future_complete_i8(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
-    fun ffi_nym_transport_rust_future_poll_u16(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_uniffi_nym_transport_rust_future_poll_u16(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
-    fun ffi_nym_transport_rust_future_cancel_u16(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_cancel_u16(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_free_u16(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_free_u16(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_complete_u16(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun ffi_uniffi_nym_transport_rust_future_complete_u16(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Short
-    fun ffi_nym_transport_rust_future_poll_i16(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_uniffi_nym_transport_rust_future_poll_i16(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
-    fun ffi_nym_transport_rust_future_cancel_i16(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_cancel_i16(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_free_i16(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_free_i16(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_complete_i16(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun ffi_uniffi_nym_transport_rust_future_complete_i16(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Short
-    fun ffi_nym_transport_rust_future_poll_u32(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_uniffi_nym_transport_rust_future_poll_u32(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
-    fun ffi_nym_transport_rust_future_cancel_u32(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_cancel_u32(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_free_u32(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_free_u32(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_complete_u32(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun ffi_uniffi_nym_transport_rust_future_complete_u32(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Int
-    fun ffi_nym_transport_rust_future_poll_i32(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_uniffi_nym_transport_rust_future_poll_i32(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
-    fun ffi_nym_transport_rust_future_cancel_i32(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_cancel_i32(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_free_i32(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_free_i32(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_complete_i32(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun ffi_uniffi_nym_transport_rust_future_complete_i32(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Int
-    fun ffi_nym_transport_rust_future_poll_u64(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_uniffi_nym_transport_rust_future_poll_u64(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
-    fun ffi_nym_transport_rust_future_cancel_u64(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_cancel_u64(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_free_u64(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_free_u64(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_complete_u64(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun ffi_uniffi_nym_transport_rust_future_complete_u64(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Long
-    fun ffi_nym_transport_rust_future_poll_i64(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_uniffi_nym_transport_rust_future_poll_i64(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
-    fun ffi_nym_transport_rust_future_cancel_i64(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_cancel_i64(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_free_i64(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_free_i64(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_complete_i64(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun ffi_uniffi_nym_transport_rust_future_complete_i64(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Long
-    fun ffi_nym_transport_rust_future_poll_f32(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_uniffi_nym_transport_rust_future_poll_f32(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
-    fun ffi_nym_transport_rust_future_cancel_f32(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_cancel_f32(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_free_f32(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_free_f32(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_complete_f32(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun ffi_uniffi_nym_transport_rust_future_complete_f32(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Float
-    fun ffi_nym_transport_rust_future_poll_f64(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_uniffi_nym_transport_rust_future_poll_f64(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
-    fun ffi_nym_transport_rust_future_cancel_f64(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_cancel_f64(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_free_f64(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_free_f64(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_complete_f64(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun ffi_uniffi_nym_transport_rust_future_complete_f64(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Double
-    fun ffi_nym_transport_rust_future_poll_pointer(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_uniffi_nym_transport_rust_future_poll_pointer(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
-    fun ffi_nym_transport_rust_future_cancel_pointer(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_cancel_pointer(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_free_pointer(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_free_pointer(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_complete_pointer(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun ffi_uniffi_nym_transport_rust_future_complete_pointer(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Pointer
-    fun ffi_nym_transport_rust_future_poll_rust_buffer(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_uniffi_nym_transport_rust_future_poll_rust_buffer(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
-    fun ffi_nym_transport_rust_future_cancel_rust_buffer(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_cancel_rust_buffer(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_free_rust_buffer(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_free_rust_buffer(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_complete_rust_buffer(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun ffi_uniffi_nym_transport_rust_future_complete_rust_buffer(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun ffi_nym_transport_rust_future_poll_void(`handle`: Pointer,`uniffiCallback`: USize,
+    fun ffi_uniffi_nym_transport_rust_future_poll_void(`handle`: Pointer,`uniffiCallback`: USize,
     ): Unit
-    fun ffi_nym_transport_rust_future_cancel_void(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_cancel_void(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_free_void(`handle`: Pointer,
+    fun ffi_uniffi_nym_transport_rust_future_free_void(`handle`: Pointer,
     ): Unit
-    fun ffi_nym_transport_rust_future_complete_void(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
+    fun ffi_uniffi_nym_transport_rust_future_complete_void(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
-    fun uniffi_nym_transport_checksum_method_nymtransportclient_connect(
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_connect(
     ): Short
-    fun uniffi_nym_transport_checksum_method_nymtransportclient_disconnect(
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_disconnect(
     ): Short
-    fun uniffi_nym_transport_checksum_method_nymtransportclient_is_connected(
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_get_connection_info(
     ): Short
-    fun uniffi_nym_transport_checksum_method_nymtransportclient_poll_rendezvous(
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_is_connected(
     ): Short
-    fun uniffi_nym_transport_checksum_method_nymtransportclient_publish_at_rendezvous(
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_poll_rendezvous(
     ): Short
-    fun uniffi_nym_transport_checksum_method_nymtransportclient_send_message(
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_publish_at_rendezvous(
     ): Short
-    fun uniffi_nym_transport_checksum_constructor_nymtransportclient_new(
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_receive_message(
     ): Short
-    fun ffi_nym_transport_uniffi_contract_version(
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_send_message(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_constructor_nymtransportclient_new(
+    ): Short
+    fun ffi_uniffi_nym_transport_uniffi_contract_version(
     ): Int
     
 }
@@ -536,7 +544,7 @@ private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
     // Get the bindings contract version from our ComponentInterface
     val bindings_contract_version = 24
     // Get the scaffolding contract version by calling the into the dylib
-    val scaffolding_contract_version = lib.ffi_nym_transport_uniffi_contract_version()
+    val scaffolding_contract_version = lib.ffi_uniffi_nym_transport_uniffi_contract_version()
     if (bindings_contract_version != scaffolding_contract_version) {
         throw RuntimeException("UniFFI contract version mismatch: try cleaning and rebuilding your project")
     }
@@ -544,25 +552,31 @@ private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
-    if (lib.uniffi_nym_transport_checksum_method_nymtransportclient_connect() != 40332.toShort()) {
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_connect() != 45052.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_transport_checksum_method_nymtransportclient_disconnect() != 1283.toShort()) {
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_disconnect() != 44289.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_transport_checksum_method_nymtransportclient_is_connected() != 63882.toShort()) {
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_get_connection_info() != 19852.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_transport_checksum_method_nymtransportclient_poll_rendezvous() != 52132.toShort()) {
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_is_connected() != 42808.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_transport_checksum_method_nymtransportclient_publish_at_rendezvous() != 52753.toShort()) {
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_poll_rendezvous() != 48853.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_transport_checksum_method_nymtransportclient_send_message() != 4866.toShort()) {
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_publish_at_rendezvous() != 47641.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_nym_transport_checksum_constructor_nymtransportclient_new() != 45237.toShort()) {
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_receive_message() != 46455.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_send_message() != 23702.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_constructor_nymtransportclient_new() != 45307.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
 }
@@ -589,6 +603,26 @@ public object FfiConverterUByte: FfiConverter<UByte, Byte> {
 
     override fun write(value: UByte, buf: ByteBuffer) {
         buf.put(value.toByte())
+    }
+}
+
+public object FfiConverterULong: FfiConverter<ULong, Long> {
+    override fun lift(value: Long): ULong {
+        return value.toULong()
+    }
+
+    override fun read(buf: ByteBuffer): ULong {
+        return lift(buf.getLong())
+    }
+
+    override fun lower(value: ULong): Long {
+        return value.toLong()
+    }
+
+    override fun allocationSize(value: ULong) = 8
+
+    override fun write(value: ULong, buf: ByteBuffer) {
+        buf.putLong(value.toLong())
     }
 }
 
@@ -831,11 +865,13 @@ abstract class FFIObject(
 
 public interface NymTransportClientInterface {
     @Throws(TransportException::class)
-    fun `connect`(`gatewayUrl`: String)
+    fun `connect`(`gatewayUrl`: String): String
     fun `disconnect`()
+    fun `getConnectionInfo`(): ConnectionInfo
     fun `isConnected`(): Boolean@Throws(TransportException::class)
     fun `pollRendezvous`(`pointId`: String): RendezvousMessage?@Throws(TransportException::class)
     fun `publishAtRendezvous`(`pointId`: String, `myHandle`: List<UByte>)@Throws(TransportException::class)
+    fun `receiveMessage`(`timeoutMs`: ULong): RendezvousMessage?@Throws(TransportException::class)
     fun `sendMessage`(`handle`: List<UByte>, `payload`: List<UByte>)
     companion object
 }
@@ -846,7 +882,7 @@ class NymTransportClient(
     constructor() :
         this(
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_nym_transport_fn_constructor_nymtransportclient_new(_status)
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_constructor_nymtransportclient_new(_status)
 })
 
     /**
@@ -859,35 +895,47 @@ class NymTransportClient(
      */
     override protected fun freeRustArcPtr() {
         rustCall() { status ->
-            _UniFFILib.INSTANCE.uniffi_nym_transport_fn_free_nymtransportclient(this.pointer, status)
+            _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_free_nymtransportclient(this.pointer, status)
         }
     }
 
     
-    @Throws(TransportException::class)override fun `connect`(`gatewayUrl`: String) =
+    @Throws(TransportException::class)override fun `connect`(`gatewayUrl`: String): String =
         callWithPointer {
     rustCallWithError(TransportException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_nym_transport_fn_method_nymtransportclient_connect(it,
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_connect(it,
         FfiConverterString.lower(`gatewayUrl`),
         _status)
 }
+        }.let {
+            FfiConverterString.lift(it)
         }
-    
     
     override fun `disconnect`() =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_nym_transport_fn_method_nymtransportclient_disconnect(it,
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_disconnect(it,
         
         _status)
 }
         }
     
     
+    override fun `getConnectionInfo`(): ConnectionInfo =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_get_connection_info(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterTypeConnectionInfo.lift(it)
+        }
+    
     override fun `isConnected`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_nym_transport_fn_method_nymtransportclient_is_connected(it,
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_is_connected(it,
         
         _status)
 }
@@ -899,7 +947,7 @@ class NymTransportClient(
     @Throws(TransportException::class)override fun `pollRendezvous`(`pointId`: String): RendezvousMessage? =
         callWithPointer {
     rustCallWithError(TransportException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_nym_transport_fn_method_nymtransportclient_poll_rendezvous(it,
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_poll_rendezvous(it,
         FfiConverterString.lower(`pointId`),
         _status)
 }
@@ -911,7 +959,7 @@ class NymTransportClient(
     @Throws(TransportException::class)override fun `publishAtRendezvous`(`pointId`: String, `myHandle`: List<UByte>) =
         callWithPointer {
     rustCallWithError(TransportException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_nym_transport_fn_method_nymtransportclient_publish_at_rendezvous(it,
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_publish_at_rendezvous(it,
         FfiConverterString.lower(`pointId`),FfiConverterSequenceUByte.lower(`myHandle`),
         _status)
 }
@@ -919,10 +967,22 @@ class NymTransportClient(
     
     
     
+    @Throws(TransportException::class)override fun `receiveMessage`(`timeoutMs`: ULong): RendezvousMessage? =
+        callWithPointer {
+    rustCallWithError(TransportException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_receive_message(it,
+        FfiConverterULong.lower(`timeoutMs`),
+        _status)
+}
+        }.let {
+            FfiConverterOptionalTypeRendezvousMessage.lift(it)
+        }
+    
+    
     @Throws(TransportException::class)override fun `sendMessage`(`handle`: List<UByte>, `payload`: List<UByte>) =
         callWithPointer {
     rustCallWithError(TransportException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_nym_transport_fn_method_nymtransportclient_send_message(it,
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_send_message(it,
         FfiConverterSequenceUByte.lower(`handle`),FfiConverterSequenceUByte.lower(`payload`),
         _status)
 }
@@ -955,6 +1015,36 @@ public object FfiConverterTypeNymTransportClient: FfiConverter<NymTransportClien
         // The Rust code always expects pointers written as 8 bytes,
         // and will fail to compile if they don't fit.
         buf.putLong(Pointer.nativeValue(lower(value)))
+    }
+}
+
+
+
+
+data class ConnectionInfo (
+    var `myAddress`: String, 
+    var `connected`: Boolean
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeConnectionInfo: FfiConverterRustBuffer<ConnectionInfo> {
+    override fun read(buf: ByteBuffer): ConnectionInfo {
+        return ConnectionInfo(
+            FfiConverterString.read(buf),
+            FfiConverterBoolean.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ConnectionInfo) = (
+            FfiConverterString.allocationSize(value.`myAddress`) +
+            FfiConverterBoolean.allocationSize(value.`connected`)
+    )
+
+    override fun write(value: ConnectionInfo, buf: ByteBuffer) {
+            FfiConverterString.write(value.`myAddress`, buf)
+            FfiConverterBoolean.write(value.`connected`, buf)
     }
 }
 
@@ -998,6 +1088,8 @@ sealed class TransportException(message: String): Exception(message) {
         class NotConnected(message: String) : TransportException(message)
         class ConnectionFailed(message: String) : TransportException(message)
         class SendFailed(message: String) : TransportException(message)
+        class InvalidAddress(message: String) : TransportException(message)
+        class RuntimeException(message: String) : TransportException(message)
         
 
     companion object ErrorHandler : CallStatusErrorHandler<TransportException> {
@@ -1012,6 +1104,8 @@ public object FfiConverterTypeTransportError : FfiConverterRustBuffer<TransportE
             1 -> TransportException.NotConnected(FfiConverterString.read(buf))
             2 -> TransportException.ConnectionFailed(FfiConverterString.read(buf))
             3 -> TransportException.SendFailed(FfiConverterString.read(buf))
+            4 -> TransportException.InvalidAddress(FfiConverterString.read(buf))
+            5 -> TransportException.RuntimeException(FfiConverterString.read(buf))
             else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
         }
         
@@ -1033,6 +1127,14 @@ public object FfiConverterTypeTransportError : FfiConverterRustBuffer<TransportE
             }
             is TransportException.SendFailed -> {
                 buf.putInt(3)
+                Unit
+            }
+            is TransportException.InvalidAddress -> {
+                buf.putInt(4)
+                Unit
+            }
+            is TransportException.RuntimeException -> {
+                buf.putInt(5)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
