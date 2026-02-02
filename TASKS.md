@@ -16,7 +16,7 @@
 - [x] Implement constant-rate polling (10s ± 2s jitter)
 - [x] Implement RoutingHandleManager (ephemeral, RAM-only)
 - [x] Document security guardrails (SECURITY_GUARDRAILS.md)
-- [/] Integrate with actual NYM mixnet (pending Phase 2)
+- [x] Integrate with actual NYM mixnet (using public mainnet via nym-sdk)
 
 ## Phase 2: Self-Hosted NYM Integration  
 - [x] Set up Rust toolchain for Android (see docs/RUST_SETUP.md)
