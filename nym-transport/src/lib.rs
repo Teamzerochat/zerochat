@@ -16,6 +16,10 @@ use tokio::sync::Mutex;
 use hkdf::Hkdf;
 use sha2::Sha256;
 
+// SPAKE2+ module for password-authenticated key exchange
+mod spake2;
+pub use spake2::{spake2_start_initiator, spake2_finish_initiator, spake2_start_responder, Spake2Error};
+
 // Using UDL-driven bindings (see build.rs)
 uniffi::include_scaffolding!("nym_transport");
 
@@ -65,6 +69,42 @@ pub struct RendezvousMessage {
 pub struct ConnectionInfo {
     pub my_address: String,
     pub connected: bool,
+}
+
+// SPAKE2+ wrapper types for UniFFI
+#[derive(Debug)]
+pub struct Spake2InitiatorHandle {
+    pub handle_id: u64,
+    pub outbound_msg: Vec<u8>,
+}
+
+#[derive(Debug)]
+pub struct Spake2ResponderResult {
+    pub outbound_msg: Vec<u8>,
+    pub shared_secret: Vec<u8>,
+}
+
+// SPAKE2+ wrapper functions for UniFFI
+pub fn spake2_start_initiator_wrapper(password: Vec<u8>) -> Result<Spake2InitiatorHandle, Spake2Error> {
+    let (handle_id, outbound_msg) = spake2::spake2_start_initiator(&password)?;
+    Ok(Spake2InitiatorHandle { handle_id, outbound_msg })
+}
+
+pub fn spake2_finish_initiator_wrapper(handle_id: u64, inbound_msg: Vec<u8>) -> Result<Vec<u8>, Spake2Error> {
+    spake2::spake2_finish_initiator(handle_id, &inbound_msg)
+}
+
+pub fn spake2_start_responder_wrapper(password: Vec<u8>, inbound_msg: Vec<u8>) -> Result<Spake2ResponderResult, Spake2Error> {
+    let (outbound_msg, shared_secret) = spake2::spake2_start_responder(&password, &inbound_msg)?;
+    Ok(Spake2ResponderResult { outbound_msg, shared_secret })
+}
+
+pub fn spake2_cleanup_state_wrapper(handle_id: u64) -> bool {
+    spake2::spake2_cleanup_state(handle_id)
+}
+
+pub fn spake2_active_count_wrapper() -> u64 {
+    spake2::spake2_active_count() as u64
 }
 
 // Object defined in UDL
@@ -165,12 +205,32 @@ impl NymTransportClient {
         })
     }
 
-    /// Poll rendezvous point (stub for now)
-    pub fn poll_rendezvous(&self, _point_id: String) -> Result<Option<RendezvousMessage>, TransportError> {
+    /// Poll rendezvous point for messages
+    /// This checks if any peer has published at the rendezvous point
+    pub fn poll_rendezvous(&self, point_id: String) -> Result<Option<RendezvousMessage>, TransportError> {
         if !self.is_connected() {
             return Err(TransportError::NotConnected);
         }
-        Ok(None)
+        
+        log::info!("Polling rendezvous point: {}", point_id);
+        
+        // Use a short timeout for polling (1 second)
+        // The Kotlin layer will handle the 10s interval with jitter
+        match self.receive_message(1000) {
+            Ok(Some(msg)) => {
+                log::info!("Found message at rendezvous ({} bytes)", msg.sender_handle.len());
+                Ok(Some(msg))
+            }
+            Ok(None) => {
+                log::debug!("No message at rendezvous");
+                Ok(None)
+            }
+            Err(e) => {
+                log::warn!("Error polling rendezvous: {}", e);
+                // Return None instead of error for polling timeouts
+                Ok(None)
+            }
+        }
     }
 
     /// Send message through mixnet

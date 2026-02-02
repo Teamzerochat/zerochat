@@ -1,0 +1,210 @@
+package com.zerochat.app.ui.screens
+
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.zerochat.app.domain.connection.ConnectionState
+import com.zerochat.app.ui.viewmodels.ConnectViewModel
+
+/**
+ * ConnectScreen - Connection initiation UI
+ * 
+ * Features:
+ * - Shared secret input with show/hide
+ * - Connect as initiator or responder
+ * - Connection status display
+ * - QR code generation/scanning (TODO)
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ConnectScreen(
+    onConnected: () -> Unit,
+    viewModel: ConnectViewModel = hiltViewModel()
+) {
+    val connectionState by viewModel.connectionState.collectAsState()
+    val sharedSecret by viewModel.sharedSecret.collectAsState()
+    
+    var secretVisible by remember { mutableStateOf(false) }
+    
+    // Navigate to chat when connected
+    LaunchedEffect(connectionState) {
+        if (connectionState is ConnectionState.Connected) {
+            onConnected()
+        }
+    }
+    
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("ZeroChat - Connect") },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Title
+            Text(
+                text = "Connect to Peer",
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(bottom = 32.dp)
+            )
+            
+            // Shared secret input
+            OutlinedTextField(
+                value = sharedSecret,
+                onValueChange = { viewModel.updateSharedSecret(it) },
+                label = { Text("Shared Secret") },
+                placeholder = { Text("Enter secret key") },
+                visualTransformation = if (secretVisible) {
+                    VisualTransformation.None
+                } else {
+                    PasswordVisualTransformation()
+                },
+                trailingIcon = {
+                    IconButton(onClick = { secretVisible = !secretVisible }) {
+                        Icon(
+                            imageVector = if (secretVisible) {
+                                Icons.Default.Visibility
+                            } else {
+                                Icons.Default.VisibilityOff
+                            },
+                            contentDescription = if (secretVisible) "Hide" else "Show"
+                        )
+                    }
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                enabled = connectionState is ConnectionState.Idle || 
+                         connectionState is ConnectionState.Failed ||
+                         connectionState is ConnectionState.Disconnected
+            )
+            
+            // Connection status
+            ConnectionStatusCard(connectionState)
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Connect buttons
+            if (connectionState is ConnectionState.Idle || 
+                connectionState is ConnectionState.Failed ||
+                connectionState is ConnectionState.Disconnected) {
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Button(
+                        onClick = { viewModel.connectAsInitiator() },
+                        modifier = Modifier.weight(1f),
+                        enabled = sharedSecret.isNotBlank()
+                    ) {
+                        Text("Connect (Initiator)")
+                    }
+                    
+                    Button(
+                        onClick = { viewModel.connectAsResponder() },
+                        modifier = Modifier.weight(1f),
+                        enabled = sharedSecret.isNotBlank()
+                    ) {
+                        Text("Connect (Responder)")
+                    }
+                }
+                
+            } else {
+                // Disconnect button
+                Button(
+                    onClick = { viewModel.disconnect() },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Disconnect")
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Help text
+            Text(
+                text = "Both peers must use the same secret key",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun ConnectionStatusCard(state: ConnectionState) {
+    val (statusText, statusColor) = when (state) {
+        is ConnectionState.Idle -> "Ready to connect" to MaterialTheme.colorScheme.onSurface
+        is ConnectionState.ConnectingToNym -> "Connecting to Nym..." to MaterialTheme.colorScheme.primary
+        is ConnectionState.DerivedRendezvous -> "Rendezvous derived" to MaterialTheme.colorScheme.primary
+        is ConnectionState.PollingRendezvous -> "Waiting for peer..." to MaterialTheme.colorScheme.primary
+        is ConnectionState.Handshaking -> "Handshaking..." to MaterialTheme.colorScheme.primary
+        is ConnectionState.ExchangingHandles -> "Exchanging handles..." to MaterialTheme.colorScheme.primary
+        is ConnectionState.EstablishingWebRTC -> "Establishing connection..." to MaterialTheme.colorScheme.primary
+        is ConnectionState.Connected -> "Connected!" to MaterialTheme.colorScheme.tertiary
+        is ConnectionState.Failed -> state.reason to MaterialTheme.colorScheme.error
+        is ConnectionState.Disconnected -> "Disconnected" to MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (state is ConnectionState.ConnectingToNym ||
+                state is ConnectionState.PollingRendezvous ||
+                state is ConnectionState.Handshaking ||
+                state is ConnectionState.ExchangingHandles ||
+                state is ConnectionState.EstablishingWebRTC) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .padding(end = 8.dp),
+                    strokeWidth = 2.dp
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+            
+            Text(
+                text = statusText,
+                style = MaterialTheme.typography.bodyLarge,
+                color = statusColor
+            )
+        }
+    }
+}

@@ -28,6 +28,10 @@ class KeyManager @Inject constructor() {
     @Volatile
     private var kek: ByteArray? = null
     
+    // Volatile: Session keys exist only during active connection
+    @Volatile
+    private var sessionKeys: SessionKeys? = null
+    
     companion object {
         // Argon2id parameters - memory-hard to resist hardware attacks
         // Using mobile-friendly settings (64MB is still strong)
@@ -234,7 +238,137 @@ class KeyManager @Inject constructor() {
             NativeLong(ARGON2_MEM_LIMIT.toLong()),
             PwHash.Alg.PWHASH_ALG_ARGON2ID13
         )
-        
         return hash
     }
+    
+    /**
+     * Derive session keys from SPAKE2+ shared secret using HKDF
+     * 
+     * @param spake2Output Shared secret from SPAKE2+ handshake
+     * @return SessionKeys containing encryption and MAC keys
+     */
+    fun deriveSessionKeys(spake2Output: ByteArray): SessionKeys {
+        // Clear any existing session keys
+        clearSessionKeys()
+        
+        // Use HKDF to derive two keys from SPAKE2+ output
+        // Salt: none (SPAKE2+ output is already high-entropy)
+        // Info: domain separation strings
+        val encryptionKey = ByteArray(KEY_LENGTH)
+        val macKey = ByteArray(KEY_LENGTH)
+        
+        // Derive encryption key
+        sodium.cryptoKdfDeriveFromKey(
+            encryptionKey,
+            KEY_LENGTH,
+            1L, // subkey ID
+            "zerochat-encrypt".toByteArray(),
+            spake2Output
+        )
+        
+        // Derive MAC key
+        sodium.cryptoKdfDeriveFromKey(
+            macKey,
+            KEY_LENGTH,
+            2L, // subkey ID
+            "zerochat-mac".toByteArray(),
+            spake2Output
+        )
+        
+        val keys = SessionKeys(encryptionKey, macKey)
+        sessionKeys = keys
+        
+        return keys
+    }
+    
+    /**
+     * Encrypt message with session key
+     * 
+     * @param plaintext Message to encrypt
+     * @return Encrypted message (nonce + ciphertext + MAC)
+     */
+    fun encryptMessage(plaintext: ByteArray): ByteArray? {
+        val keys = sessionKeys ?: return null
+        
+        return try {
+            val nonce = generateNonce()
+            val macBytes = 16  // SecretBox MAC size
+            val encrypted = ByteArray(plaintext.size + macBytes)
+            
+            val success = sodium.cryptoSecretBoxEasy(
+                encrypted,
+                plaintext,
+                plaintext.size.toLong(),
+                nonce,
+                keys.encryptionKey
+            )
+            
+            if (success) {
+                // Return nonce + encrypted (for transmission)
+                nonce + encrypted
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+    
+    /**
+     * Decrypt message with session key
+     * 
+     * @param ciphertext Encrypted message (nonce + ciphertext + MAC)
+     * @return Decrypted plaintext, or null if decryption fails
+     */
+    fun decryptMessage(ciphertext: ByteArray): ByteArray? {
+        val keys = sessionKeys ?: return null
+        
+        if (ciphertext.size < NONCE_LENGTH + 16) {
+            return null  // Too short to be valid
+        }
+        
+        return try {
+            // Extract nonce and encrypted data
+            val nonce = ciphertext.copyOfRange(0, NONCE_LENGTH)
+            val encrypted = ciphertext.copyOfRange(NONCE_LENGTH, ciphertext.size)
+            
+            val macBytes = 16
+            val plaintext = ByteArray(encrypted.size - macBytes)
+            
+            val success = sodium.cryptoSecretBoxOpenEasy(
+                plaintext,
+                encrypted,
+                encrypted.size.toLong(),
+                nonce,
+                keys.encryptionKey
+            )
+            
+            if (success) plaintext else null
+        } catch (e: Exception) {
+            null
+        }
+    }
+    
+    /**
+     * Check if session keys are available
+     */
+    fun hasSessionKeys(): Boolean = sessionKeys != null
+    
+    /**
+     * Securely clear session keys from memory
+     * Called on disconnect or session end
+     */
+    fun clearSessionKeys() {
+        sessionKeys?.let { keys ->
+            // Overwrite with zeros
+            for (i in keys.encryptionKey.indices) {
+                keys.encryptionKey[i] = 0
+            }
+            for (i in keys.macKey.indices) {
+                keys.macKey[i] = 0
+            }
+        }
+        sessionKeys = null
+    }
 }
+

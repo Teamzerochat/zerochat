@@ -1,4 +1,34 @@
-namespace nym_transport {};
+namespace nym_transport {
+    // SPAKE2+ password-authenticated key exchange
+    [Throws=Spake2Error]
+    Spake2InitiatorHandle spake2_start_initiator_wrapper(sequence<u8> password);
+    
+    [Throws=Spake2Error]
+    sequence<u8> spake2_finish_initiator_wrapper(u64 handle_id, sequence<u8> inbound_msg);
+    
+    [Throws=Spake2Error]
+    Spake2ResponderResult spake2_start_responder_wrapper(sequence<u8> password, sequence<u8> inbound_msg);
+    
+    boolean spake2_cleanup_state_wrapper(u64 handle_id);
+    
+    u64 spake2_active_count_wrapper();
+};
+
+[Error]
+enum Spake2Error {
+    "InvalidHandle",
+    "HandshakeFailed",
+};
+
+dictionary Spake2InitiatorHandle {
+    u64 handle_id;
+    sequence<u8> outbound_msg;
+};
+
+dictionary Spake2ResponderResult {
+    sequence<u8> outbound_msg;
+    sequence<u8> shared_secret;
+};
 
 [Error]
 enum TransportError {

@@ -1,1 +1,1 @@
-cargo:rustc-env=MIME_TYPES_GENERATED_PATH=C:\Users\hp\StudioProjects\zerochat\nym-transport\target\debug\build\mime_guess-a76b31b5cc15b15f\out\mime_types_generated.rs
+cargo:rustc-env=MIME_TYPES_GENERATED_PATH=C:\Users\savag\Downloads\WEBRTC\zerochat\nym-transport\target\debug\build\mime_guess-a76b31b5cc15b15f\out\mime_types_generated.rs

@@ -78,6 +78,16 @@ class RoutingHandleManager @Inject constructor() {
     }
     
     /**
+     * Rotate my handle with a specific new handle
+     * Used after message is successfully sent
+     */
+    fun rotateMyHandle(newHandle: ByteArray) {
+        secureWipe(myCurrentHandle)
+        myCurrentHandle = myNextHandle
+        myNextHandle = newHandle.copyOf()
+    }
+    
+    /**
      * Update peer's handle (from received message)
      */
     fun updatePeerHandle(newHandle: ByteArray) {

@@ -1,7 +1,9 @@
 package com.zerochat.app
 
 import android.app.Application
+import com.zerochat.app.lifecycle.AppLifecycleObserver
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
 /**
  * ZeroChat Application - Journalist-Grade Anonymous Messaging
@@ -11,15 +13,22 @@ import dagger.hilt.android.HiltAndroidApp
  * - Volatile KEK in RAM only
  * - SQLCipher encrypted database
  * - Session-scoped encryption (no persistent ratchet)
+ * - Handle wiping on background/lock (RH-03, RH-04)
  */
 @HiltAndroidApp
 class ZeroChatApplication : Application() {
+    
+    @Inject
+    lateinit var lifecycleObserver: AppLifecycleObserver
     
     override fun onCreate() {
         super.onCreate()
         
         // Initialize Lazysodium (libsodium)
         initializeCrypto()
+        
+        // Register lifecycle callbacks for security guardrails
+        registerActivityLifecycleCallbacks(lifecycleObserver)
     }
     
     private fun initializeCrypto() {
@@ -32,8 +41,13 @@ class ZeroChatApplication : Application() {
         
         // Critical: Wipe sensitive data when app goes to background
         if (level >= TRIM_MEMORY_UI_HIDDEN) {
-            // Signal to security manager to clear volatile keys
-            // This will be implemented in KeyManager
+            // Lifecycle observer handles this via background timer
         }
     }
+    
+    override fun onTerminate() {
+        super.onTerminate()
+        lifecycleObserver.cleanup()
+    }
 }
+
