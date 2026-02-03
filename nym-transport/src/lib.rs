@@ -203,6 +203,7 @@ impl NymTransportClient {
 
     /// Poll rendezvous point for messages
     /// This checks if any peer has published at the shared rendezvous mailbox
+    /// Note: Returns ONE message at a time. Call repeatedly to get all messages.
     pub fn poll_rendezvous(&self, point_id: String) -> Result<Option<RendezvousMessage>, TransportError> {
         if !self.is_connected() {
             return Err(TransportError::NotConnected);
@@ -211,6 +212,9 @@ impl NymTransportClient {
         log::info!("Polling rendezvous point: {}", point_id);
         
         let state = self.state.clone();
+        // Get our own address to potentially filter self-messages
+        let my_address = self.get_address();
+        
         self.runtime.block_on(async move {
             let st = state.lock().await;
             
@@ -224,31 +228,47 @@ impl NymTransportClient {
                 match tokio::time::timeout(timeout_duration, client.wait_for_messages()).await {
                     Ok(Some(messages)) => {
                         let msgs: Vec<ReconstructedMessage> = messages;
-                        if let Some(first_msg) = msgs.into_iter().next() {
-                            log::info!("Found message at rendezvous ({} bytes)", first_msg.message.len());
+                        log::info!("Found {} message(s) at rendezvous", msgs.len());
+                        
+                        // Iterate through ALL messages and find one that's NOT from us
+                        for msg in msgs {
+                            log::info!("Processing message ({} bytes)", msg.message.len());
                             
                             // Parse message: <peer_address>\0<handle>
-                            // The peer's main NYM address is in sender_handle
-                            // The routing handle is in payload
-                            if let Some(null_pos) = first_msg.message.iter().position(|&b| b == 0) {
-                                let peer_address = first_msg.message[..null_pos].to_vec();
-                                let routing_handle = first_msg.message[null_pos + 1..].to_vec();
+                            if let Some(null_pos) = msg.message.iter().position(|&b| b == 0) {
+                                let peer_address = msg.message[..null_pos].to_vec();
+                                let routing_handle = msg.message[null_pos + 1..].to_vec();
                                 
-                                log::info!("Parsed peer address ({} bytes) and handle ({} bytes)", 
-                                    peer_address.len(), routing_handle.len());
+                                let peer_addr_str = String::from_utf8_lossy(&peer_address);
+                                log::info!("Parsed peer: {}... ({} bytes), handle: {} bytes", 
+                                    &peer_addr_str.chars().take(30).collect::<String>(),
+                                    peer_address.len(), 
+                                    routing_handle.len());
                                 
+                                // Check if this is our own message
+                                if let Some(ref my_addr) = my_address {
+                                    if peer_addr_str == *my_addr {
+                                        log::info!("Skipping own message (Rust-side filter)");
+                                        continue; // Skip our own message
+                                    }
+                                }
+                                
+                                log::info!("Found PEER message! Returning...");
                                 return Ok(Some(RendezvousMessage {
                                     sender_handle: peer_address, // Peer's main NYM address
                                     payload: routing_handle,     // Routing handle for handshake
                                 }));
                             } else {
                                 // Fallback: treat entire message as handle
+                                log::warn!("Message has no null separator, treating as raw handle");
                                 return Ok(Some(RendezvousMessage {
-                                    sender_handle: first_msg.message.clone(),
-                                    payload: first_msg.message,
+                                    sender_handle: msg.message.clone(),
+                                    payload: msg.message,
                                 }));
                             }
                         }
+                        
+                        log::info!("All messages were our own, returning None");
                     }
                     Ok(None) => {
                         log::debug!("No messages at rendezvous");

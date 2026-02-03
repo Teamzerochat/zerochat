@@ -123,6 +123,11 @@ class RendezvousManager @Inject constructor(
     fun pollRendezvous(rendezvous: RendezvousPoint): Flow<PollResult> = flow {
         var attempts = 0
         
+        // Get our own address to filter self-messages
+        val myAddress = transport.getMyAddress()
+        val myAddressStr = myAddress?.toString(Charsets.UTF_8) ?: "null"
+        android.util.Log.i("RendezvousManager", "My address for filtering: ${myAddressStr.take(30)}... (${myAddress?.size ?: 0} bytes)")
+        
         while (attempts < MAX_POLL_ATTEMPTS && isValid(rendezvous)) {
             emit(PollResult.Polling(attempts + 1, MAX_POLL_ATTEMPTS))
             
@@ -130,9 +135,30 @@ class RendezvousManager @Inject constructor(
             val response = transport.pollRendezvous(rendezvous.id)
             
             if (response != null) {
+                val senderAddressStr = response.senderHandle.toString(Charsets.UTF_8)
+                android.util.Log.i("RendezvousManager", "Received message - sender: ${senderAddressStr.take(30)}... (${response.senderHandle.size} bytes)")
+                android.util.Log.i("RendezvousManager", "Payload size: ${response.payload.size} bytes")
+                
+                // Filter out our own messages (senderHandle is NYM address as bytes)
+                val isOwnMessage = myAddress != null && response.senderHandle.contentEquals(myAddress)
+                android.util.Log.i("RendezvousManager", "Is own message: $isOwnMessage")
+                
+                if (isOwnMessage) {
+                    android.util.Log.i("RendezvousManager", "Skipping own message, continuing poll...")
+                    // Skip our own message, continue polling
+                    attempts++
+                    val jitter = Random.nextLong(-POLL_JITTER_MS, POLL_JITTER_MS)
+                    delay(POLL_INTERVAL_MS + jitter)
+                    continue
+                }
+                
+                android.util.Log.i("RendezvousManager", "Found PEER! Payload: ${response.payload.size} bytes")
                 markConsumed(rendezvous)
-                emit(PollResult.Found(response.senderHandle))
+                // Use payload (actual 32-byte handle), not senderHandle (NYM address)
+                emit(PollResult.Found(response.payload))
                 return@flow
+            } else {
+                android.util.Log.d("RendezvousManager", "No message at rendezvous on attempt ${attempts + 1}")
             }
             
             // Constant interval + jitter (PL-01)
