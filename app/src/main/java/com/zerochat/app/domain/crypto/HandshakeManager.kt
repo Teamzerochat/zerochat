@@ -159,8 +159,7 @@ class HandshakeManager @Inject constructor(
      * Clear all handshake state
      */
     fun clearState() {
-        secureWipe(initiatorState)
-        initiatorState = null
+        cleanup()
     }
     
     /**

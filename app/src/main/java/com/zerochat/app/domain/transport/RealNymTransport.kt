@@ -102,4 +102,26 @@ class RealNymTransport @Inject constructor() : NymTransport {
             Result.failure(e)
         }
     }
+    
+    override suspend fun receiveMessage(timeoutMs: Long): NymMessage? {
+        return try {
+            val ffiMsg = getOrCreateClient().receiveMessage(timeoutMs.toULong())
+            ffiMsg?.let {
+                NymMessage(
+                    senderAddress = it.senderHandle.map { b -> b.toByte() }.toByteArray(),
+                    payload = it.payload.map { b -> b.toByte() }.toByteArray()
+                )
+            }
+        } catch (e: TransportException) {
+            Log.w(TAG, "Receive error: ${e.message}")
+            null
+        } catch (e: Exception) {
+            Log.w(TAG, "Receive error: ${e.message}")
+            null
+        }
+    }
+    
+    override fun getMyAddress(): ByteArray? {
+        return myNymAddress?.toByteArray(Charsets.UTF_8)
+    }
 }

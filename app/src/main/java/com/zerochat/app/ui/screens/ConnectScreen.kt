@@ -2,9 +2,6 @@ package com.zerochat.app.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -81,15 +78,8 @@ fun ConnectScreen(
                     PasswordVisualTransformation()
                 },
                 trailingIcon = {
-                    IconButton(onClick = { secretVisible = !secretVisible }) {
-                        Icon(
-                            imageVector = if (secretVisible) {
-                                Icons.Default.Visibility
-                            } else {
-                                Icons.Default.VisibilityOff
-                            },
-                            contentDescription = if (secretVisible) "Hide" else "Show"
-                        )
+                    TextButton(onClick = { secretVisible = !secretVisible }) {
+                        Text(if (secretVisible) "Hide" else "Show")
                     }
                 },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),

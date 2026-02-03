@@ -1,1 +1,1 @@
-C:\Users\hp\StudioProjects\zerochat\nym-transport\target\debug\uniffi-bindgen.exe: C:\Users\hp\StudioProjects\zerochat\nym-transport\uniffi-bindgen.rs
+C:\Users\hp\StudioProjects\zerochat\nym-transport\target\debug\uniffi-bindgen.exe: C:\Users\hp\StudioProjects\zerochat\nym-transport\build.rs C:\Users\hp\StudioProjects\zerochat\nym-transport\src/nym_transport.udl C:\Users\hp\StudioProjects\zerochat\nym-transport\uniffi-bindgen.rs

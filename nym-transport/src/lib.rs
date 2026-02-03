@@ -2,12 +2,14 @@
 //!
 //! Connects to NYM public mainnet using nym-sdk.
 //! Uses ephemeral keys (no disk storage) for zero-trust compliance.
+//! Shared rendezvous mailboxes via deterministic keypair derivation.
 
 #![allow(unused)]
 #![allow(warnings)]
 
 use nym_sdk::mixnet::{MixnetClient, MixnetClientBuilder, Recipient, ReconstructedMessage, AnonymousSenderTag};
 use nym_sdk::mixnet::MixnetMessageSender;
+use nym_crypto::hkdf::DerivationMaterial;
 use std::sync::Arc;
 use std::time::Duration;
 use thiserror::Error;
@@ -23,25 +25,15 @@ pub use spake2::{spake2_start_initiator, spake2_finish_initiator, spake2_start_r
 // Using UDL-driven bindings (see build.rs)
 uniffi::include_scaffolding!("nym_transport");
 
-/// Derive a deterministic NYM Recipient address from rendezvous ID  
-/// Both peers with the same rendezvous ID derive the same address
-fn derive_rendezvous_recipient(rendezvous_id: &str) -> Result<Recipient, TransportError> {
-    log::info!("Deriving rendezvous recipient from ID: {}", rendezvous_id);
+/// Derive deterministic keypair material from rendezvous ID
+/// Both peers with the same rendezvous ID will derive identical NYM addresses
+fn derive_rendezvous_material(rendezvous_id: &str) -> DerivationMaterial {
+    log::info!("Deriving rendezvous keypair material from ID: {}", rendezvous_id);
     let hkdf = Hkdf::<Sha256>::new(None, rendezvous_id.as_bytes());
-    let mut derived_bytes = [0u8; 32];
-    hkdf.expand(b"nym-rendezvous-address-v1", &mut derived_bytes)
-        .map_err(|e| TransportError::RuntimeError {
-            reason: format!("HKDF expansion failed: {}", e),
-        })?;
-    let base58_address = bs58::encode(&derived_bytes).into_string();
-    log::info!("Derived base58 address: {}", base58_address);
-    Recipient::try_from_base58_string(&base58_address)
-        .map_err(|e| {
-            log::error!("Failed to create Recipient: {}", e);
-            TransportError::InvalidAddress {
-                reason: format!("Invalid derived address: {}", e),
-            }
-        })
+    let mut seed = [0u8; 32];
+    hkdf.expand(b"nym-rendezvous-keypair-v1", &mut seed)
+        .expect("HKDF expansion should not fail");
+    DerivationMaterial::new(seed, 0, b"zerochat-rendezvous-v1")
 }
 
 /// Transport errors
@@ -115,8 +107,12 @@ pub struct NymTransportClient {
 
 #[derive(Default)]
 struct ClientState {
+    /// Main client with unique ephemeral keys for direct messaging
     client: Option<Arc<Mutex<MixnetClient>>>,
     my_address: Option<String>,
+    /// Rendezvous client with derived keypair - shared mailbox for peer discovery
+    rendezvous_client: Option<Arc<Mutex<MixnetClient>>>,
+    rendezvous_address: Option<String>,
 }
 
 impl NymTransportClient {
@@ -206,7 +202,7 @@ impl NymTransportClient {
     }
 
     /// Poll rendezvous point for messages
-    /// This checks if any peer has published at the rendezvous point
+    /// This checks if any peer has published at the shared rendezvous mailbox
     pub fn poll_rendezvous(&self, point_id: String) -> Result<Option<RendezvousMessage>, TransportError> {
         if !self.is_connected() {
             return Err(TransportError::NotConnected);
@@ -214,23 +210,60 @@ impl NymTransportClient {
         
         log::info!("Polling rendezvous point: {}", point_id);
         
-        // Use a short timeout for polling (1 second)
-        // The Kotlin layer will handle the 10s interval with jitter
-        match self.receive_message(1000) {
-            Ok(Some(msg)) => {
-                log::info!("Found message at rendezvous ({} bytes)", msg.sender_handle.len());
-                Ok(Some(msg))
-            }
-            Ok(None) => {
-                log::debug!("No message at rendezvous");
+        let state = self.state.clone();
+        self.runtime.block_on(async move {
+            let st = state.lock().await;
+            
+            // Check if we have a rendezvous client connected
+            if let Some(rvz_client) = &st.rendezvous_client {
+                let mut client = rvz_client.lock().await;
+                
+                // Poll with 1 second timeout
+                let timeout_duration = std::time::Duration::from_millis(1000);
+                
+                match tokio::time::timeout(timeout_duration, client.wait_for_messages()).await {
+                    Ok(Some(messages)) => {
+                        let msgs: Vec<ReconstructedMessage> = messages;
+                        if let Some(first_msg) = msgs.into_iter().next() {
+                            log::info!("Found message at rendezvous ({} bytes)", first_msg.message.len());
+                            
+                            // Parse message: <peer_address>\0<handle>
+                            // The peer's main NYM address is in sender_handle
+                            // The routing handle is in payload
+                            if let Some(null_pos) = first_msg.message.iter().position(|&b| b == 0) {
+                                let peer_address = first_msg.message[..null_pos].to_vec();
+                                let routing_handle = first_msg.message[null_pos + 1..].to_vec();
+                                
+                                log::info!("Parsed peer address ({} bytes) and handle ({} bytes)", 
+                                    peer_address.len(), routing_handle.len());
+                                
+                                return Ok(Some(RendezvousMessage {
+                                    sender_handle: peer_address, // Peer's main NYM address
+                                    payload: routing_handle,     // Routing handle for handshake
+                                }));
+                            } else {
+                                // Fallback: treat entire message as handle
+                                return Ok(Some(RendezvousMessage {
+                                    sender_handle: first_msg.message.clone(),
+                                    payload: first_msg.message,
+                                }));
+                            }
+                        }
+                    }
+                    Ok(None) => {
+                        log::debug!("No messages at rendezvous");
+                    }
+                    Err(_) => {
+                        log::debug!("Rendezvous poll timeout");
+                    }
+                }
+                
+                Ok(None)
+            } else {
+                log::warn!("No rendezvous client - call publish_at_rendezvous first");
                 Ok(None)
             }
-            Err(e) => {
-                log::warn!("Error polling rendezvous: {}", e);
-                // Return None instead of error for polling timeouts
-                Ok(None)
-            }
-        }
+        })
     }
 
     /// Send message through mixnet
@@ -270,33 +303,88 @@ impl NymTransportClient {
         })
     }
 
-    /// Publish at rendezvous - sends your routing handle to the rendezvous point
+    /// Publish at rendezvous - creates shared mailbox using derived keypair
+    /// 
+    /// Both peers with the same rendezvous ID (derived from shared secret) will:
+    /// 1. Derive the same deterministic keypair
+    /// 2. Connect to NYM with that keypair, getting the same address
+    /// 3. Send their routing handle to that shared address
+    /// 4. Poll for peer's handle at poll_rendezvous
     pub fn publish_at_rendezvous(&self, point_id: String, my_handle: Vec<u8>) -> Result<(), TransportError> {
-        self.runtime.block_on(async {
-            let state = self.state.lock().await;
+        if !self.is_connected() {
+            return Err(TransportError::NotConnected);
+        }
+        
+        log::info!("Creating shared rendezvous mailbox for point: {} (handle: {} bytes)", 
+            point_id, my_handle.len());
+        
+        let state = self.state.clone();
+        self.runtime.block_on(async move {
+            let mut st = state.lock().await;
             
-            if let Some(client) = &state.client {
-                // Derive a deterministic NYM address from the rendezvous point ID
-                // Both peers with the same rendezvous ID will derive the same address
-                // This creates a shared ephemeral mailbox
-                let rendezvous_address = derive_rendezvous_recipient(&point_id)?;
-                let mut client_guard = client.lock().await;
+            // Create rendezvous client with derived keypair if not already connected
+            if st.rendezvous_client.is_none() {
+                log::info!("Connecting rendezvous client with derived keypair...");
                 
-                log::info!("Publishing handle ({} bytes) at rendezvous: {}", my_handle.len(), point_id);
+                // Derive deterministic keypair from rendezvous point ID
+                let derivation_material = derive_rendezvous_material(&point_id);
                 
-                // Send the handle through the mixnet
-                client_guard
-                    .send_plain_message(rendezvous_address, my_handle.clone())
-                    .await
-                    .map_err(|e| TransportError::SendFailed {
-                        reason: format!("Failed to publish at rendezvous: {}", e),
+                // Build client with derived keys - both peers get the same address
+                let disconnected_client = MixnetClientBuilder::new_ephemeral()
+                    .with_derivation_material(derivation_material)
+                    .build()
+                    .map_err(|e| {
+                        log::error!("Rendezvous client build failed: {}", e);
+                        TransportError::ConnectionFailed {
+                            reason: format!("Rendezvous setup failed: {}", e),
+                        }
                     })?;
                 
-                log::info!("Handle published successfully");
-                Ok(())
-            } else {
-                Err(TransportError::NotConnected)
+                let client = disconnected_client
+                    .connect_to_mixnet()
+                    .await
+                    .map_err(|e| {
+                        log::error!("Rendezvous connection failed: {}", e);
+                        TransportError::ConnectionFailed {
+                            reason: format!("Rendezvous connection failed: {}", e),
+                        }
+                    })?;
+                
+                let rendezvous_address = client.nym_address().to_string();
+                log::info!("Rendezvous connected! Shared address: {}", rendezvous_address);
+                
+                st.rendezvous_client = Some(Arc::new(Mutex::new(client)));
+                st.rendezvous_address = Some(rendezvous_address);
             }
+            
+            // Send our handle to the shared rendezvous address
+            if let (Some(rvz_client), Some(rvz_addr)) = (&st.rendezvous_client, &st.rendezvous_address) {
+                let mut client = rvz_client.lock().await;
+                
+                // Include our main address in the handle so peer can message us directly
+                let main_address = st.my_address.clone().unwrap_or_default();
+                let mut message = main_address.as_bytes().to_vec();
+                message.push(0); // Null separator
+                message.extend(my_handle);
+                
+                let recipient = Recipient::try_from_base58_string(rvz_addr)
+                    .map_err(|e| TransportError::InvalidAddress {
+                        reason: format!("Invalid rendezvous address: {}", e),
+                    })?;
+                
+                client.send_plain_message(recipient, message)
+                    .await
+                    .map_err(|e| {
+                        log::error!("Rendezvous publish failed: {}", e);
+                        TransportError::SendFailed {
+                            reason: format!("Failed to publish at rendezvous: {}", e),
+                        }
+                    })?;
+                
+                log::info!("Handle published to shared rendezvous mailbox");
+            }
+            
+            Ok(())
         })
     }
 

@@ -16,14 +16,17 @@
 - [x] Implement constant-rate polling (10s ± 2s jitter)
 - [x] Implement RoutingHandleManager (ephemeral, RAM-only)
 - [x] Document security guardrails (SECURITY_GUARDRAILS.md)
-- [x] Integrate with actual NYM mixnet (using public mainnet via nym-sdk)
+- [x] Integrate with actual NYM mixnet (completed in Phase 2)
 
-## Phase 2: Self-Hosted NYM Integration  
+## Phase 2: NYM Public Mixnet Integration  
 - [x] Set up Rust toolchain for Android (see docs/RUST_SETUP.md)
 - [x] Create NYM UniFFI Rust bindings (nym-transport/)
 - [x] Build native libs (cargo ndk) - arm64-v8a, armeabi-v7a, x86_64
 - [x] Transport abstraction layer (NymTransport interface)
 - [x] Hook rendezvous polling to NYM
+- [x] Real NYM SDK 1.20.4 with public mainnet (ephemeral keys)
+- [x] Full MixnetClient: connect, send, receive, rendezvous
+- [x] UniFFI rebuild completed
 
 ## Phase 3: Relay-Only WebRTC
 - [x] Configure WebRTC in relay-only mode

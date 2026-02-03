@@ -1,1 +1,1 @@
-C:\Users\hp\StudioProjects\zerochat\nym-transport\target\x86_64-linux-android\release\uniffi-bindgen: C:\Users\hp\StudioProjects\zerochat\nym-transport\uniffi-bindgen.rs
+C:\Users\hp\StudioProjects\zerochat\nym-transport\target\x86_64-linux-android\release\uniffi-bindgen: C:\Users\hp\StudioProjects\zerochat\nym-transport\build.rs C:\Users\hp\StudioProjects\zerochat\nym-transport\src/nym_transport.udl C:\Users\hp\StudioProjects\zerochat\nym-transport\uniffi-bindgen.rs

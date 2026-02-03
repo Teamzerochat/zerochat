@@ -65,13 +65,20 @@ class MockNymTransport @Inject constructor() : NymTransport {
             return Result.failure(IllegalStateException("Not connected"))
         }
         
-        if (handle.size != 32) {
-            return Result.failure(IllegalArgumentException("Invalid handle length"))
-        }
-        
         // Mock: Message "sent" successfully
         // Real implementation would route through NYM
         return Result.success(Unit)
+    }
+    
+    override suspend fun receiveMessage(timeoutMs: Long): NymMessage? {
+        if (!connected) return null
+        // Mock: No messages in test mode
+        delay(timeoutMs.coerceAtMost(100))
+        return null
+    }
+    
+    override fun getMyAddress(): ByteArray? {
+        return if (connected) "mock-nym-address".toByteArray() else null
     }
     
     /**

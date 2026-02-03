@@ -11,6 +11,8 @@ name = "uniffi_nym_transport"
 [dependencies]
 # NYM SDK - connect to public mainnet (free)
 nym-sdk = "1.20"
+# NYM crypto - for DerivationMaterial (deterministic keypairs)
+nym-crypto = "1.20"
 
 
 

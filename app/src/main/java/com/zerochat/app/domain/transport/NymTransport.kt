@@ -45,10 +45,22 @@ interface NymTransport {
     
     /**
      * Send encrypted message to a routing handle
-     * @param handle Peer's routing handle
+     * @param handle Peer's routing handle (NYM address as bytes)
      * @param payload Encrypted message data
      */
     suspend fun sendMessage(handle: ByteArray, payload: ByteArray): Result<Unit>
+    
+    /**
+     * Receive pending messages from NYM mixnet
+     * @param timeoutMs Timeout in milliseconds
+     * @return Received message or null if timeout
+     */
+    suspend fun receiveMessage(timeoutMs: Long): NymMessage?
+    
+    /**
+     * Get our NYM address for receiving messages
+     */
+    fun getMyAddress(): ByteArray?
 }
 
 /**
@@ -68,6 +80,28 @@ data class RendezvousResponse(
 
     override fun hashCode(): Int {
         var result = senderHandle.contentHashCode()
+        result = 31 * result + payload.contentHashCode()
+        return result
+    }
+}
+
+/**
+ * Message received from NYM mixnet
+ */
+data class NymMessage(
+    val senderAddress: ByteArray,
+    val payload: ByteArray
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        other as NymMessage
+        return senderAddress.contentEquals(other.senderAddress) && 
+               payload.contentEquals(other.payload)
+    }
+
+    override fun hashCode(): Int {
+        var result = senderAddress.contentHashCode()
         result = 31 * result + payload.contentHashCode()
         return result
     }

@@ -6,7 +6,9 @@ import com.zerochat.app.domain.rendezvous.PollResult
 import com.zerochat.app.domain.rendezvous.RendezvousManager
 import com.zerochat.app.domain.routing.RoutingHandleManager
 import com.zerochat.app.domain.transport.NymTransport
+import com.zerochat.app.domain.webrtc.SignalingProtocol
 import com.zerochat.app.domain.webrtc.WebRtcManager
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import org.webrtc.IceCandidate
@@ -38,6 +40,80 @@ class ConnectionManager @Inject constructor(
     
     companion object {
         private const val TAG = "ConnectionManager"
+        private const val SIGNALING_RECEIVE_TIMEOUT_MS = 1000L
+    }
+    
+    // Coroutine scope for signaling operations
+    private val signalingScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    
+    // Peer's NYM address for sending signaling messages
+    @Volatile
+    private var peerNymAddress: ByteArray? = null
+    
+    /**
+     * Send signaling message to peer through NYM
+     */
+    private suspend fun sendSignalingMessage(data: ByteArray) {
+        val peerAddr = peerNymAddress
+        if (peerAddr == null) {
+            Log.w(TAG, "Cannot send signaling - no peer address")
+            return
+        }
+        
+        val result = nymTransport.sendMessage(peerAddr, data)
+        if (result.isFailure) {
+            Log.e(TAG, "Failed to send signaling: ${result.exceptionOrNull()?.message}")
+        } else {
+            Log.i(TAG, "Signaling message sent (${data.size} bytes)")
+        }
+    }
+    
+    /**
+     * Start receive loop for signaling messages
+     */
+    private fun startSignalingReceiveLoop() {
+        signalingScope.launch {
+            Log.i(TAG, "Starting signaling receive loop")
+            while (isActive) {
+                try {
+                    val msg = nymTransport.receiveMessage(SIGNALING_RECEIVE_TIMEOUT_MS)
+                    if (msg != null) {
+                        handleSignalingMessage(msg.payload)
+                    }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Signaling receive error: ${e.message}")
+                }
+            }
+        }
+    }
+    
+    /**
+     * Handle incoming signaling message
+     */
+    private fun handleSignalingMessage(data: ByteArray) {
+        when (SignalingProtocol.getMessageType(data)) {
+            SignalingProtocol.TYPE_SDP_OFFER, SignalingProtocol.TYPE_SDP_ANSWER -> {
+                val sdp = SignalingProtocol.deserializeSdp(data)
+                if (sdp != null) {
+                    Log.i(TAG, "Received remote SDP: ${sdp.type}")
+                    webRtcManager.setRemoteSdp(sdp)
+                    // If we received an offer, create answer
+                    if (sdp.type == SessionDescription.Type.OFFER) {
+                        webRtcManager.createAnswer()
+                    }
+                }
+            }
+            SignalingProtocol.TYPE_ICE_CANDIDATE -> {
+                val candidate = SignalingProtocol.deserializeIceCandidate(data)
+                if (candidate != null) {
+                    Log.i(TAG, "Received ICE candidate: ${candidate.sdpMid}")
+                    webRtcManager.addIceCandidate(candidate)
+                }
+            }
+            else -> {
+                Log.w(TAG, "Unknown signaling message type")
+            }
+        }
     }
     
     /**
@@ -141,12 +217,12 @@ class ConnectionManager @Inject constructor(
                     return@flow
                 }
             
-            // Poll for peer's handle
-            var peerHandle: ByteArray? = null
+            // Poll for peer's handle (this is actually peer's NYM address)
+            var peerAddr: ByteArray? = null
             rendezvousManager.pollRendezvous(rendezvous).collect { pollResult ->
                 when (pollResult) {
                     is PollResult.Found -> {
-                        peerHandle = pollResult.peerHandle
+                        peerAddr = pollResult.peerHandle
                     }
                     is PollResult.Timeout, is PollResult.Expired -> {
                         emit(ConnectionState.Failed("Handle exchange failed"))
@@ -156,13 +232,15 @@ class ConnectionManager @Inject constructor(
                 }
             }
             
-            if (peerHandle == null) {
+            if (peerAddr == null) {
                 emit(ConnectionState.Failed("Handle exchange failed"))
                 return@flow
             }
             
-            routingHandleManager.setPeerHandle(peerHandle!!)
-            Log.i(TAG, "Routing handles exchanged")
+            // Store peer's NYM address for signaling
+            peerNymAddress = peerAddr
+            routingHandleManager.setPeerHandle(peerAddr!!)
+            Log.i(TAG, "Peer NYM address received (${peerAddr!!.size} bytes)")
             
             // Phase 7: Establish WebRTC connection
             emit(ConnectionState.EstablishingWebRTC)
@@ -171,25 +249,31 @@ class ConnectionManager @Inject constructor(
             webRtcManager.initialize(turnServerUrl, turnUsername, turnPassword)
             webRtcManager.createDataChannel()
             
+            // Start receiving signaling messages from peer
+            startSignalingReceiveLoop()
+            
             // Set up callbacks for WebRTC signaling through Nym
             webRtcManager.onLocalSdp = { sdp ->
-                // TODO: Send SDP through Nym transport to peer handle
                 Log.i(TAG, "Local SDP created: ${sdp.type}")
+                val serialized = SignalingProtocol.serializeSdp(sdp)
+                signalingScope.launch {
+                    sendSignalingMessage(serialized)
+                }
             }
             
             webRtcManager.onIceCandidate = { candidate ->
-                // TODO: Send ICE candidate through Nym transport
-                Log.i(TAG, "ICE candidate: ${candidate.sdp}")
+                Log.i(TAG, "ICE candidate: ${candidate.sdpMid}")
+                val serialized = SignalingProtocol.serializeIceCandidate(candidate)
+                signalingScope.launch {
+                    sendSignalingMessage(serialized)
+                }
             }
             
             webRtcManager.onIceConnectionChange = { state ->
                 Log.i(TAG, "ICE connection state: $state")
-                if (state == org.webrtc.PeerConnection.IceConnectionState.CONNECTED) {
-                    // TODO: Emit Connected state
-                }
             }
             
-            // Create offer
+            // Create offer (initiator)
             webRtcManager.createOffer()
             
             emit(ConnectionState.Connected)
@@ -292,11 +376,11 @@ class ConnectionManager @Inject constructor(
                     return@flow
                 }
             
-            var peerHandle: ByteArray? = null
+            var peerAddr: ByteArray? = null
             rendezvousManager.pollRendezvous(rendezvous).collect { pollResult ->
                 when (pollResult) {
                     is PollResult.Found -> {
-                        peerHandle = pollResult.peerHandle
+                        peerAddr = pollResult.peerHandle
                     }
                     is PollResult.Timeout, is PollResult.Expired -> {
                         emit(ConnectionState.Failed("Handle exchange failed"))
@@ -306,22 +390,46 @@ class ConnectionManager @Inject constructor(
                 }
             }
             
-            if (peerHandle == null) {
+            if (peerAddr == null) {
                 emit(ConnectionState.Failed("Handle exchange failed"))
                 return@flow
             }
             
-            routingHandleManager.setPeerHandle(peerHandle!!)
-            Log.i(TAG, "Routing handles exchanged")
+            // Store peer's NYM address for signaling
+            peerNymAddress = peerAddr
+            routingHandleManager.setPeerHandle(peerAddr!!)
+            Log.i(TAG, "Peer NYM address received (${peerAddr!!.size} bytes)")
             
             // Phase 6: Establish WebRTC connection
             emit(ConnectionState.EstablishingWebRTC)
             
             webRtcManager.initialize(turnServerUrl, turnUsername, turnPassword)
             
-            // Wait for peer's offer and create answer
-            // TODO: Implement WebRTC signaling through Nym
+            // Start receiving signaling messages (will receive peer's offer)
+            startSignalingReceiveLoop()
             
+            // Set up callbacks for WebRTC signaling through Nym
+            webRtcManager.onLocalSdp = { sdp ->
+                Log.i(TAG, "Local SDP created: ${sdp.type}")
+                val serialized = SignalingProtocol.serializeSdp(sdp)
+                signalingScope.launch {
+                    sendSignalingMessage(serialized)
+                }
+            }
+            
+            webRtcManager.onIceCandidate = { candidate ->
+                Log.i(TAG, "ICE candidate: ${candidate.sdpMid}")
+                val serialized = SignalingProtocol.serializeIceCandidate(candidate)
+                signalingScope.launch {
+                    sendSignalingMessage(serialized)
+                }
+            }
+            
+            webRtcManager.onIceConnectionChange = { state ->
+                Log.i(TAG, "ICE connection state: $state")
+            }
+            
+            // Responder waits for offer via receive loop, then createAnswer is called
             emit(ConnectionState.Connected)
             
         } catch (e: Exception) {
@@ -337,6 +445,8 @@ class ConnectionManager @Inject constructor(
      */
     fun disconnect() {
         Log.i(TAG, "Disconnecting...")
+        signalingScope.coroutineContext.cancelChildren()
+        peerNymAddress = null
         webRtcManager.close()
         routingHandleManager.wipeAll()
         handshakeManager.cleanup()

@@ -4263,6 +4263,7 @@ dependencies = [
  "bs58",
  "hkdf",
  "log",
+ "nym-crypto",
  "nym-sdk",
  "once_cell",
  "rand 0.8.5",
