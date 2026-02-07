@@ -201,6 +201,14 @@ impl NymTransportClient {
         })
     }
 
+    /// Get own NYM address for message filtering
+    fn get_address(&self) -> Option<String> {
+        self.runtime.block_on(async {
+            let state = self.state.lock().await;
+            state.my_address.clone()
+        })
+    }
+
     /// Poll rendezvous point for messages
     /// This checks if any peer has published at the shared rendezvous mailbox
     /// Note: Returns ONE message at a time. Call repeatedly to get all messages.
@@ -430,14 +438,25 @@ impl NymTransportClient {
                         if let Some(first_msg) = msgs.into_iter().next() {
                             log::info!("Received message: {} bytes", first_msg.message.len());
                             
-                            // For rendezvous, we expect the message to contain:
-                            // - sender_handle (the NYM address of sender)
-                            // - payload (the routing handle)
-                            // For simplicity, we'll treat the entire message as the handle
-                            Ok(Some(RendezvousMessage {
-                                sender_handle: first_msg.message.clone(),
-                                payload: first_msg.message,
-                            }))
+                            // Parse message format: [sender_address][0x00 separator][payload]
+                            // If no separator, treat entire message as payload (direct signaling)
+                            if let Some(null_pos) = first_msg.message.iter().position(|&b| b == 0) {
+                                let sender_address = first_msg.message[..null_pos].to_vec();
+                                let payload = first_msg.message[null_pos + 1..].to_vec();
+                                log::info!("Parsed: sender={} bytes, payload={} bytes", 
+                                    sender_address.len(), payload.len());
+                                Ok(Some(RendezvousMessage {
+                                    sender_handle: sender_address,
+                                    payload,
+                                }))
+                            } else {
+                                // No separator - direct signaling message (payload only)
+                                log::info!("Direct message (no separator)");
+                                Ok(Some(RendezvousMessage {
+                                    sender_handle: vec![],
+                                    payload: first_msg.message,
+                                }))
+                            }
                         } else {
                             log::info!("No messages received");
                             Ok(None)
