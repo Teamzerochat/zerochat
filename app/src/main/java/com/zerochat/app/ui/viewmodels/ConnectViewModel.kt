@@ -27,10 +27,11 @@ class ConnectViewModel @Inject constructor(
     private val _sharedSecret = MutableStateFlow("")
     val sharedSecret: StateFlow<String> = _sharedSecret.asStateFlow()
     
-    // TURN server configuration (should come from config)
-    private val turnServerUrl = "turn:your-turn-server:3478"
-    private val turnUsername = "username"
-    private val turnPassword = "password"
+    // TURN server configuration - Using public TURN for testing
+    // TODO: Replace with self-hosted TURN server for production
+    private val turnServerUrl = "turn:openrelay.metered.ca:80"
+    private val turnUsername = "openrelayproject"
+    private val turnPassword = "openrelayproject"
     
     /**
      * Update shared secret input
