@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zerochat.app.domain.rendezvous.PollResult
 import com.zerochat.app.domain.rendezvous.RendezvousManager
+import com.zerochat.app.domain.rendezvous.RendezvousRole
 import com.zerochat.app.domain.routing.RoutingHandleManager
 import com.zerochat.app.domain.transport.NymTransport
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,15 @@ import java.util.UUID
 import javax.inject.Inject
 
 /**
- * Connect ViewModel - Secret-derived rendezvous
+ * Connect ViewModel - Two-Point Rendezvous
+ * 
+ * Uses a two-point rendezvous system:
+ * - Derives two points (A and B) from the secret
+ * - Picks a random role (Alice/Bob)
+ * - Alice publishes at A, polls B
+ * - Bob publishes at B, polls A
+ * 
+ * No self-filtering needed - each device reads from a different point.
  * 
  * Security Invariants:
  * - RV-03: Rendezvous derived from secret
@@ -27,7 +36,7 @@ import javax.inject.Inject
  */
 sealed class ConnectUiState {
     object Initial : ConnectUiState()
-    data class Connecting(val attempt: Int, val max: Int) : ConnectUiState()
+    data class Connecting(val attempt: Int, val max: Int, val role: String = "") : ConnectUiState()
     data class Connected(val sessionId: String) : ConnectUiState()
     object PeerOffline : ConnectUiState()
     object Error : ConnectUiState()
@@ -71,12 +80,21 @@ class ConnectViewModel @Inject constructor(
                         Log.i(TAG, "Connected to NYM mixnet!")
                     }
                     
-                    // Derive rendezvous from secret (RV-03)
-                    val rendezvous = rendezvousManager.deriveRendezvous(sharedSecret)
-                    Log.i(TAG, "Derived rendezvous: ${rendezvous.id.take(16)}...")
+                    // Step 1: Derive rendezvous PAIR from secret (two points!)
+                    val rendezvousPair = rendezvousManager.deriveRendezvousPair(sharedSecret)
+                    Log.i(TAG, "Derived rendezvous pair - A: ${rendezvousPair.pointA.id.take(16)}..., B: ${rendezvousPair.pointB.id.take(16)}...")
                     
-                    // Check if already consumed
-                    if (rendezvousManager.isConsumed(rendezvous)) {
+                    // Step 2: Pick random role (Alice or Bob)
+                    val role = rendezvousManager.pickRandomRole()
+                    Log.i(TAG, "Role: $role")
+                    
+                    withContext(Dispatchers.Main) {
+                        _uiState.value = ConnectUiState.Connecting(0, 30, role.name)
+                    }
+                    
+                    // Step 3: Check if already consumed
+                    if (rendezvousManager.isConsumed(rendezvousPair.pointA) || 
+                        rendezvousManager.isConsumed(rendezvousPair.pointB)) {
                         Log.w(TAG, "Rendezvous already consumed")
                         withContext(Dispatchers.Main) {
                             _uiState.value = ConnectUiState.PeerOffline
@@ -84,13 +102,13 @@ class ConnectViewModel @Inject constructor(
                         return@withContext
                     }
                     
-                    // Generate my ephemeral routing handle (RH-01)
+                    // Step 4: Generate my ephemeral routing handle (RH-01)
                     val myHandle = routingHandleManager.generateMyHandle()
                     Log.i(TAG, "Generated my handle (${myHandle.size} bytes)")
                     
-                    // Publish my handle at the rendezvous point
-                    Log.i(TAG, "Publishing at rendezvous...")
-                    rendezvousManager.publishAtRendezvous(rendezvous, myHandle)
+                    // Step 5: Publish at my role's point
+                    Log.i(TAG, "Publishing at my point as ${role.name}...")
+                    rendezvousManager.publishAtRendezvous(rendezvousPair, role, myHandle)
                         .onFailure { error ->
                             Log.e(TAG, "Publish failed: ${error.message}", error)
                             withContext(Dispatchers.Main) {
@@ -99,16 +117,16 @@ class ConnectViewModel @Inject constructor(
                             return@withContext
                         }
                         .onSuccess {
-                            Log.i(TAG, "Published successfully, starting poll...")
+                            Log.i(TAG, "Published successfully! Now polling peer's point...")
                         }
                     
-                    // Poll rendezvous with constant rate (PL-01)
-                    rendezvousManager.pollRendezvous(rendezvous).collect { result ->
+                    // Step 6: Poll the OPPOSITE point (where peer publishes)
+                    rendezvousManager.pollRendezvous(rendezvousPair, role).collect { result ->
                         when (result) {
                             is PollResult.Polling -> {
-                                Log.i(TAG, "Polling attempt ${result.attempt}/${result.max}")
+                                Log.i(TAG, "Polling attempt ${result.attempt}/${result.max} as $role")
                                 withContext(Dispatchers.Main) {
-                                    _uiState.value = ConnectUiState.Connecting(result.attempt, result.max)
+                                    _uiState.value = ConnectUiState.Connecting(result.attempt, result.max, role.name)
                                 }
                             }
                             
@@ -122,7 +140,7 @@ class ConnectViewModel @Inject constructor(
                             }
                             
                             is PollResult.Timeout, is PollResult.Expired -> {
-                                Log.w(TAG, "Poll result: ${result::class.simpleName}")
+                                Log.w(TAG, "Poll result: ${result::class.simpleName} - Maybe both picked same role?")
                                 withContext(Dispatchers.Main) {
                                     _uiState.value = ConnectUiState.PeerOffline
                                 }

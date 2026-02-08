@@ -143,10 +143,11 @@ class ConnectionManager @Inject constructor(
         try {
             emit(ConnectionState.ConnectingToNym)
             
-            // Phase 1: Derive rendezvous point
-            val rendezvous = rendezvousManager.deriveRendezvous(sharedSecret)
-            Log.i(TAG, "Derived rendezvous (epoch: ${rendezvous.epoch})")
-            emit(ConnectionState.DerivedRendezvous(rendezvous.epoch))
+            // Phase 1: Derive rendezvous pair and pick role
+            val rendezvousPair = rendezvousManager.deriveRendezvousPair(sharedSecret)
+            val role = rendezvousManager.pickRandomRole()
+            Log.i(TAG, "Derived rendezvous pair (epoch: ${rendezvousPair.pointA.epoch}), role: $role")
+            emit(ConnectionState.DerivedRendezvous(rendezvousPair.pointA.epoch))
             
             // Phase 2: Start SPAKE2+ handshake
             emit(ConnectionState.Handshaking)
@@ -158,8 +159,8 @@ class ConnectionManager @Inject constructor(
                 }
             
             // Phase 3: Publish commitment at rendezvous
-            Log.i(TAG, "Publishing commitment at rendezvous")
-            rendezvousManager.publishAtRendezvous(rendezvous, commitment)
+            Log.i(TAG, "Publishing commitment at rendezvous as $role")
+            rendezvousManager.publishAtRendezvous(rendezvousPair, role, commitment)
                 .getOrElse { error ->
                     Log.e(TAG, "Failed to publish commitment", error)
                     emit(ConnectionState.Failed("Connection failed"))
@@ -170,7 +171,7 @@ class ConnectionManager @Inject constructor(
             emit(ConnectionState.PollingRendezvous)
             var peerResponse: ByteArray? = null
             
-            rendezvousManager.pollRendezvous(rendezvous).collect { pollResult ->
+            rendezvousManager.pollRendezvous(rendezvousPair, role).collect { pollResult ->
                 when (pollResult) {
                     is PollResult.Polling -> {
                         emit(ConnectionState.PollingRendezvous)
@@ -210,7 +211,7 @@ class ConnectionManager @Inject constructor(
             val myHandle = routingHandleManager.generateMyHandle()
             
             // TODO: Encrypt handle with session key before sending
-            rendezvousManager.publishAtRendezvous(rendezvous, myHandle)
+            rendezvousManager.publishAtRendezvous(rendezvousPair, role, myHandle)
                 .getOrElse { error ->
                     Log.e(TAG, "Failed to publish handle", error)
                     emit(ConnectionState.Failed("Connection failed"))
@@ -219,7 +220,7 @@ class ConnectionManager @Inject constructor(
             
             // Poll for peer's handle (this is actually peer's NYM address)
             var peerAddr: ByteArray? = null
-            rendezvousManager.pollRendezvous(rendezvous).collect { pollResult ->
+            rendezvousManager.pollRendezvous(rendezvousPair, role).collect { pollResult ->
                 when (pollResult) {
                     is PollResult.Found -> {
                         peerAddr = pollResult.peerHandle
@@ -313,16 +314,17 @@ class ConnectionManager @Inject constructor(
         try {
             emit(ConnectionState.ConnectingToNym)
             
-            // Phase 1: Derive rendezvous point
-            val rendezvous = rendezvousManager.deriveRendezvous(sharedSecret)
-            Log.i(TAG, "Derived rendezvous (epoch: ${rendezvous.epoch})")
-            emit(ConnectionState.DerivedRendezvous(rendezvous.epoch))
+            // Phase 1: Derive rendezvous pair and pick role
+            val rendezvousPair = rendezvousManager.deriveRendezvousPair(sharedSecret)
+            val role = rendezvousManager.pickRandomRole()
+            Log.i(TAG, "Derived rendezvous pair (epoch: ${rendezvousPair.pointA.epoch}), role: $role")
+            emit(ConnectionState.DerivedRendezvous(rendezvousPair.pointA.epoch))
             
             // Phase 2: Poll for peer's commitment
             emit(ConnectionState.PollingRendezvous)
             var peerCommitment: ByteArray? = null
             
-            rendezvousManager.pollRendezvous(rendezvous).collect { pollResult ->
+            rendezvousManager.pollRendezvous(rendezvousPair, role).collect { pollResult ->
                 when (pollResult) {
                     is PollResult.Polling -> {
                         emit(ConnectionState.PollingRendezvous)
@@ -358,7 +360,7 @@ class ConnectionManager @Inject constructor(
             Log.i(TAG, "Handshake complete! Session key derived")
             
             // Phase 4: Publish response
-            rendezvousManager.publishAtRendezvous(rendezvous, response)
+            rendezvousManager.publishAtRendezvous(rendezvousPair, role, response)
                 .getOrElse { error ->
                     Log.e(TAG, "Failed to publish response", error)
                     emit(ConnectionState.Failed("Connection failed"))
@@ -369,7 +371,7 @@ class ConnectionManager @Inject constructor(
             emit(ConnectionState.ExchangingHandles)
             val myHandle = routingHandleManager.generateMyHandle()
             
-            rendezvousManager.publishAtRendezvous(rendezvous, myHandle)
+            rendezvousManager.publishAtRendezvous(rendezvousPair, role, myHandle)
                 .getOrElse { error ->
                     Log.e(TAG, "Failed to publish handle", error)
                     emit(ConnectionState.Failed("Connection failed"))
@@ -377,7 +379,7 @@ class ConnectionManager @Inject constructor(
                 }
             
             var peerAddr: ByteArray? = null
-            rendezvousManager.pollRendezvous(rendezvous).collect { pollResult ->
+            rendezvousManager.pollRendezvous(rendezvousPair, role).collect { pollResult ->
                 when (pollResult) {
                     is PollResult.Found -> {
                         peerAddr = pollResult.peerHandle
