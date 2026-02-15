@@ -2,7 +2,9 @@ package com.zerochat.app.domain.connection
 
 import android.util.Log
 import com.zerochat.app.domain.crypto.HandshakeManager
+import com.zerochat.app.domain.crypto.HandshakeRole
 import com.zerochat.app.domain.rendezvous.PollResult
+import com.zerochat.app.domain.rendezvous.RendezvousFrame
 import com.zerochat.app.domain.rendezvous.RendezvousManager
 import com.zerochat.app.domain.routing.RoutingHandleManager
 import com.zerochat.app.domain.transport.NymTransport
@@ -11,23 +13,23 @@ import com.zerochat.app.domain.webrtc.WebRtcManager
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import org.webrtc.IceCandidate
+import kotlinx.coroutines.flow.flowOn
 import org.webrtc.SessionDescription
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Connection Manager - Orchestrates complete P2P connection flow
+ * Connection Manager - Model 3 (Symmetric)
  * 
- * State Machine:
- * Idle → ConnectingToNym → DerivedRendezvous → PollingRendezvous → 
- * Handshaking → ExchangingHandles → EstablishingWebRTC → Connected
- * 
- * Security Invariants:
- * - All communication through Nym mixnet
- * - Ephemeral rendezvous points (5 min TTL)
- * - RAM-only routing handles
- * - Silent failures (no distinguishable errors)
+ * Flow:
+ * 1. Derive Deterministic Identity (HKDF)
+ * 2. Generate Random Election Nonce
+ * 3. Publish Nonce / Poll Peer Nonce
+ * 4. Derive Role (Initiator/Responder)
+ * 5. Symmetric SPAKE2+ Handshake & Confirmation
+ * 6. Exchange Encrypted Routing Handles (Session Key)
+ * 7. Teardown Rendezvous IMMEDIATELY
+ * 8. Establish WebRTC (TURN only)
  */
 @Singleton
 class ConnectionManager @Inject constructor(
@@ -35,7 +37,8 @@ class ConnectionManager @Inject constructor(
     private val handshakeManager: HandshakeManager,
     private val routingHandleManager: RoutingHandleManager,
     private val webRtcManager: WebRtcManager,
-    private val nymTransport: NymTransport
+    private val nymTransport: NymTransport,
+    private val keyManager: com.zerochat.app.domain.crypto.KeyManager
 ) {
     
     companion object {
@@ -43,7 +46,7 @@ class ConnectionManager @Inject constructor(
         private const val SIGNALING_RECEIVE_TIMEOUT_MS = 1000L
     }
     
-    // Coroutine scope for signaling operations
+    // Coroutine scope for signaling operations (WebRTC)
     private val signalingScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     
     // Peer's NYM address for sending signaling messages
@@ -51,402 +54,270 @@ class ConnectionManager @Inject constructor(
     private var peerNymAddress: ByteArray? = null
     
     /**
-     * Send signaling message to peer through NYM
+     * Connect using Model 3 (Deterministic + Symmetric)
      */
-    private suspend fun sendSignalingMessage(data: ByteArray) {
-        val peerAddr = peerNymAddress
-        if (peerAddr == null) {
-            Log.w(TAG, "Cannot send signaling - no peer address")
-            return
+    fun connect(
+        sharedSecret: String,
+        turnServerUrl: String,
+        turnUsername: String,
+        turnPassword: String
+    ): Flow<ConnectionState> = flow {
+        val collector = this
+        
+        try {
+            collector.emit(ConnectionState.ConnectingToNym)
+            
+            // Phase 1: Derive Deterministic Rendezvous Point
+            // STRICT REQUIREMENT: Compute epoch ONCE and freeze it for this attempt.
+            val attemptEpoch = rendezvousManager.getCurrentEpoch()
+            val rendezvousPoint = rendezvousManager.deriveRendezvousPoint(sharedSecret, attemptEpoch)
+            
+            Log.i(TAG, "derived rendezvous point: ${rendezvousPoint.id.take(16)} (epoch: ${rendezvousPoint.epoch})")
+            collector.emit(ConnectionState.DerivedRendezvous(rendezvousPoint.epoch))
+            
+            // STRICT LIFECYCLE: Connect Once
+            rendezvousManager.connect(rendezvousPoint).getOrElse { e ->
+                Log.e(TAG, "Rendezvous connect failed", e)
+                collector.emit(ConnectionState.Failed("Connect failed: ${e.message}"))
+                return@flow
+            }
+            
+            // CRITICAL: Wait for peer to also connect to their slot before publishing.
+            // Without this delay, our message arrives at the peer's gateway BEFORE they
+            // finish registering, causing the gateway's packet_router to panic.
+            Log.i(TAG, "Connected to slot. Waiting 10s for peer to also connect...")
+            collector.emit(ConnectionState.WaitingForPeer)
+            delay(10_000)
+            
+            // Phase 2: Role Election (Nonce Exchange)
+            collector.emit(ConnectionState.Handshaking)
+            val myNonce = handshakeManager.generateElectionNonce()
+            val ignoreBodies = mutableSetOf<String>()
+            ignoreBodies.add(myNonce.toHexString())
+            
+            // Phase 3: Publish Nonce
+            val framedNonce = RendezvousFrame.wrap(RendezvousFrame.TYPE_NONCE, myNonce)
+            rendezvousManager.publish(rendezvousPoint, framedNonce).getOrElse { _ ->
+                collector.emit(ConnectionState.Failed("Publish failed"))
+                return@flow
+            }
+            
+            // Phase 4: Poll Peer Nonce
+            collector.emit(ConnectionState.PollingRendezvous)
+            var peerNonce: ByteArray? = null
+            
+            try {
+                rendezvousManager.poll(rendezvousPoint, ignoreBodies, RendezvousFrame.TYPE_NONCE).collect { result ->
+                     if (result is PollResult.Found) {
+                        peerNonce = result.body
+                        throw CancellationException("FOUND")
+                     } else if (result is PollResult.Timeout) {
+                        throw Exception("Peer not online")
+                     } else if (result is PollResult.Expired) {
+                        throw Exception("Rendezvous expired")
+                     }
+                }
+            } catch (e: CancellationException) {
+                if (e.message != "FOUND") throw e
+            } catch (e: Exception) {
+                collector.emit(ConnectionState.Failed(e.message ?: "Polling error"))
+                return@flow
+            }
+            
+            if (peerNonce == null) return@flow
+
+            if (myNonce.contentEquals(peerNonce!!)) {
+                 collector.emit(ConnectionState.Failed("Nonce collision"))
+                 return@flow
+            }
+            
+            // Phase 5: Derive Role
+            val role = handshakeManager.determineRole(myNonce, peerNonce!!) ?: run {
+                 collector.emit(ConnectionState.Failed("Nonce collision (logic)"))
+                 return@flow
+            }
+            Log.i(TAG, "✓ DERIVED ROLE: $role")
+            
+            val sessionKey: ByteArray
+            
+            // Phase 6: SPAKE2+ Handshake
+            if (role == HandshakeRole.INITIATOR) {
+                // INITIATOR (Alice)
+                val msgA = handshakeManager.startAsInitiator(sharedSecret).getOrThrow()
+                ignoreBodies.add(msgA.toHexString())
+                rendezvousManager.publish(rendezvousPoint, RendezvousFrame.wrap(RendezvousFrame.TYPE_SPAKE_A, msgA))
+                
+                var msgB: ByteArray? = null
+                try {
+                    rendezvousManager.poll(rendezvousPoint, ignoreBodies, RendezvousFrame.TYPE_SPAKE_B).collect { res ->
+                        if (res is PollResult.Found) { msgB = res.body; throw CancellationException("FOUND") }
+                        else if (res is PollResult.Timeout) throw Exception("Handshake timeout")
+                    }
+                } catch (e: CancellationException) { if (e.message != "FOUND") throw e }
+                catch (e: Exception) { collector.emit(ConnectionState.Failed(e.message ?: "Error")); return@flow }
+                
+                sessionKey = handshakeManager.finishAsInitiator(msgB ?: run {
+                    collector.emit(ConnectionState.Failed("No SPAKE2 response received"))
+                    return@flow
+                }).getOrThrow()
+                    
+            } else {
+                // RESPONDER (Bob)
+                var msgA: ByteArray? = null
+                 try {
+                    rendezvousManager.poll(rendezvousPoint, ignoreBodies, RendezvousFrame.TYPE_SPAKE_A).collect { res ->
+                        if (res is PollResult.Found) { msgA = res.body; throw CancellationException("FOUND") }
+                        else if (res is PollResult.Timeout) throw Exception("Handshake timeout")
+                    }
+                } catch (e: CancellationException) { if (e.message != "FOUND") throw e }
+                catch (e: Exception) { collector.emit(ConnectionState.Failed(e.message ?: "Error")); return@flow }
+                
+                val (msgB, key) = handshakeManager.processAsResponder(sharedSecret, msgA ?: run {
+                    collector.emit(ConnectionState.Failed("No SPAKE2 commitment received"))
+                    return@flow
+                }).getOrThrow()
+                sessionKey = key
+                ignoreBodies.add(msgB.toHexString())
+                rendezvousManager.publish(rendezvousPoint, RendezvousFrame.wrap(RendezvousFrame.TYPE_SPAKE_B, msgB))
+            }
+            
+            Log.i(TAG, "✓ Handshake complete!")
+            
+            // Phase 7: Confirmation
+            val myRoleStr = if (role == HandshakeRole.INITIATOR) "INITIATOR" else "RESPONDER"
+            val peerRoleStr = if (role == HandshakeRole.INITIATOR) "RESPONDER" else "INITIATOR"
+            
+            val myConfirm = handshakeManager.generateConfirmation(sessionKey, myRoleStr)
+            ignoreBodies.add(myConfirm.toHexString())
+            rendezvousManager.publish(rendezvousPoint, RendezvousFrame.wrap(RendezvousFrame.TYPE_CONFIRM, myConfirm))
+            
+            var peerConfirm: ByteArray? = null
+            try {
+                rendezvousManager.poll(rendezvousPoint, ignoreBodies, RendezvousFrame.TYPE_CONFIRM).collect { res ->
+                     if (res is PollResult.Found) { peerConfirm = res.body; throw CancellationException("FOUND") }
+                     else if (res is PollResult.Timeout) throw Exception("Confirmation timeout")
+                }
+            } catch (e: CancellationException) { if (e.message != "FOUND") throw e }
+            catch (e: Exception) { collector.emit(ConnectionState.Failed(e.message ?: "Error")); return@flow }
+            
+            val peerConfirmData = peerConfirm ?: run {
+                collector.emit(ConnectionState.Failed("No confirmation received from peer"))
+                return@flow
+            }
+            
+            if (!handshakeManager.verifyConfirmation(sessionKey, peerConfirmData, peerRoleStr)) {
+                collector.emit(ConnectionState.Failed("Auth validation failed"))
+                return@flow
+            }
+            
+            // Phase 8: Exchange Encrypted Handles
+            collector.emit(ConnectionState.ExchangingHandles)
+            val myRouterHandle = routingHandleManager.generateMyHandle()
+            val encryptedHandle = keyManager.encrypt(myRouterHandle, sessionKey)!!
+            
+            ignoreBodies.add(encryptedHandle.toHexString())
+            rendezvousManager.publish(rendezvousPoint, RendezvousFrame.wrap(RendezvousFrame.TYPE_HANDLE, encryptedHandle))
+            
+            var peerEncryptedHandle: ByteArray? = null
+             try {
+                rendezvousManager.poll(rendezvousPoint, ignoreBodies, RendezvousFrame.TYPE_HANDLE).collect { res ->
+                     if (res is PollResult.Found) { peerEncryptedHandle = res.body; throw CancellationException("FOUND") }
+                     else if (res is PollResult.Timeout) throw Exception("Handle timeout")
+                }
+            } catch (e: CancellationException) { if (e.message != "FOUND") throw e }
+            catch (e: Exception) { collector.emit(ConnectionState.Failed(e.message ?: "Error")); return@flow }
+            
+            val peerHandle = keyManager.decrypt(peerEncryptedHandle ?: run {
+                collector.emit(ConnectionState.Failed("No handle received from peer"))
+                return@flow
+            }, sessionKey) ?: run {
+                collector.emit(ConnectionState.Failed("Decryption Error"))
+                return@flow
+            }
+            
+            peerNymAddress = peerHandle
+            routingHandleManager.setPeerHandle(peerHandle)
+            
+            // Phase 9: TEARDOWN
+            rendezvousManager.markHandshakeComplete() // Strict teardown
+            
+            // Phase 10: WebRTC
+            if (nymTransport.isConnected()) {
+                connectWebRTC(turnServerUrl, turnUsername, turnPassword, role == HandshakeRole.INITIATOR, collector)
+                collector.emit(ConnectionState.Connected)
+            } else {
+                 collector.emit(ConnectionState.Failed("Transport disconnected"))
+            }
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Connection Loop Error", e)
+            collector.emit(ConnectionState.Failed("Error: ${e.message}"))
+            rendezvousManager.teardownRendezvous() // Ensure teardown on error
+        } finally {
+            handshakeManager.cleanup()
+        }
+    }.flowOn(Dispatchers.IO)
+
+    
+    private suspend fun connectWebRTC(
+        url: String, 
+        user: String, 
+        pass: String, 
+        isOfferer: Boolean,
+        collector: kotlinx.coroutines.flow.FlowCollector<ConnectionState>
+    ) {
+        collector.emit(ConnectionState.EstablishingWebRTC)
+        webRtcManager.initialize(url, user, pass)
+        startSignalingReceiveLoop()
+        
+        webRtcManager.onLocalSdp = { sdp ->
+            val data = SignalingProtocol.serializeSdp(sdp)
+            signalingScope.launch { sendSignalingMessage(data) }
         }
         
-        val result = nymTransport.sendMessage(peerAddr, data)
-        if (result.isFailure) {
-            Log.e(TAG, "Failed to send signaling: ${result.exceptionOrNull()?.message}")
-        } else {
-            Log.i(TAG, "Signaling message sent (${data.size} bytes)")
+        webRtcManager.onIceCandidate = { cand ->
+            val data = SignalingProtocol.serializeIceCandidate(cand)
+            signalingScope.launch { sendSignalingMessage(data) }
+        }
+        
+        if (isOfferer) {
+            webRtcManager.createDataChannel()
+            webRtcManager.createOffer()
         }
     }
     
-    /**
-     * Start receive loop for signaling messages
-     */
+    private suspend fun sendSignalingMessage(data: ByteArray) {
+        peerNymAddress?.let { addr ->
+             nymTransport.sendMessage(addr, data)
+        }
+    }
+    
     private fun startSignalingReceiveLoop() {
         signalingScope.launch {
-            Log.i(TAG, "Starting signaling receive loop")
             while (isActive) {
-                try {
-                    val msg = nymTransport.receiveMessage(SIGNALING_RECEIVE_TIMEOUT_MS)
-                    if (msg != null) {
-                        handleSignalingMessage(msg.payload)
-                    }
-                } catch (e: Exception) {
-                    Log.w(TAG, "Signaling receive error: ${e.message}")
-                }
+                val msg = nymTransport.receiveMessage(SIGNALING_RECEIVE_TIMEOUT_MS)
+                msg?.let { handleSignalingMessage(it.payload) }
             }
         }
     }
     
-    /**
-     * Handle incoming signaling message
-     */
     private fun handleSignalingMessage(data: ByteArray) {
         when (SignalingProtocol.getMessageType(data)) {
             SignalingProtocol.TYPE_SDP_OFFER, SignalingProtocol.TYPE_SDP_ANSWER -> {
-                val sdp = SignalingProtocol.deserializeSdp(data)
-                if (sdp != null) {
-                    Log.i(TAG, "Received remote SDP: ${sdp.type}")
+                SignalingProtocol.deserializeSdp(data)?.let { sdp ->
                     webRtcManager.setRemoteSdp(sdp)
-                    // If we received an offer, create answer
-                    if (sdp.type == SessionDescription.Type.OFFER) {
-                        webRtcManager.createAnswer()
-                    }
+                    if (sdp.type == SessionDescription.Type.OFFER) webRtcManager.createAnswer()
                 }
             }
             SignalingProtocol.TYPE_ICE_CANDIDATE -> {
-                val candidate = SignalingProtocol.deserializeIceCandidate(data)
-                if (candidate != null) {
-                    Log.i(TAG, "Received ICE candidate: ${candidate.sdpMid}")
-                    webRtcManager.addIceCandidate(candidate)
+                SignalingProtocol.deserializeIceCandidate(data)?.let { cand ->
+                    webRtcManager.addIceCandidate(cand)
                 }
-            }
-            else -> {
-                Log.w(TAG, "Unknown signaling message type")
             }
         }
     }
     
-    /**
-     * Initiate connection as Alice (initiator)
-     * 
-     * Flow:
-     * 1. Derive rendezvous from shared secret
-     * 2. Start SPAKE2+ handshake (generate commitment)
-     * 3. Publish commitment at rendezvous
-     * 4. Poll for peer's response
-     * 5. Finish SPAKE2+ (derive session key)
-     * 6. Exchange routing handles
-     * 7. Establish WebRTC connection
-     * 
-     * @param sharedSecret The shared secret exchanged out-of-band
-     * @param turnServerUrl TURN server URL for WebRTC relay
-     * @param turnUsername TURN username
-     * @param turnPassword TURN password
-     * @return Flow of connection states
-     */
-    fun connectAsInitiator(
-        sharedSecret: String,
-        turnServerUrl: String,
-        turnUsername: String,
-        turnPassword: String
-    ): Flow<ConnectionState> = flow {
-        try {
-            emit(ConnectionState.ConnectingToNym)
-            
-            // Phase 1: Derive rendezvous pair and pick role
-            val rendezvousPair = rendezvousManager.deriveRendezvousPair(sharedSecret)
-            val role = rendezvousManager.pickRandomRole()
-            Log.i(TAG, "Derived rendezvous pair (epoch: ${rendezvousPair.pointA.epoch}), role: $role")
-            emit(ConnectionState.DerivedRendezvous(rendezvousPair.pointA.epoch))
-            
-            // Phase 2: Start SPAKE2+ handshake
-            emit(ConnectionState.Handshaking)
-            val commitment = handshakeManager.startAsInitiator(sharedSecret)
-                .getOrElse { error ->
-                    Log.e(TAG, "Failed to start handshake", error)
-                    emit(ConnectionState.Failed("Handshake initialization failed"))
-                    return@flow
-                }
-            
-            // Phase 3: Publish commitment at rendezvous
-            Log.i(TAG, "Publishing commitment at rendezvous as $role")
-            rendezvousManager.publishAtRendezvous(rendezvousPair, role, commitment)
-                .getOrElse { error ->
-                    Log.e(TAG, "Failed to publish commitment", error)
-                    emit(ConnectionState.Failed("Connection failed"))
-                    return@flow
-                }
-            
-            // Phase 4: Poll for peer's response
-            emit(ConnectionState.PollingRendezvous)
-            var peerResponse: ByteArray? = null
-            
-            rendezvousManager.pollRendezvous(rendezvousPair, role).collect { pollResult ->
-                when (pollResult) {
-                    is PollResult.Polling -> {
-                        emit(ConnectionState.PollingRendezvous)
-                    }
-                    is PollResult.Found -> {
-                        peerResponse = pollResult.peerHandle
-                    }
-                    is PollResult.Timeout -> {
-                        emit(ConnectionState.Failed("Peer not online"))
-                        return@collect
-                    }
-                    is PollResult.Expired -> {
-                        emit(ConnectionState.Failed("Connection timeout"))
-                        return@collect
-                    }
-                }
-            }
-            
-            if (peerResponse == null) {
-                emit(ConnectionState.Failed("Peer not found"))
-                return@flow
-            }
-            
-            // Phase 5: Finish SPAKE2+ handshake
-            Log.i(TAG, "Received peer response, finishing handshake")
-            val sessionKey = handshakeManager.finishAsInitiator(peerResponse!!)
-                .getOrElse { error ->
-                    Log.e(TAG, "Handshake failed", error)
-                    emit(ConnectionState.Failed("Authentication failed"))
-                    return@flow
-                }
-            
-            Log.i(TAG, "Handshake complete! Session key derived")
-            
-            // Phase 6: Exchange routing handles
-            emit(ConnectionState.ExchangingHandles)
-            val myHandle = routingHandleManager.generateMyHandle()
-            
-            // TODO: Encrypt handle with session key before sending
-            rendezvousManager.publishAtRendezvous(rendezvousPair, role, myHandle)
-                .getOrElse { error ->
-                    Log.e(TAG, "Failed to publish handle", error)
-                    emit(ConnectionState.Failed("Connection failed"))
-                    return@flow
-                }
-            
-            // Poll for peer's handle (this is actually peer's NYM address)
-            var peerAddr: ByteArray? = null
-            rendezvousManager.pollRendezvous(rendezvousPair, role).collect { pollResult ->
-                when (pollResult) {
-                    is PollResult.Found -> {
-                        peerAddr = pollResult.peerHandle
-                    }
-                    is PollResult.Timeout, is PollResult.Expired -> {
-                        emit(ConnectionState.Failed("Handle exchange failed"))
-                        return@collect
-                    }
-                    else -> {}
-                }
-            }
-            
-            if (peerAddr == null) {
-                emit(ConnectionState.Failed("Handle exchange failed"))
-                return@flow
-            }
-            
-            // Store peer's NYM address for signaling
-            peerNymAddress = peerAddr
-            routingHandleManager.setPeerHandle(peerAddr!!)
-            Log.i(TAG, "Peer NYM address received (${peerAddr!!.size} bytes)")
-            
-            // Phase 7: Establish WebRTC connection
-            emit(ConnectionState.EstablishingWebRTC)
-            
-            // Initialize WebRTC with TURN server
-            webRtcManager.initialize(turnServerUrl, turnUsername, turnPassword)
-            webRtcManager.createDataChannel()
-            
-            // Start receiving signaling messages from peer
-            startSignalingReceiveLoop()
-            
-            // Set up callbacks for WebRTC signaling through Nym
-            webRtcManager.onLocalSdp = { sdp ->
-                Log.i(TAG, "Local SDP created: ${sdp.type}")
-                val serialized = SignalingProtocol.serializeSdp(sdp)
-                signalingScope.launch {
-                    sendSignalingMessage(serialized)
-                }
-            }
-            
-            webRtcManager.onIceCandidate = { candidate ->
-                Log.i(TAG, "ICE candidate: ${candidate.sdpMid}")
-                val serialized = SignalingProtocol.serializeIceCandidate(candidate)
-                signalingScope.launch {
-                    sendSignalingMessage(serialized)
-                }
-            }
-            
-            webRtcManager.onIceConnectionChange = { state ->
-                Log.i(TAG, "ICE connection state: $state")
-            }
-            
-            // Create offer (initiator)
-            webRtcManager.createOffer()
-            
-            emit(ConnectionState.Connected)
-            
-        } catch (e: Exception) {
-            Log.e(TAG, "Connection failed with exception", e)
-            emit(ConnectionState.Failed("Connection error"))
-        } finally {
-            // Cleanup on any exit
-            handshakeManager.cleanup()
-        }
-    }
-    
-    /**
-     * Accept connection as Bob (responder)
-     * 
-     * Flow:
-     * 1. Derive rendezvous from shared secret
-     * 2. Poll for peer's commitment
-     * 3. Process SPAKE2+ handshake (generate response + derive key)
-     * 4. Publish response at rendezvous
-     * 5. Exchange routing handles
-     * 6. Establish WebRTC connection
-     * 
-     * @param sharedSecret The shared secret exchanged out-of-band
-     * @param turnServerUrl TURN server URL for WebRTC relay
-     * @param turnUsername TURN username
-     * @param turnPassword TURN password
-     * @return Flow of connection states
-     */
-    fun connectAsResponder(
-        sharedSecret: String,
-        turnServerUrl: String,
-        turnUsername: String,
-        turnPassword: String
-    ): Flow<ConnectionState> = flow {
-        try {
-            emit(ConnectionState.ConnectingToNym)
-            
-            // Phase 1: Derive rendezvous pair and pick role
-            val rendezvousPair = rendezvousManager.deriveRendezvousPair(sharedSecret)
-            val role = rendezvousManager.pickRandomRole()
-            Log.i(TAG, "Derived rendezvous pair (epoch: ${rendezvousPair.pointA.epoch}), role: $role")
-            emit(ConnectionState.DerivedRendezvous(rendezvousPair.pointA.epoch))
-            
-            // Phase 2: Poll for peer's commitment
-            emit(ConnectionState.PollingRendezvous)
-            var peerCommitment: ByteArray? = null
-            
-            rendezvousManager.pollRendezvous(rendezvousPair, role).collect { pollResult ->
-                when (pollResult) {
-                    is PollResult.Polling -> {
-                        emit(ConnectionState.PollingRendezvous)
-                    }
-                    is PollResult.Found -> {
-                        peerCommitment = pollResult.peerHandle
-                    }
-                    is PollResult.Timeout -> {
-                        emit(ConnectionState.Failed("Peer not online"))
-                        return@collect
-                    }
-                    is PollResult.Expired -> {
-                        emit(ConnectionState.Failed("Connection timeout"))
-                        return@collect
-                    }
-                }
-            }
-            
-            if (peerCommitment == null) {
-                emit(ConnectionState.Failed("Peer not found"))
-                return@flow
-            }
-            
-            // Phase 3: Process SPAKE2+ handshake
-            emit(ConnectionState.Handshaking)
-            val (response, sessionKey) = handshakeManager.processAsResponder(sharedSecret, peerCommitment!!)
-                .getOrElse { error ->
-                    Log.e(TAG, "Handshake failed", error)
-                    emit(ConnectionState.Failed("Authentication failed"))
-                    return@flow
-                }
-            
-            Log.i(TAG, "Handshake complete! Session key derived")
-            
-            // Phase 4: Publish response
-            rendezvousManager.publishAtRendezvous(rendezvousPair, role, response)
-                .getOrElse { error ->
-                    Log.e(TAG, "Failed to publish response", error)
-                    emit(ConnectionState.Failed("Connection failed"))
-                    return@flow
-                }
-            
-            // Phase 5: Exchange routing handles (same as initiator)
-            emit(ConnectionState.ExchangingHandles)
-            val myHandle = routingHandleManager.generateMyHandle()
-            
-            rendezvousManager.publishAtRendezvous(rendezvousPair, role, myHandle)
-                .getOrElse { error ->
-                    Log.e(TAG, "Failed to publish handle", error)
-                    emit(ConnectionState.Failed("Connection failed"))
-                    return@flow
-                }
-            
-            var peerAddr: ByteArray? = null
-            rendezvousManager.pollRendezvous(rendezvousPair, role).collect { pollResult ->
-                when (pollResult) {
-                    is PollResult.Found -> {
-                        peerAddr = pollResult.peerHandle
-                    }
-                    is PollResult.Timeout, is PollResult.Expired -> {
-                        emit(ConnectionState.Failed("Handle exchange failed"))
-                        return@collect
-                    }
-                    else -> {}
-                }
-            }
-            
-            if (peerAddr == null) {
-                emit(ConnectionState.Failed("Handle exchange failed"))
-                return@flow
-            }
-            
-            // Store peer's NYM address for signaling
-            peerNymAddress = peerAddr
-            routingHandleManager.setPeerHandle(peerAddr!!)
-            Log.i(TAG, "Peer NYM address received (${peerAddr!!.size} bytes)")
-            
-            // Phase 6: Establish WebRTC connection
-            emit(ConnectionState.EstablishingWebRTC)
-            
-            webRtcManager.initialize(turnServerUrl, turnUsername, turnPassword)
-            
-            // Start receiving signaling messages (will receive peer's offer)
-            startSignalingReceiveLoop()
-            
-            // Set up callbacks for WebRTC signaling through Nym
-            webRtcManager.onLocalSdp = { sdp ->
-                Log.i(TAG, "Local SDP created: ${sdp.type}")
-                val serialized = SignalingProtocol.serializeSdp(sdp)
-                signalingScope.launch {
-                    sendSignalingMessage(serialized)
-                }
-            }
-            
-            webRtcManager.onIceCandidate = { candidate ->
-                Log.i(TAG, "ICE candidate: ${candidate.sdpMid}")
-                val serialized = SignalingProtocol.serializeIceCandidate(candidate)
-                signalingScope.launch {
-                    sendSignalingMessage(serialized)
-                }
-            }
-            
-            webRtcManager.onIceConnectionChange = { state ->
-                Log.i(TAG, "ICE connection state: $state")
-            }
-            
-            // Responder waits for offer via receive loop, then createAnswer is called
-            emit(ConnectionState.Connected)
-            
-        } catch (e: Exception) {
-            Log.e(TAG, "Connection failed with exception", e)
-            emit(ConnectionState.Failed("Connection error"))
-        } finally {
-            handshakeManager.cleanup()
-        }
-    }
-    
-    /**
-     * Disconnect and cleanup
-     */
     fun disconnect() {
-        Log.i(TAG, "Disconnecting...")
         signalingScope.coroutineContext.cancelChildren()
         peerNymAddress = null
         webRtcManager.close()
@@ -454,16 +325,16 @@ class ConnectionManager @Inject constructor(
         handshakeManager.cleanup()
         rendezvousManager.clearAll()
     }
+    
+    private fun ByteArray.toHexString() = joinToString("") { "%02x".format(it) }
 }
 
-/**
- * Connection state machine
- */
 sealed class ConnectionState {
     object Idle : ConnectionState()
     object ConnectingToNym : ConnectionState()
     data class DerivedRendezvous(val epoch: Long) : ConnectionState()
     object PollingRendezvous : ConnectionState()
+    object WaitingForPeer : ConnectionState()
     object Handshaking : ConnectionState()
     object ExchangingHandles : ConnectionState()
     object EstablishingWebRTC : ConnectionState()

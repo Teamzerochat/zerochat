@@ -14,6 +14,23 @@ package com.zerochat.app.domain.transport
 interface NymTransport {
     
     /**
+     * Disconnect from a specific rendezvous point
+     * @param pointId The rendezvous point ID to disconnect
+     */
+    fun disconnectRendezvous(pointId: String)
+
+    /**
+     * Check if a specific rendezvous point is connected
+     */
+    fun isRendezvousConnected(pointId: String): Boolean
+
+    /**
+     * Disconnect all active rendezvous clients
+     * Call this after handshake completion or abort
+     */
+    fun disconnectAllRendezvous()
+
+    /**
      * Connect to NYM gateway
      * @param gatewayUrl WebSocket URL of self-hosted gateway
      */
@@ -30,11 +47,28 @@ interface NymTransport {
     fun isConnected(): Boolean
     
     /**
+     * Connect to a specific rendezvous point using a deterministic gateway.
+     * This enforces the single mailbox invariant.
+     * 
+     * @param pointId The rendezvous point ID to connect to
+     * @return Result containing the connected NYM address
+     */
+    suspend fun connectRendezvous(pointId: String): Result<String>
+
+
+
+    companion object {
+        // Hardcoded Gateway for Deterministic Rendezvous (One Lick, One Mailbox)
+        // This ensures both peers derive the exact same full NYM address (IdentityKey @ GatewayKey)
+        const val RENDEZVOUS_GATEWAY_ID = "DP2V2ck8nTVedTGftpqcFEpuS4ZnXNNpCU43k5xTi84i"
+    }
+
+    /**
      * Poll a rendezvous point for waiting messages
      * @param pointId The derived rendezvous point ID
      * @return Message if one is waiting, null otherwise
      */
-    suspend fun pollRendezvous(pointId: String): RendezvousResponse?
+    suspend fun pollRendezvous(pointId: String): List<RendezvousResponse>?
     
     /**
      * Publish our handle at a rendezvous point (for handshake)
@@ -61,6 +95,20 @@ interface NymTransport {
      * Get our NYM address for receiving messages
      */
     fun getMyAddress(): ByteArray?
+    
+    /**
+     * DEBUG MODE ONLY: Connect with custom identity
+     * @param rendezvousSeed 32-byte seed for deterministic keypair derivation
+     * @param gatewayId Hardcoded gateway ID for determinism
+     * @return Connected NYM address
+     */
+    suspend fun connectWithCustomIdentity(rendezvousSeed: List<UByte>, gatewayId: String): Result<String>
+
+    /**
+     * Calculate rendezvous address for Two-Slot strategy (pointId + "_A" or "_B")
+     * Does not connect, just derives the address.
+     */
+    suspend fun getRendezvousAddress(pointId: String): Result<String>
 }
 
 /**

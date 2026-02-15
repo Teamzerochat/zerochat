@@ -8,7 +8,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
@@ -18,7 +20,8 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class ConnectViewModel @Inject constructor(
-    private val connectionManager: ConnectionManager
+    private val connectionManager: ConnectionManager,
+    private val nymTransport: com.zerochat.app.domain.transport.NymTransport
 ) : ViewModel() {
     
     private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Idle)
@@ -41,31 +44,20 @@ class ConnectViewModel @Inject constructor(
     }
     
     /**
-     * Connect as initiator (Alice)
+     * Connect (Roles are derived deterministically)
      */
     fun connectAsInitiator() {
-        val secret = _sharedSecret.value
-        if (secret.isBlank()) {
-            _connectionState.value = ConnectionState.Failed("Secret required")
-            return
-        }
-        
-        viewModelScope.launch {
-            connectionManager.connectAsInitiator(
-                sharedSecret = secret,
-                turnServerUrl = turnServerUrl,
-                turnUsername = turnUsername,
-                turnPassword = turnPassword
-            ).collect { state ->
-                _connectionState.value = state
-            }
-        }
+        connect()
     }
     
     /**
-     * Connect as responder (Bob)
+     * Connect (Roles are derived deterministically)
      */
     fun connectAsResponder() {
+        connect()
+    }
+    
+    private fun connect() {
         val secret = _sharedSecret.value
         if (secret.isBlank()) {
             _connectionState.value = ConnectionState.Failed("Secret required")
@@ -73,7 +65,18 @@ class ConnectViewModel @Inject constructor(
         }
         
         viewModelScope.launch {
-            connectionManager.connectAsResponder(
+            // Connect to NYM first (on IO thread to avoid blocking UI)
+            _connectionState.value = ConnectionState.ConnectingToNym
+            val connectResult = withContext(Dispatchers.IO) {
+                nymTransport.connect("")  // Empty string uses default public gateway
+            }
+            if (connectResult.isFailure) {
+                _connectionState.value = ConnectionState.Failed("Failed to connect to network")
+                return@launch
+            }
+            
+            // Now call ConnectionManager (Symmetric Flow)
+            connectionManager.connect(
                 sharedSecret = secret,
                 turnServerUrl = turnServerUrl,
                 turnUsername = turnUsername,

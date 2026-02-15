@@ -63,7 +63,7 @@ interface NymTransportClient {
     ConnectionInfo get_connection_info();
     
     [Throws=TransportError]
-    RendezvousMessage? poll_rendezvous(string point_id);
+    sequence<RendezvousMessage> poll_rendezvous(string point_id);
     
     [Throws=TransportError]
     void send_message(sequence<u8> handle, sequence<u8> payload);
@@ -73,4 +73,24 @@ interface NymTransportClient {
     
     [Throws=TransportError]
     RendezvousMessage? receive_message(u64 timeout_ms);
+    
+    // Connect with custom identity for DEBUG MODE ONLY
+    [Throws=TransportError]
+    string connect_with_custom_identity(sequence<u8> rendezvous_seed, string gateway_id);
+    
+    [Throws=TransportError]
+    string get_rendezvous_address(string point_id);
+    
+    // Connect to rendezvous point with deterministic gateway
+    [Throws=TransportError]
+    string connect_rendezvous(string point_id);
+    
+    // Explicitly disconnect from a specific rendezvous point
+    [Throws=TransportError]
+    void disconnect_rendezvous(string point_id);
+
+
+    
+    // Explicitly disconnect all rendezvous clients
+    void disconnect_all_rendezvous();
 };

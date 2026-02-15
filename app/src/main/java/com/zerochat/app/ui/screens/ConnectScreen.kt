@@ -154,6 +154,7 @@ fun ConnectionStatusCard(state: ConnectionState) {
         is ConnectionState.ConnectingToNym -> "Connecting to Nym..." to MaterialTheme.colorScheme.primary
         is ConnectionState.DerivedRendezvous -> "Rendezvous derived" to MaterialTheme.colorScheme.primary
         is ConnectionState.PollingRendezvous -> "Waiting for peer..." to MaterialTheme.colorScheme.primary
+        is ConnectionState.WaitingForPeer -> "Waiting for peer to connect..." to MaterialTheme.colorScheme.primary
         is ConnectionState.Handshaking -> "Handshaking..." to MaterialTheme.colorScheme.primary
         is ConnectionState.ExchangingHandles -> "Exchanging handles..." to MaterialTheme.colorScheme.primary
         is ConnectionState.EstablishingWebRTC -> "Establishing connection..." to MaterialTheme.colorScheme.primary
@@ -178,6 +179,7 @@ fun ConnectionStatusCard(state: ConnectionState) {
         ) {
             if (state is ConnectionState.ConnectingToNym ||
                 state is ConnectionState.PollingRendezvous ||
+                state is ConnectionState.WaitingForPeer ||
                 state is ConnectionState.Handshaking ||
                 state is ConnectionState.ExchangingHandles ||
                 state is ConnectionState.EstablishingWebRTC) {

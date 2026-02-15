@@ -262,7 +262,7 @@ class KeyManager @Inject constructor() {
             encryptionKey,
             KEY_LENGTH,
             1L, // subkey ID
-            "zerochat-encrypt".toByteArray(),
+            "ZCEncKey".toByteArray(), // MUST be exactly 8 bytes for crypto_kdf
             spake2Output
         )
         
@@ -271,7 +271,7 @@ class KeyManager @Inject constructor() {
             macKey,
             KEY_LENGTH,
             2L, // subkey ID
-            "zerochat-mac".toByteArray(),
+            "ZC_MACKy".toByteArray(), // MUST be exactly 8 bytes for crypto_kdf
             spake2Output
         )
         
@@ -279,6 +279,95 @@ class KeyManager @Inject constructor() {
         sessionKeys = keys
         
         return keys
+    }
+    
+    /**
+     * Derive confirmation key from session key for mutual verification
+     * 
+     * @param sessionKey Session key from SPAKE2+ handshake
+     * @return Confirmation key (32 bytes) for HMAC
+     */
+    fun deriveConfirmationKey(sessionKey: ByteArray): ByteArray {
+        val confirmationKey = ByteArray(KEY_LENGTH)
+        
+        // Derive confirmation key using KDF with domain separation
+        sodium.cryptoKdfDeriveFromKey(
+            confirmationKey,
+            KEY_LENGTH,
+            3L, // subkey ID (different from encryption=1, mac=2)
+            "ZCConfKy".toByteArray(), // MUST be exactly 8 bytes for crypto_kdf
+            sessionKey
+        )
+        
+        return confirmationKey
+    }
+    
+    /**
+     * Encrypt data with session key (for handle encryption)
+     * 
+     * Uses AES-256-GCM via libsodium's SecretBox.
+     * 
+     * @param plaintext Data to encrypt
+     * @param sessionKey Session key from SPAKE2+ handshake
+     * @return Encrypted data (nonce + ciphertext + MAC), or null on failure
+     */
+    fun encrypt(plaintext: ByteArray, sessionKey: ByteArray): ByteArray? {
+        return try {
+            val nonce = generateNonce()
+            val macBytes = 16  // SecretBox MAC size
+            val encrypted = ByteArray(plaintext.size + macBytes)
+            
+            val success = sodium.cryptoSecretBoxEasy(
+                encrypted,
+                plaintext,
+                plaintext.size.toLong(),
+                nonce,
+                sessionKey
+            )
+            
+            if (success) {
+                // Return nonce + encrypted (for transmission)
+                nonce + encrypted
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+    
+    /**
+     * Decrypt data with session key (for handle decryption)
+     * 
+     * @param ciphertext Encrypted data (nonce + ciphertext + MAC)
+     * @param sessionKey Session key from SPAKE2+ handshake
+     * @return Decrypted plaintext, or null if decryption fails
+     */
+    fun decrypt(ciphertext: ByteArray, sessionKey: ByteArray): ByteArray? {
+        if (ciphertext.size < NONCE_LENGTH + 16) {
+            return null  // Too short to be valid
+        }
+        
+        return try {
+            // Extract nonce and encrypted data
+            val nonce = ciphertext.copyOfRange(0, NONCE_LENGTH)
+            val encrypted = ciphertext.copyOfRange(NONCE_LENGTH, ciphertext.size)
+            
+            val macBytes = 16
+            val plaintext = ByteArray(encrypted.size - macBytes)
+            
+            val success = sodium.cryptoSecretBoxOpenEasy(
+                plaintext,
+                encrypted,
+                encrypted.size.toLong(),
+                nonce,
+                sessionKey
+            )
+            
+            if (success) plaintext else null
+        } catch (e: Exception) {
+            null
+        }
     }
     
     /**

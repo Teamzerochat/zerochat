@@ -2,6 +2,7 @@ package com.zerochat.app.domain.crypto
 
 import android.util.Log
 import uniffi.nym_transport.*
+import java.security.SecureRandom
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -29,6 +30,44 @@ class HandshakeManager @Inject constructor(
     // Volatile: Handshake handle exists only during handshake
     @Volatile
     private var handleId: ULong? = null
+    
+    /**
+     * Generate a random 32-byte nonce for role election.
+     * This allows us to start symmetrically without determining role first.
+     */
+    fun generateElectionNonce(): ByteArray {
+        val nonce = ByteArray(16) // 128-bit
+        SecureRandom().nextBytes(nonce)
+        return nonce
+    }
+
+    /**
+     * Deterministically derive role based on commitment comparison.
+     * Lexicographic byte-wise comparison.
+     * STRICT RULE: if my_nonce < peer_nonce -> INITIATOR
+     * 
+     * @param myNonce My election nonce
+     * @param peerNonce Peer's election nonce
+     * @return Derived role (INITIATOR or RESPONDER)
+     */
+    fun determineRole(myNonce: ByteArray, peerNonce: ByteArray): HandshakeRole? {
+        if (myNonce.contentEquals(peerNonce)) {
+            return null
+        }
+
+        // Byte-wise lexicographic comparison
+        for (i in 0 until minOf(myNonce.size, peerNonce.size)) {
+            val b1 = myNonce[i].toInt() and 0xFF
+            val b2 = peerNonce[i].toInt() and 0xFF
+            
+            // STRICT: smaller nonce = INITIATOR
+            if (b1 < b2) return HandshakeRole.INITIATOR
+            if (b1 > b2) return HandshakeRole.RESPONDER
+        }
+        
+        // If prefix matches, shorter nonce is smaller
+        return if (myNonce.size < peerNonce.size) HandshakeRole.INITIATOR else HandshakeRole.RESPONDER
+    }
     
     /**
      * Start handshake as initiator (Alice)
@@ -141,6 +180,94 @@ class HandshakeManager @Inject constructor(
     }
     
     /**
+     * Generate confirmation message for mutual verification
+     * 
+     * Uses HMAC-SHA256 with a confirmation key derived from session key.
+     * Format: HMAC(confirmation_key, role_label)
+     * 
+     * @param sessionKey The session key derived from SPAKE2+
+     * @param role Either "INITIATOR" or "RESPONDER"
+     * @return Confirmation message (32 bytes)
+     */
+    fun generateConfirmation(sessionKey: ByteArray, role: String): ByteArray {
+        // Derive confirmation key from session key using HKDF
+        val confirmationKey = keyManager.deriveConfirmationKey(sessionKey)
+        
+        // Generate HMAC of role label
+        val message = role.toByteArray(Charsets.UTF_8)
+        val confirmation = ByteArray(32)  // SHA256 output size
+        
+        // Use libsodium's HMAC-SHA256 (cryptoAuth uses HMAC-SHA512-256)
+        val sodium = com.goterl.lazysodium.LazySodiumAndroid(com.goterl.lazysodium.SodiumAndroid())
+        sodium.cryptoAuth(
+            confirmation,
+            message,
+            message.size.toLong(),
+            confirmationKey
+        )
+        
+        // Zeroize confirmation key
+        secureWipe(confirmationKey)
+        
+        Log.i(TAG, "Generated confirmation for role: $role")
+        return confirmation
+    }
+    
+    /**
+     * Verify peer's confirmation message
+     * 
+     * @param sessionKey The session key derived from SPAKE2+
+     * @param confirmation Peer's confirmation message
+     * @param peerRole Expected peer role ("INITIATOR" or "RESPONDER")
+     * @return True if confirmation is valid
+     */
+    fun verifyConfirmation(
+        sessionKey: ByteArray, 
+        confirmation: ByteArray, 
+        peerRole: String
+    ): Boolean {
+        if (confirmation.size != 32) {
+            Log.e(TAG, "Invalid confirmation size: ${confirmation.size}")
+            return false
+        }
+        
+        try {
+            // Derive same confirmation key
+            val confirmationKey = keyManager.deriveConfirmationKey(sessionKey)
+            
+            // Compute expected HMAC
+            val message = peerRole.toByteArray(Charsets.UTF_8)
+            val expected = ByteArray(32)
+            
+            val sodium = com.goterl.lazysodium.LazySodiumAndroid(com.goterl.lazysodium.SodiumAndroid())
+            sodium.cryptoAuth(
+                expected,
+                message,
+                message.size.toLong(),
+                confirmationKey
+            )
+            
+            // Constant-time comparison
+            val verified = expected.contentEquals(confirmation)
+            
+            // Zeroize
+            secureWipe(confirmationKey)
+            secureWipe(expected)
+            
+            if (verified) {
+                Log.i(TAG, "✓ Peer confirmation verified for role: $peerRole")
+            } else {
+                Log.e(TAG, "❌ Peer confirmation FAILED for role: $peerRole")
+            }
+            
+            return verified
+        } catch (e: Exception) {
+            Log.e(TAG, "Confirmation verification error: ${e.message}", e)
+            return false
+        }
+    }
+    
+    /**
      * Clear all handshake state and cleanup Rust-side handle
      */
     fun cleanup() {
@@ -172,6 +299,14 @@ class HandshakeManager @Inject constructor(
             }
         }
     }
+}
+
+/**
+ * Handshake Roles
+ */
+enum class HandshakeRole {
+    INITIATOR,
+    RESPONDER
 }
 
 /**

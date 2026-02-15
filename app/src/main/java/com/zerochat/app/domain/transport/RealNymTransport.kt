@@ -1,6 +1,8 @@
 package com.zerochat.app.domain.transport
 
 import android.util.Log
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import uniffi.nym_transport.NymTransportClient
 import uniffi.nym_transport.TransportException
 import uniffi.nym_transport.RendezvousMessage as FfiRendezvousMessage
@@ -61,19 +63,49 @@ class RealNymTransport @Inject constructor() : NymTransport {
             false
         }
     }
-    
-    override suspend fun pollRendezvous(pointId: String): RendezvousResponse? {
+
+    override suspend fun connectRendezvous(pointId: String): Result<String> {
         return try {
-            val ffiMsg: FfiRendezvousMessage? = getOrCreateClient().pollRendezvous(pointId)
-            ffiMsg?.let {
+            Log.i(TAG, "Connecting to rendezvous point: $pointId")
+            
+            val address = getOrCreateClient().connectRendezvous(pointId)
+            
+            Log.i(TAG, "Rendezvous connected: $address")
+            Result.success(address)
+        } catch (e: Exception) {
+            Log.e(TAG, "Rendezvous connection failed", e)
+            Result.failure(e)
+        }
+    }
+
+    override fun isRendezvousConnected(pointId: String): Boolean {
+        // Rust client handles idempotency safely (checks map).
+        // Returning true here would force a disconnect, which might be overkill.
+        // Returning false allows 'connect' to proceed and verify status in Rust.
+        return false 
+    }
+
+    override suspend fun pollRendezvous(pointId: String): List<RendezvousResponse>? {
+        return try {
+            val ffiMsgs = getOrCreateClient().pollRendezvous(pointId)
+            // ffiMsgs is now a List<RendezvousMessage> (sequence in UDL)
+            // If empty, return null or empty list? Let's return null to signal "nothing new" 
+            // but empty list is also fine. Let's return empty list if connected but no messages.
+            
+            if (ffiMsgs.isEmpty()) {
+                return null
+            }
+            
+            ffiMsgs.map { msg ->
                 RendezvousResponse(
-                    senderHandle = it.senderHandle.map { b -> b.toByte() }.toByteArray(),
-                    payload = it.payload.map { b -> b.toByte() }.toByteArray()
+                    senderHandle = msg.senderHandle.map { b -> b.toByte() }.toByteArray(),
+                    payload = msg.payload.map { b -> b.toByte() }.toByteArray()
                 )
             }
         } catch (e: TransportException) {
             null
         } catch (e: Exception) {
+            Log.e(TAG, "Poll error", e)
             null
         }
     }
@@ -123,5 +155,55 @@ class RealNymTransport @Inject constructor() : NymTransport {
     
     override fun getMyAddress(): ByteArray? {
         return myNymAddress?.toByteArray(Charsets.UTF_8)
+    }
+    
+    override suspend fun connectWithCustomIdentity(rendezvousSeed: List<UByte>, gatewayId: String): Result<String> {
+        return withContext(Dispatchers.IO) {
+            try {
+                if (client == null) {
+                    client = NymTransportClient()
+                }
+                
+                Log.i(TAG, "🔧 DEBUG: Connecting with custom identity...")
+                // Use safe call or just assume client is set now
+                val address = client!!.connectWithCustomIdentity(rendezvousSeed, gatewayId)
+                Log.i(TAG, "✓ Connected as: $address")
+                
+                Result.success(address)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to connect with custom identity", e)
+                Result.failure(e)
+            }
+        }
+    }
+    
+    override fun disconnectRendezvous(pointId: String) {
+        if (client == null) return
+        try {
+            client?.disconnectRendezvous(pointId)
+            Log.i(TAG, "Rendezvous client disconnected: $pointId")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to disconnect rendezvous client: $pointId", e)
+        }
+    }
+    
+    override fun disconnectAllRendezvous() {
+        if (client == null) return
+        try {
+             client?.disconnectAllRendezvous()
+             Log.i(TAG, "All rendezvous clients disconnected")
+        } catch (e: Exception) {
+             Log.e(TAG, "Failed to disconnect rendezvous clients", e)
+        }
+    }
+
+    override suspend fun getRendezvousAddress(pointId: String): Result<String> {
+        return try {
+            val address = getOrCreateClient().getRendezvousAddress(pointId)
+            Result.success(address)
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to get rendezvous address", e)
+            Result.failure(e)
+        }
     }
 }
