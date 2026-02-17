@@ -101,8 +101,8 @@ dependencies {
     implementation("androidx.room:room-ktx:2.6.1")
     kapt("androidx.room:room-compiler:2.6.1")
     
-    // WebRTC
-    implementation("io.getstream:stream-webrtc-android:1.0.7")
+    // I2P native library loaded from jniLibs/
+    // (libi2pd.so extracted from PurpleI2P/i2pd-android v2.59.0)
     
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")

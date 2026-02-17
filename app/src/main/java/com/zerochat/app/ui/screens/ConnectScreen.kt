@@ -19,9 +19,8 @@ import com.zerochat.app.ui.viewmodels.ConnectViewModel
  * 
  * Features:
  * - Shared secret input with show/hide
- * - Connect as initiator or responder
+ * - Single connect button (roles derived automatically)
  * - Connection status display
- * - QR code generation/scanning (TODO)
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -101,25 +100,12 @@ fun ConnectScreen(
                 connectionState is ConnectionState.Failed ||
                 connectionState is ConnectionState.Disconnected) {
                 
-                Row(
+                Button(
+                    onClick = { viewModel.connect() },
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    enabled = sharedSecret.isNotBlank()
                 ) {
-                    Button(
-                        onClick = { viewModel.connectAsInitiator() },
-                        modifier = Modifier.weight(1f),
-                        enabled = sharedSecret.isNotBlank()
-                    ) {
-                        Text("Connect (Initiator)")
-                    }
-                    
-                    Button(
-                        onClick = { viewModel.connectAsResponder() },
-                        modifier = Modifier.weight(1f),
-                        enabled = sharedSecret.isNotBlank()
-                    ) {
-                        Text("Connect (Responder)")
-                    }
+                    Text("Connect")
                 }
                 
             } else {
@@ -157,7 +143,7 @@ fun ConnectionStatusCard(state: ConnectionState) {
         is ConnectionState.WaitingForPeer -> "Waiting for peer to connect..." to MaterialTheme.colorScheme.primary
         is ConnectionState.Handshaking -> "Handshaking..." to MaterialTheme.colorScheme.primary
         is ConnectionState.ExchangingHandles -> "Exchanging handles..." to MaterialTheme.colorScheme.primary
-        is ConnectionState.EstablishingWebRTC -> "Establishing connection..." to MaterialTheme.colorScheme.primary
+        is ConnectionState.EstablishingI2P -> "Establishing I2P tunnel..." to MaterialTheme.colorScheme.primary
         is ConnectionState.Connected -> "Connected!" to MaterialTheme.colorScheme.tertiary
         is ConnectionState.Failed -> state.reason to MaterialTheme.colorScheme.error
         is ConnectionState.Disconnected -> "Disconnected" to MaterialTheme.colorScheme.onSurfaceVariant
@@ -182,7 +168,7 @@ fun ConnectionStatusCard(state: ConnectionState) {
                 state is ConnectionState.WaitingForPeer ||
                 state is ConnectionState.Handshaking ||
                 state is ConnectionState.ExchangingHandles ||
-                state is ConnectionState.EstablishingWebRTC) {
+                state is ConnectionState.EstablishingI2P) {
                 CircularProgressIndicator(
                     modifier = Modifier
                         .size(24.dp)

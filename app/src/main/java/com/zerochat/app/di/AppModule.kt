@@ -2,12 +2,10 @@ package com.zerochat.app.di
 
 import android.content.Context
 import com.zerochat.app.domain.crypto.KeyManager
+import com.zerochat.app.domain.i2p.SamClient
 import com.zerochat.app.domain.rendezvous.RendezvousManager
-import com.zerochat.app.domain.routing.RoutingHandleManager
 import com.zerochat.app.domain.transport.NymTransport
 import com.zerochat.app.domain.transport.RealNymTransport
-import com.zerochat.app.domain.webrtc.WebRtcConfig
-import com.zerochat.app.domain.webrtc.WebRtcManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -43,21 +41,8 @@ object AppModule {
     
     @Provides
     @Singleton
-    fun provideRoutingHandleManager(): RoutingHandleManager {
-        return RoutingHandleManager()
-    }
-    
-    @Provides
-    @Singleton
-    fun provideWebRtcConfig(): WebRtcConfig {
-        // TODO: Load from secure storage or config
-        return WebRtcConfig.default()
-    }
-    
-    @Provides
-    @Singleton
-    fun provideWebRtcManager(@ApplicationContext context: Context): WebRtcManager {
-        return WebRtcManager(context)
+    fun provideSamClient(): SamClient {
+        return SamClient()
     }
     
     @Provides
@@ -66,5 +51,3 @@ object AppModule {
         return context
     }
 }
-
-

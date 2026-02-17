@@ -29,6 +29,9 @@ class ZeroChatApplication : Application() {
         
         // Register lifecycle callbacks for security guardrails
         registerActivityLifecycleCallbacks(lifecycleObserver)
+
+        // Start I2P Router Service immediately (takes 30-90s to bootstrap)
+        com.zerochat.app.domain.i2p.I2PRouterService.start(this)
     }
     
     private fun initializeCrypto() {

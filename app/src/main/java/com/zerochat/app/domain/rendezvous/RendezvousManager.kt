@@ -49,6 +49,7 @@ class RendezvousManager @Inject constructor(
     private val state = AtomicReference(RendezvousState.IDLE)
     private val connectionMutex = Mutex()
     private var lastTeardownTime: Long = 0
+    private var handshakeComplete = false
 
     companion object {
         private const val TAG = "RendezvousManager"
@@ -276,8 +277,8 @@ class RendezvousManager @Inject constructor(
      * STEP 4: Success & Teardown
      */
     suspend fun markHandshakeComplete() {
-        transitionTo(RendezvousState.HANDSHAKE_COMPLETE)
-        teardownRendezvous()
+        handshakeComplete = true
+        Log.i(TAG, "Epoch frozen after handshake.")
     }
     
     suspend fun teardownRendezvous() = connectionMutex.withLock {
@@ -285,11 +286,11 @@ class RendezvousManager @Inject constructor(
         transitionTo(RendezvousState.TEARDOWN)
         
         try {
-            transport.disconnectAllRendezvous()
             consumedRendezvous.clear()
             messageBuffer.clear()
             activeRendezvousId = null
             peerAddress = null
+            handshakeComplete = false
         } catch (e: Exception) {
             Log.e(TAG, "Teardown error", e)
         } finally {
@@ -345,9 +346,16 @@ class RendezvousManager @Inject constructor(
         // STRICT REQUIREMENT: If epoch changes, abort.
         // We do not allow "just before expiry" leeway if the wall clock epoch has shifted.
         val currentEpoch = getCurrentEpoch()
-        if (currentEpoch != point.epoch) {
-            Log.w(TAG, "Epoch mismatch! Point=${point.epoch}, Current=$currentEpoch. ABORTING.")
-            return false
+        
+        if (!handshakeComplete) {
+            if (currentEpoch != point.epoch) {
+                Log.w(TAG, "Epoch mismatch during discovery. Point=${point.epoch}, Current=$currentEpoch. ABORTING.")
+                return false
+            }
+        } else {
+            if (currentEpoch != point.epoch) {
+                Log.i(TAG, "Epoch mismatch ignored (post-handshake).")
+            }
         }
         return !consumedRendezvous.contains(point.id)
     }

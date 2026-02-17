@@ -16,7 +16,8 @@ import javax.inject.Inject
 /**
  * ConnectViewModel - Manages connection initiation
  * 
- * Exposes connection state to UI and handles connection flow
+ * Exposes connection state to UI and handles connection flow.
+ * Transport: Nym for rendezvous/handshake, I2P for message streaming.
  */
 @HiltViewModel
 class ConnectViewModel @Inject constructor(
@@ -30,12 +31,6 @@ class ConnectViewModel @Inject constructor(
     private val _sharedSecret = MutableStateFlow("")
     val sharedSecret: StateFlow<String> = _sharedSecret.asStateFlow()
     
-    // TURN server configuration - Using public TURN for testing
-    // TODO: Replace with self-hosted TURN server for production
-    private val turnServerUrl = "turn:openrelay.metered.ca:80"
-    private val turnUsername = "openrelayproject"
-    private val turnPassword = "openrelayproject"
-    
     /**
      * Update shared secret input
      */
@@ -44,20 +39,9 @@ class ConnectViewModel @Inject constructor(
     }
     
     /**
-     * Connect (Roles are derived deterministically)
+     * Connect to peer. Roles are derived automatically via nonce exchange.
      */
-    fun connectAsInitiator() {
-        connect()
-    }
-    
-    /**
-     * Connect (Roles are derived deterministically)
-     */
-    fun connectAsResponder() {
-        connect()
-    }
-    
-    private fun connect() {
+    fun connect() {
         val secret = _sharedSecret.value
         if (secret.isBlank()) {
             _connectionState.value = ConnectionState.Failed("Secret required")
@@ -77,10 +61,7 @@ class ConnectViewModel @Inject constructor(
             
             // Now call ConnectionManager (Symmetric Flow)
             connectionManager.connect(
-                sharedSecret = secret,
-                turnServerUrl = turnServerUrl,
-                turnUsername = turnUsername,
-                turnPassword = turnPassword
+                sharedSecret = secret
             ).collect { state ->
                 _connectionState.value = state
             }

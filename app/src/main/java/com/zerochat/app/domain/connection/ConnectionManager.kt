@@ -3,23 +3,21 @@ package com.zerochat.app.domain.connection
 import android.util.Log
 import com.zerochat.app.domain.crypto.HandshakeManager
 import com.zerochat.app.domain.crypto.HandshakeRole
+import com.zerochat.app.domain.i2p.EncryptedChannel
+import com.zerochat.app.domain.i2p.I2PRouterService
+import com.zerochat.app.domain.i2p.SamClient
 import com.zerochat.app.domain.rendezvous.PollResult
 import com.zerochat.app.domain.rendezvous.RendezvousFrame
 import com.zerochat.app.domain.rendezvous.RendezvousManager
-import com.zerochat.app.domain.routing.RoutingHandleManager
-import com.zerochat.app.domain.transport.NymTransport
-import com.zerochat.app.domain.webrtc.SignalingProtocol
-import com.zerochat.app.domain.webrtc.WebRtcManager
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import org.webrtc.SessionDescription
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Connection Manager - Model 3 (Symmetric)
+ * Connection Manager - Model 3 (Symmetric) with I2P Transport
  * 
  * Flow:
  * 1. Derive Deterministic Identity (HKDF)
@@ -27,40 +25,32 @@ import javax.inject.Singleton
  * 3. Publish Nonce / Poll Peer Nonce
  * 4. Derive Role (Initiator/Responder)
  * 5. Symmetric SPAKE2+ Handshake & Confirmation
- * 6. Exchange Encrypted Routing Handles (Session Key)
+ * 6. Exchange Encrypted I2P Destinations (Session Key)
  * 7. Teardown Rendezvous IMMEDIATELY
- * 8. Establish WebRTC (TURN only)
+ * 8. Establish I2P Streaming Connection (via SAM Bridge)
  */
 @Singleton
 class ConnectionManager @Inject constructor(
     private val rendezvousManager: RendezvousManager,
     private val handshakeManager: HandshakeManager,
-    private val routingHandleManager: RoutingHandleManager,
-    private val webRtcManager: WebRtcManager,
-    private val nymTransport: NymTransport,
+    private val samClient: SamClient,
     private val keyManager: com.zerochat.app.domain.crypto.KeyManager
 ) {
     
     companion object {
         private const val TAG = "ConnectionManager"
-        private const val SIGNALING_RECEIVE_TIMEOUT_MS = 1000L
     }
     
-    // Coroutine scope for signaling operations (WebRTC)
-    private val signalingScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
-    
-    // Peer's NYM address for sending signaling messages
+    // Active encrypted channel for message exchange
     @Volatile
-    private var peerNymAddress: ByteArray? = null
+    var encryptedChannel: EncryptedChannel? = null
+        private set
     
     /**
      * Connect using Model 3 (Deterministic + Symmetric)
      */
     fun connect(
-        sharedSecret: String,
-        turnServerUrl: String,
-        turnUsername: String,
-        turnPassword: String
+        sharedSecret: String
     ): Flow<ConnectionState> = flow {
         val collector = this
         
@@ -205,49 +195,79 @@ class ConnectionManager @Inject constructor(
                 return@flow
             }
             
-            if (!handshakeManager.verifyConfirmation(sessionKey, peerConfirmData, peerRoleStr)) {
-                collector.emit(ConnectionState.Failed("Auth validation failed"))
+            // FREEZE EPOCH: Handshake is secure, ignore subsequent epoch shifts
+            rendezvousManager.markHandshakeComplete()
+            
+            // Phase 8: Exchange Encrypted I2P Destinations
+            collector.emit(ConnectionState.ExchangingHandles)
+            
+            // Ensure I2P router is ready before creating SAM session
+            collector.emit(ConnectionState.EstablishingI2P)
+            Log.i(TAG, "Waiting for I2P router to be ready...")
+            
+            val routerReady = I2PRouterService.waitUntilReady()
+            if (!routerReady) {
+                collector.emit(ConnectionState.Failed("I2P router not ready: ${I2PRouterService.startError ?: "timeout"}"))
                 return@flow
             }
+            Log.i(TAG, "✓ I2P router ready")
             
-            // Phase 8: Exchange Encrypted Handles
-            collector.emit(ConnectionState.ExchangingHandles)
-            val myRouterHandle = routingHandleManager.generateMyHandle()
-            val encryptedHandle = keyManager.encrypt(myRouterHandle, sessionKey)!!
+            // Create SAM session to get our I2P destination
+            val myDestination = samClient.createSession()
+            val myDestBytes = myDestination.toByteArray(Charsets.UTF_8)
+            val encryptedDest = keyManager.encrypt(myDestBytes, sessionKey)!!
             
-            ignoreBodies.add(encryptedHandle.toHexString())
-            rendezvousManager.publish(rendezvousPoint, RendezvousFrame.wrap(RendezvousFrame.TYPE_HANDLE, encryptedHandle))
+            ignoreBodies.add(encryptedDest.toHexString())
+            rendezvousManager.publish(rendezvousPoint, RendezvousFrame.wrap(RendezvousFrame.TYPE_HANDLE, encryptedDest))
             
-            var peerEncryptedHandle: ByteArray? = null
+            var peerEncryptedDest: ByteArray? = null
              try {
                 rendezvousManager.poll(rendezvousPoint, ignoreBodies, RendezvousFrame.TYPE_HANDLE).collect { res ->
-                     if (res is PollResult.Found) { peerEncryptedHandle = res.body; throw CancellationException("FOUND") }
+                     if (res is PollResult.Found) { peerEncryptedDest = res.body; throw CancellationException("FOUND") }
                      else if (res is PollResult.Timeout) throw Exception("Handle timeout")
                 }
             } catch (e: CancellationException) { if (e.message != "FOUND") throw e }
             catch (e: Exception) { collector.emit(ConnectionState.Failed(e.message ?: "Error")); return@flow }
             
-            val peerHandle = keyManager.decrypt(peerEncryptedHandle ?: run {
-                collector.emit(ConnectionState.Failed("No handle received from peer"))
+            val peerDestBytes = keyManager.decrypt(peerEncryptedDest ?: run {
+                collector.emit(ConnectionState.Failed("No I2P destination received from peer"))
                 return@flow
             }, sessionKey) ?: run {
                 collector.emit(ConnectionState.Failed("Decryption Error"))
                 return@flow
             }
             
-            peerNymAddress = peerHandle
-            routingHandleManager.setPeerHandle(peerHandle)
+            val peerDestination = String(peerDestBytes, Charsets.UTF_8)
+            Log.i(TAG, "✓ Peer I2P destination received: ${peerDestination.take(32)}...")
             
-            // Phase 9: TEARDOWN
-            rendezvousManager.markHandshakeComplete() // Strict teardown
-            
-            // Phase 10: WebRTC
-            if (nymTransport.isConnected()) {
-                connectWebRTC(turnServerUrl, turnUsername, turnPassword, role == HandshakeRole.INITIATOR, collector)
-                collector.emit(ConnectionState.Connected)
-            } else {
-                 collector.emit(ConnectionState.Failed("Transport disconnected"))
+            // Self-connect check
+            if (peerDestination == myDestination) {
+                collector.emit(ConnectionState.Failed("Cannot connect to self"))
+                return@flow
             }
+            
+            // Phase 9: TEARDOWN Rendezvous
+            rendezvousManager.teardownRendezvous() // Strict teardown
+            
+            // Phase 10: Establish I2P Streaming Connection
+            Log.i(TAG, "Establishing I2P stream (role=$role)...")
+            
+            val stream = if (role == HandshakeRole.INITIATOR) {
+                // INITIATOR connects to peer's destination
+                // Add small delay for RESPONDER to start accepting
+                delay(2_000)
+                samClient.connectStream(peerDestination)
+            } else {
+                // RESPONDER accepts incoming connection
+                samClient.acceptStream()
+            }
+            
+            Log.i(TAG, "✓ I2P stream established!")
+            
+            // Wrap stream with application-layer encryption
+            encryptedChannel = EncryptedChannel(sessionKey, stream)
+            
+            collector.emit(ConnectionState.Connected)
 
         } catch (e: Exception) {
             Log.e(TAG, "Connection Loop Error", e)
@@ -257,71 +277,11 @@ class ConnectionManager @Inject constructor(
             handshakeManager.cleanup()
         }
     }.flowOn(Dispatchers.IO)
-
-    
-    private suspend fun connectWebRTC(
-        url: String, 
-        user: String, 
-        pass: String, 
-        isOfferer: Boolean,
-        collector: kotlinx.coroutines.flow.FlowCollector<ConnectionState>
-    ) {
-        collector.emit(ConnectionState.EstablishingWebRTC)
-        webRtcManager.initialize(url, user, pass)
-        startSignalingReceiveLoop()
-        
-        webRtcManager.onLocalSdp = { sdp ->
-            val data = SignalingProtocol.serializeSdp(sdp)
-            signalingScope.launch { sendSignalingMessage(data) }
-        }
-        
-        webRtcManager.onIceCandidate = { cand ->
-            val data = SignalingProtocol.serializeIceCandidate(cand)
-            signalingScope.launch { sendSignalingMessage(data) }
-        }
-        
-        if (isOfferer) {
-            webRtcManager.createDataChannel()
-            webRtcManager.createOffer()
-        }
-    }
-    
-    private suspend fun sendSignalingMessage(data: ByteArray) {
-        peerNymAddress?.let { addr ->
-             nymTransport.sendMessage(addr, data)
-        }
-    }
-    
-    private fun startSignalingReceiveLoop() {
-        signalingScope.launch {
-            while (isActive) {
-                val msg = nymTransport.receiveMessage(SIGNALING_RECEIVE_TIMEOUT_MS)
-                msg?.let { handleSignalingMessage(it.payload) }
-            }
-        }
-    }
-    
-    private fun handleSignalingMessage(data: ByteArray) {
-        when (SignalingProtocol.getMessageType(data)) {
-            SignalingProtocol.TYPE_SDP_OFFER, SignalingProtocol.TYPE_SDP_ANSWER -> {
-                SignalingProtocol.deserializeSdp(data)?.let { sdp ->
-                    webRtcManager.setRemoteSdp(sdp)
-                    if (sdp.type == SessionDescription.Type.OFFER) webRtcManager.createAnswer()
-                }
-            }
-            SignalingProtocol.TYPE_ICE_CANDIDATE -> {
-                SignalingProtocol.deserializeIceCandidate(data)?.let { cand ->
-                    webRtcManager.addIceCandidate(cand)
-                }
-            }
-        }
-    }
     
     fun disconnect() {
-        signalingScope.coroutineContext.cancelChildren()
-        peerNymAddress = null
-        webRtcManager.close()
-        routingHandleManager.wipeAll()
+        encryptedChannel?.close()
+        encryptedChannel = null
+        samClient.close()
         handshakeManager.cleanup()
         rendezvousManager.clearAll()
     }
@@ -337,7 +297,7 @@ sealed class ConnectionState {
     object WaitingForPeer : ConnectionState()
     object Handshaking : ConnectionState()
     object ExchangingHandles : ConnectionState()
-    object EstablishingWebRTC : ConnectionState()
+    object EstablishingI2P : ConnectionState()
     object Connected : ConnectionState()
     data class Failed(val reason: String) : ConnectionState()
     object Disconnected : ConnectionState()

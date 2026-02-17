@@ -1,7 +1,5 @@
 package com.zerochat.app.domain.messaging
 
-import org.webrtc.IceCandidate
-import org.webrtc.SessionDescription
 import java.nio.ByteBuffer
 
 /**
@@ -22,9 +20,6 @@ object MessageProtocol {
     const val TYPE_HANDSHAKE_COMMITMENT: Byte = 0x01
     const val TYPE_HANDSHAKE_RESPONSE: Byte = 0x02
     const val TYPE_ROUTING_HANDLE: Byte = 0x03
-    const val TYPE_WEBRTC_OFFER: Byte = 0x04
-    const val TYPE_WEBRTC_ANSWER: Byte = 0x05
-    const val TYPE_WEBRTC_ICE_CANDIDATE: Byte = 0x06
     const val TYPE_CHAT_MESSAGE: Byte = 0x07
     
     /**
@@ -76,69 +71,6 @@ object MessageProtocol {
         buffer.get(payload)
         
         return Pair(type, payload)
-    }
-    
-    /**
-     * Serialize WebRTC SDP offer/answer
-     */
-    fun serializeSdp(sdp: SessionDescription): ByteArray {
-        val type = if (sdp.type == SessionDescription.Type.OFFER) {
-            TYPE_WEBRTC_OFFER
-        } else {
-            TYPE_WEBRTC_ANSWER
-        }
-        
-        val payload = sdp.description.toByteArray(Charsets.UTF_8)
-        return serialize(type, payload)
-    }
-    
-    /**
-     * Deserialize WebRTC SDP
-     */
-    fun deserializeSdp(data: ByteArray): SessionDescription? {
-        val (type, payload) = deserialize(data) ?: return null
-        
-        val sdpType = when (type) {
-            TYPE_WEBRTC_OFFER -> SessionDescription.Type.OFFER
-            TYPE_WEBRTC_ANSWER -> SessionDescription.Type.ANSWER
-            else -> return null
-        }
-        
-        val description = String(payload, Charsets.UTF_8)
-        return SessionDescription(sdpType, description)
-    }
-    
-    /**
-     * Serialize WebRTC ICE candidate
-     */
-    fun serializeIceCandidate(candidate: IceCandidate): ByteArray {
-        // Format: sdpMid|sdpMLineIndex|sdp
-        val payload = "${candidate.sdpMid}|${candidate.sdpMLineIndex}|${candidate.sdp}"
-            .toByteArray(Charsets.UTF_8)
-        
-        return serialize(TYPE_WEBRTC_ICE_CANDIDATE, payload)
-    }
-    
-    /**
-     * Deserialize WebRTC ICE candidate
-     */
-    fun deserializeIceCandidate(data: ByteArray): IceCandidate? {
-        val (type, payload) = deserialize(data) ?: return null
-        
-        if (type != TYPE_WEBRTC_ICE_CANDIDATE) {
-            return null
-        }
-        
-        val parts = String(payload, Charsets.UTF_8).split("|")
-        if (parts.size != 3) {
-            return null
-        }
-        
-        val sdpMid = parts[0]
-        val sdpMLineIndex = parts[1].toIntOrNull() ?: return null
-        val sdp = parts[2]
-        
-        return IceCandidate(sdpMid, sdpMLineIndex, sdp)
     }
     
     /**

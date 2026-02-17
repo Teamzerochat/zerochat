@@ -4261,17 +4261,26 @@ version = "0.1.0"
 dependencies = [
  "android_logger",
  "bs58",
+ "ed25519-dalek",
+ "hex",
  "hkdf",
  "log",
+ "nym-client-core",
  "nym-crypto",
  "nym-sdk",
+ "nym-sphinx",
  "once_cell",
  "rand 0.8.5",
+ "reqwest 0.11.27",
+ "serde",
+ "serde_json",
  "sha2 0.10.9",
  "spake2",
  "thiserror 1.0.69",
  "tokio",
  "uniffi",
+ "url",
+ "x25519-dalek",
 ]
 
 [[package]]
@@ -5098,6 +5107,7 @@ version = "0.11.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd67538700a17451e7cba03ac727fb961abb7607553461627b97de0b89cf4a62"
 dependencies = [
+ "async-compression",
  "base64 0.21.7",
  "bytes",
  "encoding_rs",
@@ -5125,11 +5135,13 @@ dependencies = [
  "system-configuration",
  "tokio",
  "tokio-rustls 0.24.1",
+ "tokio-util",
  "tower-service",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+ "webpki-roots 0.25.4",
  "winreg",
 ]
 

@@ -389,9 +389,19 @@ internal interface _UniFFILib : Library {
     ): Pointer
     fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_connect(`ptr`: Pointer,`gatewayUrl`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_connect_rendezvous(`ptr`: Pointer,`pointId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_connect_with_custom_identity(`ptr`: Pointer,`rendezvousSeed`: RustBuffer.ByValue,`gatewayId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
     fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_disconnect(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_disconnect_all_rendezvous(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_disconnect_rendezvous(`ptr`: Pointer,`pointId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_get_connection_info(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_get_rendezvous_address(`ptr`: Pointer,`pointId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_is_connected(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Byte
@@ -539,9 +549,19 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_connect(
     ): Short
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_connect_rendezvous(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_connect_with_custom_identity(
+    ): Short
     fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_disconnect(
     ): Short
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_disconnect_all_rendezvous(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_disconnect_rendezvous(
+    ): Short
     fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_get_connection_info(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_get_rendezvous_address(
     ): Short
     fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_is_connected(
     ): Short
@@ -590,16 +610,31 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_connect() != 45052.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_connect_rendezvous() != 47100.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_connect_with_custom_identity() != 11788.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_disconnect() != 44289.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_disconnect_all_rendezvous() != 55659.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_disconnect_rendezvous() != 36515.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_get_connection_info() != 19852.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_get_rendezvous_address() != 31249.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_is_connected() != 42808.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
-    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_poll_rendezvous() != 48853.toShort()) {
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_poll_rendezvous() != 7260.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_publish_at_rendezvous() != 47641.toShort()) {
@@ -900,11 +935,16 @@ abstract class FFIObject(
 
 public interface NymTransportClientInterface {
     @Throws(TransportException::class)
-    fun `connect`(`gatewayUrl`: String): String
+    fun `connect`(`gatewayUrl`: String): String@Throws(TransportException::class)
+    fun `connectRendezvous`(`pointId`: String): String@Throws(TransportException::class)
+    fun `connectWithCustomIdentity`(`rendezvousSeed`: List<UByte>, `gatewayId`: String): String
     fun `disconnect`()
-    fun `getConnectionInfo`(): ConnectionInfo
+    fun `disconnectAllRendezvous`()@Throws(TransportException::class)
+    fun `disconnectRendezvous`(`pointId`: String)
+    fun `getConnectionInfo`(): ConnectionInfo@Throws(TransportException::class)
+    fun `getRendezvousAddress`(`pointId`: String): String
     fun `isConnected`(): Boolean@Throws(TransportException::class)
-    fun `pollRendezvous`(`pointId`: String): RendezvousMessage?@Throws(TransportException::class)
+    fun `pollRendezvous`(`pointId`: String): List<RendezvousMessage>@Throws(TransportException::class)
     fun `publishAtRendezvous`(`pointId`: String, `myHandle`: List<UByte>)@Throws(TransportException::class)
     fun `receiveMessage`(`timeoutMs`: ULong): RendezvousMessage?@Throws(TransportException::class)
     fun `sendMessage`(`handle`: List<UByte>, `payload`: List<UByte>)
@@ -946,11 +986,56 @@ class NymTransportClient(
             FfiConverterString.lift(it)
         }
     
+    
+    @Throws(TransportException::class)override fun `connectRendezvous`(`pointId`: String): String =
+        callWithPointer {
+    rustCallWithError(TransportException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_connect_rendezvous(it,
+        FfiConverterString.lower(`pointId`),
+        _status)
+}
+        }.let {
+            FfiConverterString.lift(it)
+        }
+    
+    
+    @Throws(TransportException::class)override fun `connectWithCustomIdentity`(`rendezvousSeed`: List<UByte>, `gatewayId`: String): String =
+        callWithPointer {
+    rustCallWithError(TransportException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_connect_with_custom_identity(it,
+        FfiConverterSequenceUByte.lower(`rendezvousSeed`),FfiConverterString.lower(`gatewayId`),
+        _status)
+}
+        }.let {
+            FfiConverterString.lift(it)
+        }
+    
     override fun `disconnect`() =
         callWithPointer {
     rustCall() { _status ->
     _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_disconnect(it,
         
+        _status)
+}
+        }
+    
+    
+    override fun `disconnectAllRendezvous`() =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_disconnect_all_rendezvous(it,
+        
+        _status)
+}
+        }
+    
+    
+    
+    @Throws(TransportException::class)override fun `disconnectRendezvous`(`pointId`: String) =
+        callWithPointer {
+    rustCallWithError(TransportException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_disconnect_rendezvous(it,
+        FfiConverterString.lower(`pointId`),
         _status)
 }
         }
@@ -967,6 +1052,18 @@ class NymTransportClient(
             FfiConverterTypeConnectionInfo.lift(it)
         }
     
+    
+    @Throws(TransportException::class)override fun `getRendezvousAddress`(`pointId`: String): String =
+        callWithPointer {
+    rustCallWithError(TransportException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_get_rendezvous_address(it,
+        FfiConverterString.lower(`pointId`),
+        _status)
+}
+        }.let {
+            FfiConverterString.lift(it)
+        }
+    
     override fun `isConnected`(): Boolean =
         callWithPointer {
     rustCall() { _status ->
@@ -979,7 +1076,7 @@ class NymTransportClient(
         }
     
     
-    @Throws(TransportException::class)override fun `pollRendezvous`(`pointId`: String): RendezvousMessage? =
+    @Throws(TransportException::class)override fun `pollRendezvous`(`pointId`: String): List<RendezvousMessage> =
         callWithPointer {
     rustCallWithError(TransportException) { _status ->
     _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_poll_rendezvous(it,
@@ -987,7 +1084,7 @@ class NymTransportClient(
         _status)
 }
         }.let {
-            FfiConverterOptionalTypeRendezvousMessage.lift(it)
+            FfiConverterSequenceTypeRendezvousMessage.lift(it)
         }
     
     
@@ -1333,6 +1430,31 @@ public object FfiConverterSequenceUByte: FfiConverterRustBuffer<List<UByte>> {
         buf.putInt(value.size)
         value.forEach {
             FfiConverterUByte.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceTypeRendezvousMessage: FfiConverterRustBuffer<List<RendezvousMessage>> {
+    override fun read(buf: ByteBuffer): List<RendezvousMessage> {
+        val len = buf.getInt()
+        return List<RendezvousMessage>(len) {
+            FfiConverterTypeRendezvousMessage.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<RendezvousMessage>): Int {
+        val sizeForLength = 4
+        val sizeForItems = value.map { FfiConverterTypeRendezvousMessage.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<RendezvousMessage>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.forEach {
+            FfiConverterTypeRendezvousMessage.write(it, buf)
         }
     }
 }

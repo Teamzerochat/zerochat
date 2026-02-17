@@ -11,6 +11,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.zerochat.app.ui.viewmodels.ConnectViewModel
+import com.zerochat.app.domain.connection.ConnectionState
 
 /**
  * Connect Screen - Enter ONLY shared secret
@@ -26,15 +28,16 @@ fun ConnectScreen(
     onConnected: (String) -> Unit,
     viewModel: ConnectViewModel = hiltViewModel()
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val connectionState by viewModel.connectionState.collectAsState()
+    val sharedSecret by viewModel.sharedSecret.collectAsState()
     
-    LaunchedEffect(uiState) {
-        if (uiState is ConnectUiState.Connected) {
-            onConnected((uiState as ConnectUiState.Connected).sessionId)
+    LaunchedEffect(connectionState) {
+        if (connectionState is ConnectionState.Connected) {
+            onConnected("connected") // Session ID handled internally
         }
     }
     
-    var sharedSecret by remember { mutableStateOf("") }
+    // Shared secret now managed by ViewModel
     
     Column(
         modifier = Modifier
@@ -63,44 +66,56 @@ fun ConnectScreen(
         // Shared secret ONLY - no NYM address input (UI-01)
         OutlinedTextField(
             value = sharedSecret,
-            onValueChange = { sharedSecret = it },
+            onValueChange = { viewModel.updateSharedSecret(it) },
             label = { Text("Shared Secret") },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
             supportingText = { Text("Same phrase your contact is entering") },
-            enabled = uiState !is ConnectUiState.Connecting
+            enabled = connectionState is ConnectionState.Idle || 
+                     connectionState is ConnectionState.Failed ||
+                     connectionState is ConnectionState.Disconnected
         )
         
         Spacer(modifier = Modifier.height(32.dp))
         
         // Connection status
-        when (val state = uiState) {
-            is ConnectUiState.Connecting -> {
+        when (val state = connectionState) {
+            is ConnectionState.ConnectingToNym,
+            is ConnectionState.DerivedRendezvous,
+            is ConnectionState.PollingRendezvous,
+            is ConnectionState.WaitingForPeer,
+            is ConnectionState.Handshaking,
+            is ConnectionState.ExchangingHandles,
+            is ConnectionState.EstablishingI2P -> {
                 CircularProgressIndicator(
                     modifier = Modifier.size(48.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                // UI-03: Only permitted states shown
+                val statusText = when (state) {
+                    is ConnectionState.ConnectingToNym -> "Connecting to network..."
+                    is ConnectionState.PollingRendezvous -> "Waiting for peer..."
+                    is ConnectionState.WaitingForPeer -> "Waiting for peer to connect..."
+                    is ConnectionState.Handshaking -> "Establishing secure connection..."
+                    is ConnectionState.ExchangingHandles -> "Exchanging keys..."
+                    is ConnectionState.EstablishingI2P -> "Establishing I2P tunnel..."
+                    else -> "Connecting..."
+                }
                 Text(
-                    text = "Connecting...",
+                    text = statusText,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                if (state.attempt > 0) {
-                    Text(
-                        text = "Waiting for peer",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
             }
             
-            is ConnectUiState.PeerOffline -> {
-                // FL-05: Same message for timeout AND auth failure
+            is ConnectionState.Failed -> {
                 Text(
-                    text = "Peer not online",
+                    text = if (state.reason.contains("timeout", ignoreCase = true)) {
+                        "Peer not online"
+                    } else {
+                        "Connection failed"
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.error
                 )
@@ -111,26 +126,27 @@ fun ConnectScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
                 )
-            }
-            
-            is ConnectUiState.Error -> {
-                // UI-05: Generic error only
-                Text(
-                    text = "Connection failed",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-            
-            else -> {
+                Spacer(modifier = Modifier.height(16.dp))
                 Button(
-                    onClick = { viewModel.connect(sharedSecret) },
+                    onClick = { viewModel.reset() },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Try Again")
+                }
+            }
+            
+            is ConnectionState.Idle,
+            is ConnectionState.Disconnected -> {
+                Button(
+                    onClick = { viewModel.connect() },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = sharedSecret.length >= 6
                 ) {
                     Text("Connect")
                 }
             }
+            
+            else -> {}
         }
         
         Spacer(modifier = Modifier.weight(1f))
