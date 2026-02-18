@@ -33,7 +33,7 @@ import javax.inject.Singleton
 class MessageQueue @Inject constructor(
     private val keyManager: KeyManager,
     private val routingHandleManager: RoutingHandleManager,
-    private val nymTransport: NymTransport
+    private val connectionManagerProvider: javax.inject.Provider<com.zerochat.app.domain.connection.ConnectionManager>
 ) {
     
     companion object {
@@ -107,34 +107,39 @@ class MessageQueue @Inject constructor(
         
         while (currentRetries < MAX_RETRIES) {
             try {
-                // Get peer's current routing handle
-                val peerHandle = routingHandleManager.getPeerHandle()
-                if (peerHandle == null) {
-                    Log.w(TAG, "No peer handle available, message #${pending.id} failed")
-                    sendQueue.remove(pending.id)
-                    return
-                }
+                // Peer handle check removed for I2P streaming - stream handles routing
+                // val peerHandle = routingHandleManager.getPeerHandle()
                 
                 // Serialize message
                 val serialized = serializeChatMessage(pending.message)
                 
-                // Encrypt with session key
-                val encrypted = keyManager.encryptMessage(serialized)
-                if (encrypted == null) {
-                    Log.w(TAG, "Encryption failed for message #${pending.id}")
-                    sendQueue.remove(pending.id)
-                    return
+                // Wrap in MessageProtocol (Type + Length)
+                // Note: EncryptedChannel provides its own encryption (XChaCha20-Poly1305),
+                // so we don't strictly need double encryption. However, to keep compatibility
+                // with existing message structures or if we want nested layers, we can keep it.
+                // For now, let's just send the serialized chat message directly or wrap it.
+                // The EncryptedChannel expects plaintext, then encrypts it.
+                
+                // Let's stick to simple: [Type][Len][Payload] via MessageProtocol
+                // We SKIP KeyManager.encryptMessage because EncryptedChannel handles security.
+                
+                val padded = MessageProtocol.serialize(MessageProtocol.TYPE_CHAT_MESSAGE, serialized)
+                
+                // Send through I2P Encrypted Channel
+                val connectionManager = connectionManagerProvider.get()
+                
+                // Get channel or throw exception to trigger retry
+                val channel = connectionManager.encryptedChannel ?: throw java.io.IOException("I2P Channel not ready")
+                
+                if (!channel.isConnected()) {
+                    throw java.io.IOException("I2P Channel closed")
                 }
                 
-                // Pad to fixed size
-                val padded = MessageProtocol.serialize(MessageProtocol.TYPE_CHAT_MESSAGE, encrypted)
+                channel.send(padded)
+
+                Log.i(TAG, "Message #${pending.id} sent via I2P")
                 
-                // Send through Nym transport
-                nymTransport.sendMessage(peerHandle, padded)
-                
-                Log.i(TAG, "Message #${pending.id} sent successfully")
-                
-                // Update our handle for next message
+                // Update our handle for next message (legacy Nym logic, maybe keep for nonce)
                 routingHandleManager.rotateMyHandle(pending.message.newHandle)
                 
                 // Remove from queue
@@ -175,11 +180,13 @@ class MessageQueue @Inject constructor(
                 }
                 
                 // Decrypt with session key
-                val decrypted = keyManager.decryptMessage(payload)
-                if (decrypted == null) {
-                    Log.w(TAG, "Decryption failed")
-                    return@launch
-                }
+                // NOTE: EncryptedChannel already decrypted the outer layer.
+                // If we skipped internal encryption in sendWithRetry, we skip it here too.
+                // Current implementation: EncryptedChannel( [MessageProtocol [ChatMessage]] )
+                
+                // So 'payload' from MessageProtocol is just the serialized ChatMessage
+                val decrypted = payload 
+
                 
                 // Deserialize chat message
                 val chatMessage = deserializeChatMessage(decrypted) ?: run {

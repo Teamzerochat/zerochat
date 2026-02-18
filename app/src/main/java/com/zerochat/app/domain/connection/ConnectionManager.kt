@@ -9,6 +9,7 @@ import com.zerochat.app.domain.i2p.SamClient
 import com.zerochat.app.domain.rendezvous.PollResult
 import com.zerochat.app.domain.rendezvous.RendezvousFrame
 import com.zerochat.app.domain.rendezvous.RendezvousManager
+import com.zerochat.app.domain.messaging.MessageQueue
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -34,7 +35,8 @@ class ConnectionManager @Inject constructor(
     private val rendezvousManager: RendezvousManager,
     private val handshakeManager: HandshakeManager,
     private val samClient: SamClient,
-    private val keyManager: com.zerochat.app.domain.crypto.KeyManager
+    private val keyManager: com.zerochat.app.domain.crypto.KeyManager,
+    private val messageQueue: MessageQueue
 ) {
     
     companion object {
@@ -253,10 +255,29 @@ class ConnectionManager @Inject constructor(
             Log.i(TAG, "Establishing I2P stream (role=$role)...")
             
             val stream = if (role == HandshakeRole.INITIATOR) {
-                // INITIATOR connects to peer's destination
-                // Add small delay for RESPONDER to start accepting
-                delay(2_000)
-                samClient.connectStream(peerDestination)
+                // INITIATOR connects to peer's destination (with retry for propagation delay)
+                delay(3_000) // Give responder a moment to start accepting
+                
+                var connectedStream: com.zerochat.app.domain.i2p.I2PStream? = null
+                var attempt = 1
+                val maxAttempts = 12 // ~60 seconds total wait
+                
+                while (connectedStream == null && attempt <= maxAttempts) {
+                    try {
+                         connectedStream = samClient.connectStream(peerDestination)
+                    } catch (e: Exception) {
+                        val msg = e.message ?: ""
+                        if (msg.contains("LeaseSet not found") || msg.contains("CANT_REACH_PEER")) {
+                            Log.w(TAG, "Attempt $attempt failed: LeaseSet not found. Retrying in 5s...")
+                            delay(5_000)
+                            attempt++
+                         } else {
+                            throw e
+                         }
+                    }
+                }
+                
+                connectedStream ?: throw java.io.IOException("Timeout waiting for peer LeaseSet")
             } else {
                 // RESPONDER accepts incoming connection
                 samClient.acceptStream()
@@ -268,6 +289,32 @@ class ConnectionManager @Inject constructor(
             encryptedChannel = EncryptedChannel(sessionKey, stream)
             
             collector.emit(ConnectionState.Connected)
+            
+            // Phase 11: Listen for Incoming Messages
+            // This loop keeps the flow active and processes incoming data.
+            Log.i(TAG, "Starting I2P message listener loop...")
+            while (currentCoroutineContext().isActive && encryptedChannel?.isConnected() == true) {
+                try {
+                    // receive() is blocking (runInterruptible for cancellation support)
+                    val payload = runInterruptible(Dispatchers.IO) {
+                         encryptedChannel?.receive()
+                    }
+                    
+                    if (payload != null) {
+                        messageQueue.receiveMessage(payload)
+                    } else {
+                        Log.w(TAG, "Channel returned null payload (closing)")
+                        break
+                    }
+                } catch (e: Exception) {
+                    if (e is CancellationException) throw e
+                    Log.e(TAG, "Read error: ${e.message}")
+                    break
+                }
+            }
+            
+            Log.i(TAG, "I2P listener loop ended")
+            collector.emit(ConnectionState.Disconnected)
 
         } catch (e: Exception) {
             Log.e(TAG, "Connection Loop Error", e)

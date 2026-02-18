@@ -71,7 +71,6 @@ fun ZeroChatNavHost() {
         composable(Screen.Chat.route) { backStackEntry ->
             val peerId = backStackEntry.arguments?.getString("peerId") ?: ""
             ChatScreen(
-                peerId = peerId,
                 onDisconnect = {
                     navController.navigate(Screen.Connect.route) {
                         popUpTo(Screen.Chat.route) { inclusive = true }

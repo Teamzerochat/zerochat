@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.*
 import java.net.Socket
+import java.nio.charset.StandardCharsets
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -39,6 +40,10 @@ class SamClient @Inject constructor() {
     @Volatile
     private var localDestination: String? = null
 
+    // References to keep control socket alive
+    @Volatile
+    private var controlSocketRef: Socket? = null
+
     /**
      * Create a new SAM streaming session.
      * Returns the local I2P destination (Base64 string).
@@ -48,13 +53,13 @@ class SamClient @Inject constructor() {
 
         // Connect control socket to SAM bridge
         val controlSocket = Socket(SAM_HOST, SAM_PORT)
-        val reader = BufferedReader(InputStreamReader(controlSocket.getInputStream()))
-        val writer = BufferedWriter(OutputStreamWriter(controlSocket.getOutputStream()))
+        val input = controlSocket.getInputStream()
+        val output = controlSocket.getOutputStream()
 
         try {
             // Step 1: HELLO handshake
-            sendCommand(writer, "HELLO VERSION MIN=$SAM_VERSION MAX=$SAM_VERSION")
-            val helloReply = readReply(reader)
+            writeCommand(output, "HELLO VERSION MIN=$SAM_VERSION MAX=$SAM_VERSION")
+            val helloReply = readLine(input)
             Log.d(TAG, "HELLO reply: $helloReply")
 
             if (!helloReply.contains("RESULT=OK")) {
@@ -64,8 +69,8 @@ class SamClient @Inject constructor() {
             // Step 2: Create session
             // TRANSIENT destination = ephemeral keys (new destination each session)
             // Use SIGNATURE_TYPE=7 (EdDSA) for modern crypto
-            sendCommand(writer, "SESSION CREATE STYLE=STREAM ID=$id DESTINATION=TRANSIENT SIGNATURE_TYPE=7")
-            val sessionReply = readReply(reader)
+            writeCommand(output, "SESSION CREATE STYLE=STREAM ID=$id DESTINATION=TRANSIENT SIGNATURE_TYPE=7")
+            val sessionReply = readLine(input)
             Log.d(TAG, "SESSION reply: $sessionReply")
 
             if (!sessionReply.contains("RESULT=OK")) {
@@ -84,11 +89,8 @@ class SamClient @Inject constructor() {
 
             // Keep control socket alive (required by SAM protocol)
             // The session lives as long as this socket stays open
-            // Store it for cleanup
             controlSocketRef = controlSocket
-            controlReaderRef = reader
-            controlWriterRef = writer
-
+            
             dest
 
         } catch (e: Exception) {
@@ -96,12 +98,6 @@ class SamClient @Inject constructor() {
             throw e
         }
     }
-
-    // References to keep control socket alive
-    @Volatile
-    private var controlSocketRef: Socket? = null
-    private var controlReaderRef: BufferedReader? = null
-    private var controlWriterRef: BufferedWriter? = null
 
     /**
      * Get the local I2P destination (Base64).
@@ -129,21 +125,25 @@ class SamClient @Inject constructor() {
         Log.i(TAG, "STREAM CONNECT to ${peerDestination.take(32)}...")
 
         // Create a NEW socket for the stream (separate from control socket)
-        val streamSocket = Socket(SAM_HOST, SAM_PORT)
-        val reader = BufferedReader(InputStreamReader(streamSocket.getInputStream()))
-        val writer = BufferedWriter(OutputStreamWriter(streamSocket.getOutputStream()))
+        val streamSocket = Socket(SAM_HOST, SAM_PORT).apply {
+            keepAlive = true
+            tcpNoDelay = true
+            soTimeout = 0 // Infinite timeout for long-lived streams
+        }
+        val input = streamSocket.getInputStream()
+        val output = streamSocket.getOutputStream()
 
         try {
             // HELLO on the new stream socket
-            sendCommand(writer, "HELLO VERSION MIN=$SAM_VERSION MAX=$SAM_VERSION")
-            val helloReply = readReply(reader)
+            writeCommand(output, "HELLO VERSION MIN=$SAM_VERSION MAX=$SAM_VERSION")
+            val helloReply = readLine(input)
             if (!helloReply.contains("RESULT=OK")) {
                 throw IOException("SAM HELLO (stream) failed: $helloReply")
             }
 
             // STREAM CONNECT
-            sendCommand(writer, "STREAM CONNECT ID=$id DESTINATION=$peerDestination SILENT=false")
-            val connectReply = readReply(reader)
+            writeCommand(output, "STREAM CONNECT ID=$id DESTINATION=$peerDestination SILENT=false")
+            val connectReply = readLine(input)
             Log.d(TAG, "STREAM CONNECT reply: $connectReply")
 
             if (!connectReply.contains("RESULT=OK")) {
@@ -153,11 +153,12 @@ class SamClient @Inject constructor() {
 
             Log.i(TAG, "✓ Stream connected to peer")
 
-            // After STREAM CONNECT succeeds, the socket is now a raw data stream
+            // After STREAM CONNECT succeeds, the socket is now a raw data stream.
+            // DO NOT use any buffered readers on this socket before this point!
             I2PStream(
                 socket = streamSocket,
-                inputStream = streamSocket.getInputStream(),
-                outputStream = streamSocket.getOutputStream()
+                inputStream = input,
+                outputStream = output
             )
 
         } catch (e: Exception) {
@@ -179,21 +180,25 @@ class SamClient @Inject constructor() {
         Log.i(TAG, "STREAM ACCEPT waiting for incoming connection...")
 
         // Create a NEW socket for accepting
-        val acceptSocket = Socket(SAM_HOST, SAM_PORT)
-        val reader = BufferedReader(InputStreamReader(acceptSocket.getInputStream()))
-        val writer = BufferedWriter(OutputStreamWriter(acceptSocket.getOutputStream()))
+        val acceptSocket = Socket(SAM_HOST, SAM_PORT).apply {
+            keepAlive = true
+            tcpNoDelay = true
+            soTimeout = 0 // Infinite timeout for long-lived streams
+        }
+        val input = acceptSocket.getInputStream()
+        val output = acceptSocket.getOutputStream()
 
         try {
             // HELLO on this socket
-            sendCommand(writer, "HELLO VERSION MIN=$SAM_VERSION MAX=$SAM_VERSION")
-            val helloReply = readReply(reader)
+            writeCommand(output, "HELLO VERSION MIN=$SAM_VERSION MAX=$SAM_VERSION")
+            val helloReply = readLine(input)
             if (!helloReply.contains("RESULT=OK")) {
                 throw IOException("SAM HELLO (accept) failed: $helloReply")
             }
 
             // STREAM ACCEPT — blocks until peer connects
-            sendCommand(writer, "STREAM ACCEPT ID=$id SILENT=false")
-            val acceptReply = readReply(reader)
+            writeCommand(output, "STREAM ACCEPT ID=$id SILENT=false")
+            val acceptReply = readLine(input)
             Log.d(TAG, "STREAM ACCEPT reply: $acceptReply")
 
             if (!acceptReply.contains("RESULT=OK")) {
@@ -202,13 +207,13 @@ class SamClient @Inject constructor() {
             }
 
             // Wait for incoming connection — SAM sends another line with peer's destination
-            val peerLine = readReply(reader)
+            val peerLine = readLine(input)
             Log.i(TAG, "✓ Inbound stream accepted from: ${peerLine.take(32)}...")
 
             I2PStream(
                 socket = acceptSocket,
-                inputStream = acceptSocket.getInputStream(),
-                outputStream = acceptSocket.getOutputStream()
+                inputStream = input,
+                outputStream = output
             )
 
         } catch (e: Exception) {
@@ -228,26 +233,36 @@ class SamClient @Inject constructor() {
             Log.w(TAG, "Error closing control socket", e)
         }
         controlSocketRef = null
-        controlReaderRef = null
-        controlWriterRef = null
         sessionId = null
         localDestination = null
     }
 
     // --- Protocol Helpers ---
 
-    private fun sendCommand(writer: BufferedWriter, command: String) {
-        Log.v(TAG, "SAM >>> $command")
-        writer.write(command)
-        writer.write("\n")
-        writer.flush()
+    private fun writeCommand(output: OutputStream, command: String) {
+        // Log.v(TAG, "SAM >>> $command")
+        val bytes = (command + "\n").toByteArray(StandardCharsets.ISO_8859_1)
+        output.write(bytes)
+        output.flush()
     }
 
-    private fun readReply(reader: BufferedReader): String {
-        val reply = reader.readLine()
-            ?: throw IOException("SAM connection closed unexpectedly")
-        Log.v(TAG, "SAM <<< $reply")
-        return reply
+    /**
+     * Read a line byte-by-byte to avoid buffering extra data.
+     * This is critical because after the handshake, the stream becomes binary,
+     * and a BufferedInputStream would eat the first bytes of the binary stream.
+     */
+    private fun readLine(input: InputStream): String {
+        val sb = StringBuilder()
+        while (true) {
+            val b = input.read()
+            if (b == -1) throw IOException("SAM connection closed unexpectedly")
+            val c = b.toChar()
+            if (c == '\n') break
+            sb.append(c)
+        }
+        val line = sb.toString().trim()
+        // Log.v(TAG, "SAM <<< $line")
+        return line
     }
 
     /**

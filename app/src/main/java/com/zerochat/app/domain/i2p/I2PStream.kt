@@ -48,6 +48,7 @@ class I2PStream(
         if (closed) return null
         val buffer = ByteArray(length)
         var offset = 0
+        Log.v(TAG, "Reading $length bytes...")
         while (offset < length) {
             val n = try {
                 inputStream.read(buffer, offset, length - offset)
@@ -55,9 +56,13 @@ class I2PStream(
                 Log.w(TAG, "ReadFully failed at $offset/$length: ${e.message}")
                 return null
             }
-            if (n < 0) return null
+            if (n < 0) {
+                 Log.w(TAG, "ReadFully EOF at $offset/$length")
+                 return null
+            }
             offset += n
         }
+        Log.v(TAG, "Read full $length bytes")
         return buffer
     }
 
