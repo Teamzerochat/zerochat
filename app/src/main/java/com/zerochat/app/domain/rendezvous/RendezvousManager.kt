@@ -3,7 +3,7 @@ package com.zerochat.app.domain.rendezvous
 import android.util.Log
 import com.goterl.lazysodium.LazySodiumAndroid
 import com.goterl.lazysodium.SodiumAndroid
-import com.zerochat.app.domain.transport.NymTransport
+import com.zerochat.app.domain.transport.TransportController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
@@ -18,6 +18,7 @@ import kotlin.random.Random
  * Rendezvous Manager - Model 3 (Strict Lifecycle & State Machine)
  * 
  * Enforces strict single-connection lifecycle to prevent gateway session collisions.
+ * All transport calls routed through TransportController for panic isolation.
  * 
  * States:
  * - IDLE: No connection
@@ -30,7 +31,7 @@ import kotlin.random.Random
  */
 @Singleton
 class RendezvousManager @Inject constructor(
-    private val transport: NymTransport
+    private val controller: TransportController
 ) {
     
     private val sodium: LazySodiumAndroid = LazySodiumAndroid(SodiumAndroid())
@@ -92,6 +93,13 @@ class RendezvousManager @Inject constructor(
     private var activeRendezvousId: String? = null
     private var peerAddress: String? = null
 
+    suspend fun getMyAddress(): String? {
+        val id = activeRendezvousId ?: return null
+        return controller.withTransport { it.getRendezvousAddress(id) }.getOrNull()
+    }
+
+    fun getPeerAddress(): String? = peerAddress
+
     /**
      * STEP 1: Connect with Two-Slot Strategy
      * Tries Slot A, filters for "already open", then falls back to Slot B.
@@ -121,24 +129,31 @@ class RendezvousManager @Inject constructor(
             Log.i(TAG, "Attempting Slot A ($idA)...")
             
             // Try Slot A - MUST check Result properly
-            val resultA = transport.connectRendezvous(idA)
+            val resultA = controller.withTransport { it.connectRendezvous(idA) }
             
             if (resultA.isSuccess) {
                 activeRendezvousId = idA
                 // Calculate Peer Address (Slot B)
-                peerAddress = transport.getRendezvousAddress(idB).getOrThrow()
+                peerAddress = controller.withTransport { it.getRendezvousAddress(idB) }.getOrThrow()
                 Log.i(TAG, "Connected to Slot A. Peer (Slot B) Address: $peerAddress")
             } else {
                 // ANY Slot A failure → try Slot B
                 // (could be "already open", gateway panic, stale session, etc.)
                 val errorA = resultA.exceptionOrNull()?.message ?: "Unknown"
                 Log.w(TAG, "Slot A failed: $errorA")
-                Log.i(TAG, "Falling back to Slot B ($idB)...")
                 
-                // Brief delay to let gateway cleanup stale sessions
-                delay(2000)
+                // Explicitly tear down Slot A attempt to prevent "already open" gateway collisions
+                try {
+                    controller.withTransport { it.disconnectRendezvous(idA) }
+                } catch (e: Exception) {
+                    Log.w(TAG, "Failed to disconnect Slot A: ${e.message}")
+                }
                 
-                val resultB = transport.connectRendezvous(idB)
+                Log.i(TAG, "Draining Slot A connection. Waiting 300ms...")
+                delay(300)
+                Log.i(TAG, "Drain complete. Attempting Slot B ($idB)...")
+                
+                val resultB = controller.withTransport { it.connectRendezvous(idB) }
                 if (resultB.isFailure) {
                     val errorB = resultB.exceptionOrNull() ?: Exception("Both slots failed")
                     Log.e(TAG, "Slot B also failed: ${errorB.message}")
@@ -147,7 +162,7 @@ class RendezvousManager @Inject constructor(
                 
                 activeRendezvousId = idB
                 // Calculate Peer Address (Slot A)
-                peerAddress = transport.getRendezvousAddress(idA).getOrThrow()
+                peerAddress = controller.withTransport { it.getRendezvousAddress(idA) }.getOrThrow()
                 Log.i(TAG, "Connected to Slot B. Peer (Slot A) Address: $peerAddress")
             }
 
@@ -175,7 +190,7 @@ class RendezvousManager @Inject constructor(
             val targetAddress = peerAddress ?: return Result.failure(IllegalStateException("Peer address unknown"))
             
             // Send directly to the peer's rendezvous client address
-            val sendResult = transport.sendMessage(targetAddress.toByteArray(), payload)
+            val sendResult = controller.withTransport { it.sendMessage(targetAddress.toByteArray(), payload) }
             if (sendResult.isFailure) {
                 throw sendResult.exceptionOrNull() ?: Exception("Send to peer failed")
             }
@@ -239,7 +254,7 @@ class RendezvousManager @Inject constructor(
             
             // Poll using existing connection
             val responses = try {
-                 transport.pollRendezvous(mySlotId)
+                 controller.withTransport { it.pollRendezvous(mySlotId) }
             } catch (e: Exception) {
                  Log.e(TAG, "Poll failed: ${e.message}")
                  null
@@ -311,21 +326,18 @@ class RendezvousManager @Inject constructor(
         Log.e(TAG, "Connection Error: $msg")
         
         if (msg.contains("already an open connection")) {
-            Log.w(TAG, "CASE 1: Duplicate Connection. Forcing cleanup & wait.")
-            transport.disconnectAllRendezvous()
-            delay(6000) // Wait 6s
+            Log.w(TAG, "CASE 1: Duplicate Connection. Forcing cleanup.")
+            try { controller.withTransport { it.disconnectAllRendezvous() } } catch (_: Exception) { }
             transitionTo(RendezvousState.IDLE)
         } 
         else if (msg.contains("failed to verify")) {
             Log.e(TAG, "CASE 2: Handshake Corruption. CRITICAL RESET.")
-            transport.disconnectAllRendezvous()
+            try { controller.withTransport { it.disconnectAllRendezvous() } } catch (_: Exception) { }
             transitionTo(RendezvousState.IDLE)
-             // In a real app, might want to regenerate secret? 
         }
         else {
              Log.e(TAG, "CASE 3: Generic/Rust Error. Forcing teardown.")
-             transport.disconnectAllRendezvous()
-             delay(5000)
+             try { controller.withTransport { it.disconnectAllRendezvous() } } catch (_: Exception) { }
              transitionTo(RendezvousState.IDLE)
         }
     }
@@ -343,20 +355,17 @@ class RendezvousManager @Inject constructor(
     fun getCurrentEpoch(): Long = System.currentTimeMillis() / 1000 / EPOCH_DURATION_SECONDS
     
     fun isValid(point: RendezvousPoint): Boolean {
-        // STRICT REQUIREMENT: If epoch changes, abort.
-        // We do not allow "just before expiry" leeway if the wall clock epoch has shifted.
-        val currentEpoch = getCurrentEpoch()
-        
         if (!handshakeComplete) {
-            if (currentEpoch != point.epoch) {
+            // PRE-HANDSHAKE: Strict epoch enforcement (with 1-epoch overlap for boundary crossings)
+            val currentEpoch = getCurrentEpoch()
+            val isValidEpoch = (currentEpoch == point.epoch) || (currentEpoch == point.epoch + 1)
+            
+            if (!isValidEpoch) {
                 Log.w(TAG, "Epoch mismatch during discovery. Point=${point.epoch}, Current=$currentEpoch. ABORTING.")
                 return false
             }
-        } else {
-            if (currentEpoch != point.epoch) {
-                Log.i(TAG, "Epoch mismatch ignored (post-handshake).")
-            }
         }
+        // POST-HANDSHAKE: No epoch enforcement — peer is authenticated, accept all frames
         return !consumedRendezvous.contains(point.id)
     }
     

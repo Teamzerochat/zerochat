@@ -1,16 +1,16 @@
 package com.zerochat.app.domain.i2p
 
 import android.util.Log
-import com.goterl.lazysodium.LazySodiumAndroid
-import com.goterl.lazysodium.SodiumAndroid
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * Encrypted Channel — Application-layer encryption over I2P stream.
  *
- * Uses XChaCha20-Poly1305 (via lazysodium) for authenticated encryption.
- * This provides an independent layer of encryption on top of I2P's
- * tunnel-level encryption, using the session key derived from SPAKE2.
+ * Uses session key held in Rust memory (via FFI session handle).
+ * Session key NEVER touches the JVM heap.
  *
  * Wire format per message:
  * [4 bytes: length (big-endian)] [24 bytes: nonce] [N bytes: ciphertext + 16-byte tag]
@@ -18,128 +18,111 @@ import java.nio.ByteBuffer
  * So total wire bytes = 4 + 24 + plaintext.size + 16
  */
 class EncryptedChannel(
-    private val sessionKey: ByteArray,
+    private val sessionHandle: ULong,
     private val stream: I2PStream
 ) {
     companion object {
         private const val TAG = "EncryptedChannel"
-        private const val NONCE_SIZE = 24   // XChaCha20 uses 24-byte nonce
+        private const val NONCE_SIZE = 24   // XSalsa20 uses 24-byte nonce
         private const val TAG_SIZE = 16     // Poly1305 tag
         private const val LENGTH_SIZE = 4   // uint32 big-endian
     }
 
-    private val sodium = SodiumAndroid()
-    private val lazySodium = LazySodiumAndroid(sodium)
+    // FIX #11: AtomicBoolean for thread-safe double-close prevention
+    private val closed = AtomicBoolean(false)
 
-    @Volatile
-    private var closed = false
+    // FIX #9: Serialize send() and receive() to prevent interleaved wire frames
+    private val sendLock = ReentrantLock()
+    private val receiveLock = ReentrantLock()
 
     /**
      * Send an encrypted message over the I2P stream.
+     * Encryption happens in Rust via FFI — session key never leaves Rust memory.
      *
      * @param plaintext The plaintext message bytes
      */
     fun send(plaintext: ByteArray) {
-        if (closed) throw IllegalStateException("Channel closed")
+        if (closed.get()) throw IllegalStateException("Channel closed")
 
-        // Generate random nonce (24 bytes for XChaCha20)
-        val nonce = ByteArray(NONCE_SIZE)
-        sodium.randombytes_buf(nonce, NONCE_SIZE)
+        // FIX #9: Only one coroutine can write a frame at a time
+        sendLock.withLock {
+            // Encrypt via Rust FFI — returns [nonce (24)] [ciphertext + tag (N+16)]
+            val encrypted = uniffi.nym_transport.sessionEncryptWrapper(
+                sessionHandle,
+                plaintext.map { it.toUByte() }
+            ).map { it.toByte() }.toByteArray()
 
-        // Encrypt: ciphertext includes 16-byte Poly1305 tag appended
-        val ciphertext = ByteArray(plaintext.size + TAG_SIZE)
-        val result = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(
-            ciphertext,
-            null,   // ciphertext length output (not needed)
-            plaintext,
-            plaintext.size.toLong(),
-            null,   // additional data
-            0L,     // additional data length
-            null,   // nsec (unused)
-            nonce,
-            sessionKey
-        )
+            // Frame: [length (4B)] [encrypted payload]
+            val frame = ByteBuffer.allocate(LENGTH_SIZE + encrypted.size)
+            frame.putInt(encrypted.size)
+            frame.put(encrypted, 0, encrypted.size)
 
-        if (result != 0) {
-            throw SecurityException("Encryption failed")
+            stream.write(frame.array())
+            Log.v(TAG, "Sent ${plaintext.size} bytes (wire: ${frame.capacity()} bytes)")
         }
-
-        // Frame: [length (4B)] [nonce (24B)] [ciphertext+tag]
-        val totalPayload = NONCE_SIZE + ciphertext.size
-        val frame = ByteBuffer.allocate(LENGTH_SIZE + totalPayload)
-        frame.putInt(totalPayload)
-        frame.put(nonce)
-        frame.put(ciphertext)
-
-        stream.write(frame.array())
-        Log.v(TAG, "Sent ${plaintext.size} bytes (wire: ${frame.capacity()} bytes)")
     }
 
     /**
      * Receive and decrypt one message from the I2P stream.
+     * Decryption happens in Rust via FFI — session key never leaves Rust memory.
      * Blocks until a complete message is received.
      *
      * @return Decrypted plaintext, or null if stream closed/error
      */
     fun receive(): ByteArray? {
-        if (closed) return null
+        if (closed.get()) return null
 
-        // Read length header (4 bytes)
-        val lenBytes = stream.readFully(LENGTH_SIZE) ?: return null
-        val payloadLen = ByteBuffer.wrap(lenBytes).int
+        // FIX #9: Only one coroutine can read a frame at a time
+        return receiveLock.withLock {
+            // Read length header (4 bytes)
+            val lenBytes = stream.readFully(LENGTH_SIZE) ?: return@withLock null
+            val payloadLen = ByteBuffer.wrap(lenBytes).int
 
-        if (payloadLen < NONCE_SIZE + TAG_SIZE || payloadLen > 1_000_000) {
-            Log.w(TAG, "Invalid payload length: $payloadLen")
-            return null
+            if (payloadLen < NONCE_SIZE + TAG_SIZE || payloadLen > 1_000_000) {
+                Log.w(TAG, "Invalid payload length: $payloadLen")
+                return@withLock null
+            }
+
+            // Read nonce + ciphertext
+            val payload = stream.readFully(payloadLen) ?: return@withLock null
+
+            // Decrypt via Rust FFI
+            try {
+                val plaintext = uniffi.nym_transport.sessionDecryptWrapper(
+                    sessionHandle,
+                    payload.map { it.toUByte() }
+                ).map { it.toByte() }.toByteArray()
+
+                Log.v(TAG, "Received ${plaintext.size} bytes")
+                plaintext
+            } catch (e: Exception) {
+                Log.w(TAG, "Decryption failed: ${e.message}")
+                null
+            }
         }
-
-        // Read nonce + ciphertext
-        val payload = stream.readFully(payloadLen) ?: return null
-
-        val nonce = payload.copyOfRange(0, NONCE_SIZE)
-        val ciphertext = payload.copyOfRange(NONCE_SIZE, payloadLen)
-
-        // Decrypt
-        val plaintext = ByteArray(ciphertext.size - TAG_SIZE)
-        val result = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(
-            plaintext,
-            null,       // plaintext length output
-            null,       // nsec (unused)
-            ciphertext,
-            ciphertext.size.toLong(),
-            null,       // additional data
-            0L,         // additional data length
-            nonce,
-            sessionKey
-        )
-
-        if (result != 0) {
-            Log.w(TAG, "Decryption failed (auth tag mismatch)")
-            return null
-        }
-
-        Log.v(TAG, "Received ${plaintext.size} bytes")
-        return plaintext
     }
 
     /**
      * Check if the channel is still usable.
      */
-    fun isConnected(): Boolean = !closed && stream.isConnected()
+    fun isConnected(): Boolean = !closed.get() && stream.isConnected()
 
     /**
      * Close the channel and underlying stream.
-     * Wipes the session key from memory.
+     * Destroys the session handle in Rust (zeroizes key).
+     * FIX #11: compareAndSet guarantees exactly-once execution.
      */
     fun close() {
-        if (closed) return
-        closed = true
+        if (!closed.compareAndSet(false, true)) return
         stream.close()
 
-        // Secure-wipe session key
-        for (i in sessionKey.indices) {
-            sessionKey[i] = 0
+        // Destroy session in Rust — key is zeroized there
+        try {
+            uniffi.nym_transport.sessionDestroyWrapper(sessionHandle)
+        } catch (e: Exception) {
+            // Session may already be destroyed by ConnectionManager teardown
+            Log.d(TAG, "Session already destroyed: ${e.message}")
         }
-        Log.d(TAG, "Channel closed, session key wiped")
+        Log.d(TAG, "Channel closed, session destroyed")
     }
 }

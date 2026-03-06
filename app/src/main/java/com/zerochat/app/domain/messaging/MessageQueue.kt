@@ -3,7 +3,6 @@ package com.zerochat.app.domain.messaging
 import android.util.Log
 import com.zerochat.app.domain.crypto.KeyManager
 import com.zerochat.app.domain.routing.RoutingHandleManager
-import com.zerochat.app.domain.transport.NymTransport
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow

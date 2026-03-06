@@ -5,6 +5,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.net.Socket
 import java.net.SocketException
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * I2P Stream — Wrapper around a raw TCP socket connected through SAM bridge.
@@ -22,15 +23,15 @@ class I2PStream(
         private const val TAG = "I2PStream"
     }
 
-    @Volatile
-    private var closed = false
+    // FIX #8: AtomicBoolean for thread-safe double-close prevention
+    private val closed = AtomicBoolean(false)
 
     /**
      * Read up to [buffer.size] bytes from the stream.
      * Returns number of bytes read, or -1 on end of stream.
      */
     fun read(buffer: ByteArray): Int {
-        if (closed) return -1
+        if (closed.get()) return -1
         return try {
             inputStream.read(buffer)
         } catch (e: SocketException) {
@@ -45,7 +46,7 @@ class I2PStream(
      * Returns the bytes, or null if stream ended prematurely.
      */
     fun readFully(length: Int): ByteArray? {
-        if (closed) return null
+        if (closed.get()) return null
         val buffer = ByteArray(length)
         var offset = 0
         Log.v(TAG, "Reading $length bytes...")
@@ -70,7 +71,7 @@ class I2PStream(
      * Write all bytes to the stream.
      */
     fun write(data: ByteArray) {
-        if (closed) throw SocketException("Stream closed")
+        if (closed.get()) throw SocketException("Stream closed")
         outputStream.write(data)
         outputStream.flush()
     }
@@ -79,15 +80,15 @@ class I2PStream(
      * Check if the stream is still connected.
      */
     fun isConnected(): Boolean {
-        return !closed && socket.isConnected && !socket.isClosed
+        return !closed.get() && socket.isConnected && !socket.isClosed
     }
 
     /**
      * Close the stream and underlying socket.
+     * FIX #8: compareAndSet guarantees exactly-once execution.
      */
     fun close() {
-        if (closed) return
-        closed = true
+        if (!closed.compareAndSet(false, true)) return
         try {
             inputStream.close()
         } catch (e: Exception) { /* ignore */ }

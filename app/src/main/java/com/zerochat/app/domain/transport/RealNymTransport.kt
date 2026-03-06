@@ -6,19 +6,25 @@ import kotlinx.coroutines.withContext
 import uniffi.nym_transport.NymTransportClient
 import uniffi.nym_transport.TransportException
 import uniffi.nym_transport.RendezvousMessage as FfiRendezvousMessage
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Real NYM Transport - Uses Rust FFI to communicate via NYM mixnet
  * 
  * This implementation wraps the native Rust library generated via UniFFI.
+ * NOT a singleton — TransportController manages lifecycle and re-instantiation.
  */
-@Singleton
-class RealNymTransport @Inject constructor() : NymTransport {
+class RealNymTransport : NymTransport {
     
     companion object {
         private const val TAG = "RealNymTransport"
+        
+        /** Detect Rust panic signatures that should propagate to TransportController */
+        fun isPanicSignature(e: Exception): Boolean {
+            val msg = e.message ?: ""
+            return msg.contains("receiver is gone") ||
+                   msg.contains("panicked") ||
+                   e::class.simpleName == "InternalException"
+        }
     }
     
     // FFI client instance - lazy init to avoid issues if native lib not loaded
@@ -74,6 +80,7 @@ class RealNymTransport @Inject constructor() : NymTransport {
             Result.success(address)
         } catch (e: Exception) {
             Log.e(TAG, "Rendezvous connection failed", e)
+            if (isPanicSignature(e)) throw e
             Result.failure(e)
         }
     }
@@ -103,9 +110,11 @@ class RealNymTransport @Inject constructor() : NymTransport {
                 )
             }
         } catch (e: TransportException) {
+            if (isPanicSignature(e)) throw e
             null
         } catch (e: Exception) {
             Log.e(TAG, "Poll error", e)
+            if (isPanicSignature(e)) throw e
             null
         }
     }
@@ -129,8 +138,10 @@ class RealNymTransport @Inject constructor() : NymTransport {
             getOrCreateClient().sendMessage(handleList, payloadList)
             Result.success(Unit)
         } catch (e: TransportException) {
+            if (isPanicSignature(e)) throw e
             Result.failure(e)
         } catch (e: Exception) {
+            if (isPanicSignature(e)) throw e
             Result.failure(e)
         }
     }

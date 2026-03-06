@@ -4,7 +4,7 @@ namespace nym_transport {
     Spake2InitiatorHandle spake2_start_initiator_wrapper(sequence<u8> password);
     
     [Throws=Spake2Error]
-    sequence<u8> spake2_finish_initiator_wrapper(u64 handle_id, sequence<u8> inbound_msg);
+    u64 spake2_finish_initiator_wrapper(u64 handle_id, sequence<u8> inbound_msg);
     
     [Throws=Spake2Error]
     Spake2ResponderResult spake2_start_responder_wrapper(sequence<u8> password, sequence<u8> inbound_msg);
@@ -12,12 +12,36 @@ namespace nym_transport {
     boolean spake2_cleanup_state_wrapper(u64 handle_id);
     
     u64 spake2_active_count_wrapper();
+
+    // Session store — encrypt/decrypt with session key held in Rust
+    [Throws=SessionError]
+    sequence<u8> session_encrypt_wrapper(u64 handle, sequence<u8> plaintext);
+    
+    [Throws=SessionError]
+    sequence<u8> session_decrypt_wrapper(u64 handle, sequence<u8> ciphertext);
+    
+    [Throws=SessionError]
+    sequence<u8> session_generate_confirmation_wrapper(u64 handle, u8 role);
+    
+    [Throws=SessionError]
+    boolean session_verify_confirmation_wrapper(u64 handle, sequence<u8> confirmation, u8 role);
+    
+    void session_destroy_wrapper(u64 handle);
 };
 
 [Error]
 enum Spake2Error {
     "InvalidHandle",
     "HandshakeFailed",
+};
+
+[Error]
+enum SessionError {
+    "InvalidHandle",
+    "EncryptionFailed",
+    "DecryptionFailed",
+    "InvalidRole",
+    "SessionExpired",
 };
 
 dictionary Spake2InitiatorHandle {
@@ -27,7 +51,7 @@ dictionary Spake2InitiatorHandle {
 
 dictionary Spake2ResponderResult {
     sequence<u8> outbound_msg;
-    sequence<u8> shared_secret;
+    u64 session_handle;
 };
 
 [Error]
@@ -89,8 +113,6 @@ interface NymTransportClient {
     [Throws=TransportError]
     void disconnect_rendezvous(string point_id);
 
-
-    
     // Explicitly disconnect all rendezvous clients
     void disconnect_all_rendezvous();
 };

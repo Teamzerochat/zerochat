@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zerochat.app.domain.connection.ConnectionManager
 import com.zerochat.app.domain.connection.ConnectionState
+import com.zerochat.app.domain.transport.TransportController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ConnectViewModel @Inject constructor(
     private val connectionManager: ConnectionManager,
-    private val nymTransport: com.zerochat.app.domain.transport.NymTransport
+    private val controller: TransportController
 ) : ViewModel() {
     
     private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Idle)
@@ -52,7 +53,7 @@ class ConnectViewModel @Inject constructor(
             // Connect to NYM first (on IO thread to avoid blocking UI)
             _connectionState.value = ConnectionState.ConnectingToNym
             val connectResult = withContext(Dispatchers.IO) {
-                nymTransport.connect("")  // Empty string uses default public gateway
+                controller.withTransport { it.connect("") }
             }
             if (connectResult.isFailure) {
                 _connectionState.value = ConnectionState.Failed("Failed to connect to network")

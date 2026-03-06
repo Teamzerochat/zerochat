@@ -1208,6 +1208,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "crypto_secretbox"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b9d6cf87adf719ddf43a805e92c6870a531aedda35ff640442cbaf8674e141e1"
+dependencies = [
+ "aead",
+ "cipher 0.4.4",
+ "generic-array 0.14.7",
+ "poly1305",
+ "salsa20",
+ "subtle 2.6.1",
+ "zeroize",
+]
+
+[[package]]
 name = "ct-codecs"
 version = "1.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3467,8 +3482,6 @@ dependencies = [
 [[package]]
 name = "nym-gateway-client"
 version = "1.20.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db5a10228aaaa9829ff24d2f05bdf3b05ea48c46d99eafe61b5f815f57008cd7"
 dependencies = [
  "futures",
  "getrandom 0.2.17",
@@ -4261,9 +4274,11 @@ version = "0.1.0"
 dependencies = [
  "android_logger",
  "bs58",
+ "crypto_secretbox",
  "ed25519-dalek",
  "hex",
  "hkdf",
+ "hmac",
  "log",
  "nym-client-core",
  "nym-crypto",
@@ -4281,6 +4296,7 @@ dependencies = [
  "uniffi",
  "url",
  "x25519-dalek",
+ "zeroize",
 ]
 
 [[package]]
@@ -5389,6 +5405,15 @@ name = "ryu"
 version = "1.0.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a50f4cf475b65d88e057964e0e9bb1f0aa9bbb2036dc65c64596b42932536984"
+
+[[package]]
+name = "salsa20"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "97a22f5af31f73a954c10289c93e8a50cc23d971e80ee446f1f6f7137a088213"
+dependencies = [
+ "cipher 0.4.4",
+]
 
 [[package]]
 name = "same-file"

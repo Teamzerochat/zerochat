@@ -104,9 +104,9 @@ class HandshakeManager @Inject constructor(
      * Finish handshake as initiator
      * 
      * @param peerResponse Response message from peer
-     * @return Session key derived from handshake
+     * @return Session handle (key stays in Rust memory)
      */
-    fun finishAsInitiator(peerResponse: ByteArray): Result<ByteArray> {
+    fun finishAsInitiator(peerResponse: ByteArray): Result<ULong> {
         return try {
             val id = handleId ?: return Result.failure(
                 IllegalStateException("No handshake in progress")
@@ -116,20 +116,15 @@ class HandshakeManager @Inject constructor(
             
             val responseList = peerResponse.map { it.toUByte() }
             
-            val sharedSecret = spake2FinishInitiatorWrapper(id, responseList)
-                .map { it.toByte() }
-                .toByteArray()
+            // Returns session handle — key NEVER crosses FFI
+            val sessionHandle = spake2FinishInitiatorWrapper(id, responseList)
             
-            Log.i(TAG, "Handshake complete! Derived session key (${sharedSecret.size} bytes)")
-            
-            // Derive session keys from SPAKE2+ output
-            val sessionKeys = keyManager.deriveSessionKeys(sharedSecret)
+            Log.i(TAG, "Handshake complete! Session handle: $sessionHandle")
             
             // Clear handshake state
             handleId = null
-            secureWipe(sharedSecret)
             
-            Result.success(sessionKeys.encryptionKey)
+            Result.success(sessionHandle)
         } catch (e: Spake2Exception) {
             Log.e(TAG, "Handshake failed: ${e.message}", e)
             cleanup()
@@ -146,9 +141,9 @@ class HandshakeManager @Inject constructor(
      * 
      * @param sharedSecret The shared secret exchanged out-of-band
      * @param peerCommitment Commitment message from peer
-     * @return Pair of (response message, session key)
+     * @return Pair of (response message, session handle)
      */
-    fun processAsResponder(sharedSecret: String, peerCommitment: ByteArray): Result<Pair<ByteArray, ByteArray>> {
+    fun processAsResponder(sharedSecret: String, peerCommitment: ByteArray): Result<Pair<ByteArray, ULong>> {
         return try {
             Log.i(TAG, "Processing SPAKE2+ handshake as responder")
             
@@ -159,17 +154,11 @@ class HandshakeManager @Inject constructor(
             val result = spake2StartResponderWrapper(passwordList, commitmentList)
             
             val response = result.outboundMsg.map { it.toByte() }.toByteArray()
-            val sharedSecretBytes = result.sharedSecret.map { it.toByte() }.toByteArray()
+            val sessionHandle = result.sessionHandle
             
-            Log.i(TAG, "Handshake complete! Derived session key (${sharedSecretBytes.size} bytes)")
+            Log.i(TAG, "Handshake complete! Session handle: $sessionHandle")
             
-            // Derive session keys from SPAKE2+ output
-            val sessionKeys = keyManager.deriveSessionKeys(sharedSecretBytes)
-            
-            // Clear sensitive data
-            secureWipe(sharedSecretBytes)
-            
-            Result.success(Pair(response, sessionKeys.encryptionKey))
+            Result.success(Pair(response, sessionHandle))
         } catch (e: Spake2Exception) {
             Log.e(TAG, "Handshake failed: ${e.message}", e)
             Result.failure(e)
@@ -182,33 +171,17 @@ class HandshakeManager @Inject constructor(
     /**
      * Generate confirmation message for mutual verification
      * 
-     * Uses HMAC-SHA256 with a confirmation key derived from session key.
-     * Format: HMAC(confirmation_key, role_label)
+     * Delegates to Rust FFI — uses typed role enum (0=INITIATOR, 1=RESPONDER).
+     * Session key never leaves Rust memory.
      * 
-     * @param sessionKey The session key derived from SPAKE2+
-     * @param role Either "INITIATOR" or "RESPONDER"
+     * @param sessionHandle The session handle from SPAKE2+ handshake
+     * @param role 0 for INITIATOR, 1 for RESPONDER
      * @return Confirmation message (32 bytes)
      */
-    fun generateConfirmation(sessionKey: ByteArray, role: String): ByteArray {
-        // Derive confirmation key from session key using HKDF
-        val confirmationKey = keyManager.deriveConfirmationKey(sessionKey)
-        
-        // Generate HMAC of role label
-        val message = role.toByteArray(Charsets.UTF_8)
-        val confirmation = ByteArray(32)  // SHA256 output size
-        
-        // Use libsodium's HMAC-SHA256 (cryptoAuth uses HMAC-SHA512-256)
-        val sodium = com.goterl.lazysodium.LazySodiumAndroid(com.goterl.lazysodium.SodiumAndroid())
-        sodium.cryptoAuth(
-            confirmation,
-            message,
-            message.size.toLong(),
-            confirmationKey
-        )
-        
-        // Zeroize confirmation key
-        secureWipe(confirmationKey)
-        
+    fun generateConfirmation(sessionHandle: ULong, role: UByte): ByteArray {
+        val confirmation = sessionGenerateConfirmationWrapper(sessionHandle, role)
+            .map { it.toByte() }
+            .toByteArray()
         Log.i(TAG, "Generated confirmation for role: $role")
         return confirmation
     }
@@ -216,43 +189,21 @@ class HandshakeManager @Inject constructor(
     /**
      * Verify peer's confirmation message
      * 
-     * @param sessionKey The session key derived from SPAKE2+
+     * Delegates to Rust FFI — uses typed role enum.
+     * 
+     * @param sessionHandle The session handle from SPAKE2+ handshake
      * @param confirmation Peer's confirmation message
-     * @param peerRole Expected peer role ("INITIATOR" or "RESPONDER")
+     * @param peerRole 0 for INITIATOR, 1 for RESPONDER
      * @return True if confirmation is valid
      */
     fun verifyConfirmation(
-        sessionKey: ByteArray, 
+        sessionHandle: ULong, 
         confirmation: ByteArray, 
-        peerRole: String
+        peerRole: UByte
     ): Boolean {
-        if (confirmation.size != 32) {
-            Log.e(TAG, "Invalid confirmation size: ${confirmation.size}")
-            return false
-        }
-        
-        try {
-            // Derive same confirmation key
-            val confirmationKey = keyManager.deriveConfirmationKey(sessionKey)
-            
-            // Compute expected HMAC
-            val message = peerRole.toByteArray(Charsets.UTF_8)
-            val expected = ByteArray(32)
-            
-            val sodium = com.goterl.lazysodium.LazySodiumAndroid(com.goterl.lazysodium.SodiumAndroid())
-            sodium.cryptoAuth(
-                expected,
-                message,
-                message.size.toLong(),
-                confirmationKey
-            )
-            
-            // Constant-time comparison
-            val verified = expected.contentEquals(confirmation)
-            
-            // Zeroize
-            secureWipe(confirmationKey)
-            secureWipe(expected)
+        return try {
+            val confirmationList = confirmation.map { it.toUByte() }
+            val verified = sessionVerifyConfirmationWrapper(sessionHandle, confirmationList, peerRole)
             
             if (verified) {
                 Log.i(TAG, "✓ Peer confirmation verified for role: $peerRole")
@@ -260,10 +211,10 @@ class HandshakeManager @Inject constructor(
                 Log.e(TAG, "❌ Peer confirmation FAILED for role: $peerRole")
             }
             
-            return verified
+            verified
         } catch (e: Exception) {
             Log.e(TAG, "Confirmation verification error: ${e.message}", e)
-            return false
+            false
         }
     }
     

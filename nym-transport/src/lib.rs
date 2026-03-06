@@ -28,6 +28,10 @@ use rand::rngs::OsRng;
 mod spake2;
 pub use spake2::{spake2_start_initiator, spake2_finish_initiator, spake2_start_responder, Spake2Error};
 
+// Session store — keeps session keys in Rust memory behind opaque handles
+mod session_store;
+pub use session_store::SessionError;
+
 // Using UDL-driven bindings (see build.rs)
 uniffi::include_scaffolding!("nym_transport");
 
@@ -79,7 +83,7 @@ pub struct Spake2InitiatorHandle {
 #[derive(Debug)]
 pub struct Spake2ResponderResult {
     pub outbound_msg: Vec<u8>,
-    pub shared_secret: Vec<u8>,
+    pub session_handle: u64,
 }
 
 // SPAKE2+ wrapper functions for UniFFI
@@ -88,13 +92,13 @@ pub fn spake2_start_initiator_wrapper(password: Vec<u8>) -> Result<Spake2Initiat
     Ok(Spake2InitiatorHandle { handle_id, outbound_msg })
 }
 
-pub fn spake2_finish_initiator_wrapper(handle_id: u64, inbound_msg: Vec<u8>) -> Result<Vec<u8>, Spake2Error> {
+pub fn spake2_finish_initiator_wrapper(handle_id: u64, inbound_msg: Vec<u8>) -> Result<u64, Spake2Error> {
     spake2::spake2_finish_initiator(handle_id, &inbound_msg)
 }
 
 pub fn spake2_start_responder_wrapper(password: Vec<u8>, inbound_msg: Vec<u8>) -> Result<Spake2ResponderResult, Spake2Error> {
-    let (outbound_msg, shared_secret) = spake2::spake2_start_responder(&password, &inbound_msg)?;
-    Ok(Spake2ResponderResult { outbound_msg, shared_secret })
+    let (outbound_msg, session_handle) = spake2::spake2_start_responder(&password, &inbound_msg)?;
+    Ok(Spake2ResponderResult { outbound_msg, session_handle })
 }
 
 pub fn spake2_cleanup_state_wrapper(handle_id: u64) -> bool {
@@ -103,6 +107,27 @@ pub fn spake2_cleanup_state_wrapper(handle_id: u64) -> bool {
 
 pub fn spake2_active_count_wrapper() -> u64 {
     spake2::spake2_active_count() as u64
+}
+
+// Session store FFI wrappers
+pub fn session_encrypt_wrapper(handle: u64, plaintext: Vec<u8>) -> Result<Vec<u8>, SessionError> {
+    session_store::session_encrypt(handle, &plaintext)
+}
+
+pub fn session_decrypt_wrapper(handle: u64, ciphertext: Vec<u8>) -> Result<Vec<u8>, SessionError> {
+    session_store::session_decrypt(handle, &ciphertext)
+}
+
+pub fn session_generate_confirmation_wrapper(handle: u64, role: u8) -> Result<Vec<u8>, SessionError> {
+    session_store::session_generate_confirmation(handle, role)
+}
+
+pub fn session_verify_confirmation_wrapper(handle: u64, confirmation: Vec<u8>, role: u8) -> Result<bool, SessionError> {
+    session_store::session_verify_confirmation(handle, &confirmation, role)
+}
+
+pub fn session_destroy_wrapper(handle: u64) {
+    session_store::session_destroy(handle)
 }
 
 // Object defined in UDL
@@ -115,7 +140,6 @@ use std::collections::HashMap;
 
 // ... imports ...
 
-#[derive(Default)]
 struct ClientState {
     /// Main client with unique ephemeral keys for direct messaging
     client: Option<Arc<Mutex<MixnetClient>>>,
@@ -125,6 +149,22 @@ struct ClientState {
     /// Allows concurrent connections to multiple rendezvous points
     rendezvous_clients: HashMap<String, Arc<Mutex<MixnetClient>>>,
     rendezvous_addresses: HashMap<String, String>,
+    
+    /// Cached gateway list with fetch timestamp (60s TTL)
+    /// Dies with transport instance — no static/global cache
+    cached_gateways: Option<(Vec<Entry>, std::time::Instant)>,
+}
+
+impl Default for ClientState {
+    fn default() -> Self {
+        Self {
+            client: None,
+            my_address: None,
+            rendezvous_clients: HashMap::new(),
+            rendezvous_addresses: HashMap::new(),
+            cached_gateways: None,
+        }
+    }
 }
 
 // Structs for gateway fetching
@@ -158,6 +198,27 @@ struct Entry {
 }
 
 impl NymTransportClient {
+
+    /// Get gateways from cache (60s TTL) or fetch fresh.
+    /// Cache is instance-level — dies with transport instance.
+    async fn get_or_fetch_gateways(state: &Mutex<ClientState>) -> Result<Vec<Entry>, TransportError> {
+        {
+            let st = state.lock().await;
+            if let Some((ref gateways, fetched_at)) = st.cached_gateways {
+                if fetched_at.elapsed() < Duration::from_secs(60) && !gateways.is_empty() {
+                    log::info!("Using cached gateway list ({} gateways, age: {:?})", gateways.len(), fetched_at.elapsed());
+                    return Ok(gateways.clone());
+                }
+            }
+        }
+        
+        let gateways = Self::fetch_sorted_gateways().await?;
+        
+        let mut st = state.lock().await;
+        st.cached_gateways = Some((gateways.clone(), std::time::Instant::now()));
+        log::info!("Cached {} gateways (fresh fetch)", gateways.len());
+        Ok(gateways)
+    }
 
     /// Fetch and sort gateways for deterministic selection.
     /// 
@@ -241,123 +302,150 @@ impl NymTransportClient {
                 }
             }
 
-            // 0. Deterministic Gateway Selection
-            let gateways = Self::fetch_sorted_gateways().await?;
+            // 0. Deterministic Gateway Selection (uses cache, 60s TTL)
+            let gateways = Self::get_or_fetch_gateways(&state).await?;
             if gateways.is_empty() {
                 return Err(TransportError::ConnectionFailed { reason: "No gateways available".into() });
             }
             
-            // Hash the point_id to get a deterministic number
+            // Hash the point_id to get a deterministic base index
             let mut hasher = Sha256::new();
             use sha2::Digest;
             hasher.update(point_id_clone.as_bytes());
             let result = hasher.finalize();
-            // Use first 8 bytes as u64 for modulus
             let hash_int = u64::from_be_bytes(result[0..8].try_into().unwrap());
-            
-            let index = (hash_int as usize) % gateways.len();
-            let selected_gateway = &gateways[index];
-            
-            log::info!("Selected Deterministic Gateway: {} (Index: {}/{})", selected_gateway.identity, index, gateways.len());
+            let base_index = (hash_int as usize) % gateways.len();
 
-            // 1. Derive Keys with STRICT Context Separation
+            // Extract base rendezvous id (strip slot suffix)
+            let base_id = if let Some(idx) = point_id_clone.rfind('_') {
+                &point_id_clone[..idx]
+            } else {
+                &point_id_clone
+            };
+
+            // Derive deterministic seeds ONCE (cheap, copyable [u8; 32])
             let salt = b"zerochat-rendezvous-v1";
-            let hkdf = Hkdf::<Sha256>::new(Some(salt), point_id_clone.as_bytes());
+            let hkdf = Hkdf::<Sha256>::new(Some(salt), base_id.as_bytes());
             
             let mut identity_seed = [0u8; 32];
             let mut encryption_seed = [0u8; 32];
             let mut ack_seed = [0u8; 32];
             
-            // Context Label 1: Identity
             hkdf.expand(b"rendezvous-identity", &mut identity_seed)
                 .map_err(|e| TransportError::RuntimeError { 
                     reason: format!("Failed to expand identity seed: {:?}", e) 
                 })?;
-                
-            // Context Label 2: Encryption
             hkdf.expand(b"rendezvous-encryption", &mut encryption_seed)
                 .map_err(|e| TransportError::RuntimeError { 
                     reason: format!("Failed to expand encryption seed: {:?}", e) 
                 })?;
-
-            // Context Label 3: AckKey (Deterministic)
             hkdf.expand(b"ack-key", &mut ack_seed)
                 .map_err(|e| TransportError::RuntimeError { 
                     reason: format!("Failed to expand ack seed: {:?}", e) 
                 })?;
 
+            log::info!(
+                "Identity derived from base_id: {} (slot input: {})",
+                base_id,
+                point_id_clone
+            );
             log::info!("Rendezvous seed (Identity): {}", hex::encode(&identity_seed));
 
-            // STRICT DETERMINISTIC ED25519 GENERATION (User Requirement)
-            use ed25519_dalek::{SigningKey, VerifyingKey};
+            let index = base_index % gateways.len();
+            let selected_gateway = &gateways[index];
             
+            log::info!("Selected Deterministic Gateway: {} (Index: {}/{})", 
+                selected_gateway.identity, index, gateways.len());
+
+            // Derive keypairs from seeds
+            use ed25519_dalek::SigningKey;
             let signing_key = SigningKey::from_bytes(&identity_seed);
             let verifying_key = signing_key.verifying_key();
             
             log::info!("Derived public key (Identity): {}", hex::encode(verifying_key.as_bytes()));
-            
-            let identity_keypair = nym_crypto::asymmetric::identity::KeyPair::from_bytes(&signing_key.to_bytes(), verifying_key.as_bytes())
-                .map_err(|e| TransportError::RuntimeError {
-                    reason: format!("Failed to convert identity keypair: {}", e)
-                })?;
-
-            // Derive Encryption KeyPair (x25519)
             log::info!("Deriving Encryption KeyPair (x25519)...");
+            
+            let identity_keypair = match nym_crypto::asymmetric::identity::KeyPair::from_bytes(
+                &signing_key.to_bytes(), verifying_key.as_bytes()
+            ) {
+                Ok(kp) => kp,
+                Err(e) => return Err(TransportError::RuntimeError { reason: format!("Identity keypair error: {}", e) }),
+            };
+
             let x25519_secret = x25519_dalek::StaticSecret::from(encryption_seed);
             let x25519_public = x25519_dalek::PublicKey::from(&x25519_secret);
             let x25519_secret_bytes = x25519_secret.to_bytes();
             
-            let encryption_keypair = nym_crypto::asymmetric::encryption::KeyPair::from_bytes(&x25519_secret_bytes, x25519_public.as_bytes())
-                .map_err(|e| TransportError::RuntimeError { 
-                    reason: format!("Failed to derive encryption keypair: {:?}", e) 
-                })?;
+            let encryption_keypair = match nym_crypto::asymmetric::encryption::KeyPair::from_bytes(
+                &x25519_secret_bytes, x25519_public.as_bytes()
+            ) {
+                Ok(kp) => kp,
+                Err(e) => return Err(TransportError::RuntimeError { reason: format!("Encryption keypair error: {:?}", e) }),
+            };
 
-            // Deterministic AckKey
-            // AckKey is 16 bytes (AES-128-CTR), so we use the first 16 bytes of the seed.
-            let ack_key = AckKey::try_from_bytes(&ack_seed[..16])
-                .map_err(|e| TransportError::RuntimeError {
-                     reason: format!("Failed to derive ack key: {:?}", e)
-                })?;
+            let ack_key = match AckKey::try_from_bytes(&ack_seed[..16]) {
+                Ok(k) => k,
+                Err(e) => return Err(TransportError::RuntimeError { reason: format!("AckKey error: {:?}", e) }),
+            };
 
-            // Construct ClientKeys
-            let client_keys = ClientKeys::from_keys(
-                identity_keypair,
-                encryption_keypair,
-                ack_key
-            );
+            let client_keys = ClientKeys::from_keys(identity_keypair, encryption_keypair, ack_key);
 
-            // 2. Create Ephemeral Storage and Inject Keys
+            // H1: Zeroize seed material — keys are now in client_keys
+            use zeroize::Zeroize;
+            identity_seed.zeroize();
+            encryption_seed.zeroize();
+            ack_seed.zeroize();
+            log::info!("Deterministic seeds zeroized");
+
             let storage = Ephemeral::default();
             if let Err(e) = storage.key_store().store_keys(&client_keys).await {
-                 return Err(TransportError::RuntimeError { 
+                return Err(TransportError::RuntimeError { 
                     reason: format!("Failed to store rendezvous keys: {}", e) 
                 });
             }
 
-            // 3. Build Client using custom storage and DETERMINISTIC GATEWAY
-            let disconnected = MixnetClientBuilder::new_with_storage(storage)
+            let disconnected = match MixnetClientBuilder::new_with_storage(storage)
                 .request_gateway(selected_gateway.identity.clone()) 
                 .build()
-                .map_err(|e| TransportError::RuntimeError { 
-                    reason: format!("Failed to build rendezvous client: {}", e) 
-                })?;
+            {
+                Ok(d) => d,
+                Err(e) => return Err(TransportError::RuntimeError { reason: format!("Build failed: {}", e) }),
+            };
 
-            // Connect with 30s timeout to avoid hanging on bad gateways
-            let client = tokio::time::timeout(
+            let gateway_id = selected_gateway.identity.clone();
+            
+            // Connect with 30s timeout
+            let connect_result = tokio::time::timeout(
                 Duration::from_secs(30),
                 disconnected.connect_to_mixnet()
-            ).await
-                .map_err(|_| TransportError::ConnectionFailed { 
-                    reason: format!("Rendezvous gateway {} timed out after 30s", selected_gateway.identity) 
-                })?
-                .map_err(|e| TransportError::ConnectionFailed { 
-                    reason: format!("Failed to connect rendezvous client: {}", e) 
-                })?;
+            ).await;
 
+            let client = match connect_result {
+                Ok(Ok(c)) => c,
+                Ok(Err(e)) => {
+                    let err_msg = format!("{}", e);
+                    log::warn!("Gateway {} connection failed: {}", gateway_id, err_msg);
+                    return Err(TransportError::ConnectionFailed { 
+                        reason: format!("gateway client error ({}): {}", gateway_id, err_msg) 
+                    });
+                }
+                Err(_) => {
+                    log::warn!("Gateway {} timed out after 30s", gateway_id);
+                    return Err(TransportError::ConnectionFailed { reason: "Timeout".into() });
+                }
+            };
+
+            // Post-connect stabilization
+            tokio::time::sleep(Duration::from_millis(500)).await;
+            
             let address = client.nym_address().to_string();
-            log::info!("Connected Deterministic Mailbox Client: {}", address);
+            if address.is_empty() {
+                return Err(TransportError::ConnectionFailed { reason: "Health check failed".into() });
+            }
+            
+            log::info!("Connected Deterministic Mailbox Client! Address: {}", address);
 
-            // 4. Store Client
+            // Store Client
             let mut st = state.lock().await;
             st.rendezvous_clients.insert(point_id_clone.clone(), Arc::new(Mutex::new(client)));
             st.rendezvous_addresses.insert(point_id_clone, address.clone());
@@ -366,17 +454,19 @@ impl NymTransportClient {
         })
     }
 
+
     /// Calculate the Nym Address for a deterministic point without connecting.
     /// Used for "Two-Slot" strategy: if I am Slot A, I need to know Slot B's address to send to it.
     pub fn get_rendezvous_address(&self, point_id: String) -> Result<String, TransportError> {
+        let state = self.state.clone();
         self.runtime.block_on(async move {
-            // 1. Deterministic Gateway Selection (Same logic as connect)
-            let gateways = Self::fetch_sorted_gateways().await?;
+            // 1. Deterministic Gateway Selection (uses cache, 60s TTL)
+            let gateways = Self::get_or_fetch_gateways(&state).await?;
             if gateways.is_empty() {
                 return Err(TransportError::ConnectionFailed { reason: "No gateways to derive address".into() });
             }
             
-            // Hash the point_id to get a deterministic number
+            // Hash the point_id to get a deterministic gateway index (slot-dependent)
             let mut hasher = Sha256::new();
             use sha2::Digest;
             hasher.update(point_id.as_bytes());
@@ -387,9 +477,16 @@ impl NymTransportClient {
             let index = (hash_int as usize) % gateways.len();
             let selected_gateway = &gateways[index];
 
-            // 2. Derive Identity Key (Same logic as connect_rendezvous)
+            // Extract base rendezvous id (strip slot suffix) — MUST match connect_rendezvous
+            let base_id = if let Some(idx) = point_id.rfind('_') {
+                &point_id[..idx]
+            } else {
+                &point_id
+            };
+
+            // 2. Derive Identity Key (Same logic as connect_rendezvous — uses base_id)
             let salt = b"zerochat-rendezvous-v1";
-            let hkdf = Hkdf::<Sha256>::new(Some(salt), point_id.as_bytes());
+            let hkdf = Hkdf::<Sha256>::new(Some(salt), base_id.as_bytes());
             let mut identity_seed = [0u8; 32];
             hkdf.expand(b"rendezvous-identity", &mut identity_seed)
                 .map_err(|e| TransportError::RuntimeError { reason: format!("{:?}", e) })?;

@@ -1,0 +1,97 @@
+[package]
+name = "nym-gateway-client"
+version.workspace = true
+authors = ["Jędrzej Stuczyński <andrew@nymtech.net>"]
+edition = "2021"
+license.workspace = true
+description = "Functions and types for Nym client <> Gateway connections"
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+# TODO: (for this and other crates), similarly to 'tokio', import only required "futures" modules rather than
+# the entire crate
+futures = { workspace = true }
+tracing = { workspace = true }
+thiserror = { workspace = true }
+url = { workspace = true }
+rand = { workspace = true }
+tokio = { workspace = true, features = ["macros"] }
+si-scale = { workspace = true }
+time.workspace = true
+zeroize.workspace = true
+
+# internal
+nym-bandwidth-controller = { workspace = true }
+nym-credentials = { workspace = true }
+nym-credential-storage = { workspace = true }
+nym-credentials-interface = { workspace = true }
+nym-crypto = { workspace = true }
+nym-gateway-requests = { workspace = true }
+nym-http-api-client = { workspace = true }
+nym-network-defaults = { workspace = true }
+nym-sphinx = { workspace = true }
+nym-statistics-common = { workspace = true }
+nym-pemstore = { workspace = true }
+nym-validator-client = { workspace = true, default-features = false }
+nym-task = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+
+
+[dependencies.tungstenite]
+workspace = true
+default-features = false
+
+# non-wasm-only dependencies
+[target."cfg(not(target_arch = \"wasm32\"))".dependencies.tokio]
+workspace = true
+features = ["macros", "rt", "net", "sync", "time"]
+
+[target."cfg(not(target_arch = \"wasm32\"))".dependencies.tokio-stream]
+workspace = true
+features = ["net", "sync", "time"]
+
+[target."cfg(not(target_arch = \"wasm32\"))".dependencies.tokio-tungstenite]
+workspace = true
+features = ["rustls-tls-webpki-roots"]
+
+# wasm-only dependencies
+[target."cfg(target_arch = \"wasm32\")".dependencies.wasm-bindgen]
+workspace = true
+
+[target."cfg(target_arch = \"wasm32\")".dependencies.wasm-bindgen-futures]
+workspace = true
+
+[target."cfg(target_arch = \"wasm32\")".dependencies.nym-wasm-utils]
+workspace = true
+features = ["websocket"]
+
+[target."cfg(target_arch = \"wasm32\")".dependencies.gloo-utils]
+workspace = true
+
+# only import it in wasm. Prefer proper tokio timer in non-wasm
+[target."cfg(target_arch = \"wasm32\")".dependencies.wasmtimer]
+workspace = true
+features = ["tokio"]
+
+# this is due to tungstenite using `rand` 0.8 and associated changes in `getrandom` crate
+# which now does not support wasm32-unknown-unknown target by default.
+# using the below, we assume our client is going to be run in environment
+# containing javascript (such as a web browser or node.js).
+# refer to https://docs.rs/getrandom/0.2.2/getrandom/#webassembly-support for more information
+[target."cfg(target_arch = \"wasm32\")".dependencies.getrandom]
+workspace = true
+features = ["js"]
+
+[dev-dependencies]
+# for tests
+#url = "2.1"
+
+[features]
+wasm = []
+
+[lints]
+workspace = true

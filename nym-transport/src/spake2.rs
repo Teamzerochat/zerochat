@@ -2,6 +2,9 @@
 //!
 //! Implements SPAKE2+ protocol for mutual authentication using a shared password.
 //! State is stored in Rust to avoid serialization issues.
+//!
+//! SECURITY: Session keys are stored in session_store behind opaque handles.
+//! Raw key bytes NEVER cross the FFI boundary.
 
 use spake2::{Ed25519Group, Identity, Password, Spake2};
 use std::collections::HashMap;
@@ -9,6 +12,9 @@ use std::sync::Mutex;
 use once_cell::sync::Lazy;
 use rand::Rng;
 use thiserror::Error;
+use zeroize::Zeroize;
+
+use crate::session_store;
 
 /// SPAKE2+ errors
 #[derive(Error, Debug)]
@@ -51,8 +57,8 @@ pub fn spake2_start_initiator(password: &[u8]) -> Result<(u64, Vec<u8>), Spake2E
 
 /// Finish SPAKE2+ as initiator
 /// Takes handle_id from start_initiator and peer's response
-/// Returns shared secret and removes state
-pub fn spake2_finish_initiator(handle_id: u64, inbound_msg: &[u8]) -> Result<Vec<u8>, Spake2Error> {
+/// Returns SESSION HANDLE (not raw key) — key stays in Rust memory
+pub fn spake2_finish_initiator(handle_id: u64, inbound_msg: &[u8]) -> Result<u64, Spake2Error> {
     log::info!("Finishing SPAKE2+ as initiator with handle {}", handle_id);
     
     // Retrieve and remove state
@@ -62,21 +68,27 @@ pub fn spake2_finish_initiator(handle_id: u64, inbound_msg: &[u8]) -> Result<Vec
         .remove(&handle_id)
         .ok_or(Spake2Error::InvalidHandle)?;
     
-    let key = state
+    let mut key = state
         .finish(inbound_msg)
         .map_err(|e| Spake2Error::HandshakeFailed {
             reason: format!("Failed to derive key: {:?}", e),
         })?;
     
-    log::info!("SPAKE2+ initiator handshake complete");
+    // Store in session store (HKDF derivation happens inside)
+    let session_handle = session_store::session_store(key.to_vec());
     
-    Ok(key.to_vec())
+    // Zeroize the raw SPAKE2 output
+    key.zeroize();
+    
+    log::info!("SPAKE2+ initiator complete. Session handle: {}", session_handle);
+    
+    Ok(session_handle)
 }
 
 /// Start SPAKE2+ as responder (Bob)
-/// Takes password and peer's message, returns (response, shared_secret)
-/// Responder completes in one step, no state storage needed
-pub fn spake2_start_responder(password: &[u8], inbound_msg: &[u8]) -> Result<(Vec<u8>, Vec<u8>), Spake2Error> {
+/// Takes password and peer's message, returns (response, session_handle)
+/// Session key stays in Rust memory — only handle crosses FFI
+pub fn spake2_start_responder(password: &[u8], inbound_msg: &[u8]) -> Result<(Vec<u8>, u64), Spake2Error> {
     log::info!("Starting SPAKE2+ as responder");
     
     let (state, outbound_msg) = Spake2::<Ed25519Group>::start_symmetric(
@@ -84,15 +96,21 @@ pub fn spake2_start_responder(password: &[u8], inbound_msg: &[u8]) -> Result<(Ve
         &Identity::new(b"ZeroChat"),  // Same identity for symmetric protocol
     );
     
-    let key = state
+    let mut key = state
         .finish(inbound_msg)
         .map_err(|e| Spake2Error::HandshakeFailed {
             reason: format!("Failed to derive key: {:?}", e),
         })?;
     
-    log::info!("SPAKE2+ responder handshake complete");
+    // Store in session store (HKDF derivation happens inside)
+    let session_handle = session_store::session_store(key.to_vec());
     
-    Ok((outbound_msg.to_vec(), key.to_vec()))
+    // Zeroize the raw SPAKE2 output
+    key.zeroize();
+    
+    log::info!("SPAKE2+ responder complete. Session handle: {}", session_handle);
+    
+    Ok((outbound_msg.to_vec(), session_handle))
 }
 
 /// Clean up expired or abandoned handshake states

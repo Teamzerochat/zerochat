@@ -1,0 +1,168 @@
+// Copyright 2021 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: Apache-2.0
+
+use nym_gateway_requests::registration::handshake::error::HandshakeError;
+use nym_gateway_requests::{GatewayRequestsError, SimpleGatewayRequestsError};
+use std::io;
+use thiserror::Error;
+use tungstenite::Error as WsError;
+
+#[cfg(target_arch = "wasm32")]
+use gloo_utils::errors::JsError;
+
+#[derive(Debug, Error)]
+pub enum GatewayClientError {
+    #[error("Connection to the gateway is not established")]
+    ConnectionNotEstablished,
+
+    #[error("gateway returned an error response: {0}")]
+    GatewayError(String),
+
+    #[error("gateway returned an error response: {0}")]
+    TypedGatewayError(SimpleGatewayRequestsError),
+
+    #[error("request error: {0}")]
+    RequestError(#[from] GatewayRequestsError),
+
+    #[error("There was a network error: {0}")]
+    NetworkError(Box<WsError>),
+
+    #[error("failed to upgrade our shared key - the gateway sent malformed response")]
+    FatalKeyUpgradeFailure,
+
+    #[error("the current key is already up to date! there's no need to upgrade it")]
+    KeyAlreadyUpgraded,
+
+    #[error("can't perform key upgrade as the key is already being used elsewhere")]
+    KeyAlreadyInUse,
+
+    #[cfg(target_arch = "wasm32")]
+    #[error("There was a network error: {0}")]
+    NetworkErrorWasm(#[from] JsError),
+
+    #[error("connection failed: {address}: {source}")]
+    NetworkConnectionFailed {
+        address: String,
+        source: Box<WsError>,
+    },
+
+    #[error("no socket address for endpoint: {address}")]
+    NoEndpointForConnection { address: String },
+
+    #[error("Invalid URL: {0}")]
+    InvalidUrl(String),
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[error("resolution failed: {0}")]
+    ResolutionFailed(#[from] nym_http_api_client::ResolveError),
+
+    #[error("No shared key was provided or obtained")]
+    NoSharedKeyAvailable,
+
+    #[error("No bandwidth controller provided")]
+    NoBandwidthControllerAvailable,
+
+    #[error("Bandwidth controller error: {0}")]
+    BandwidthControllerError(#[from] nym_bandwidth_controller::error::BandwidthControllerError),
+
+    #[error("Connection was abruptly closed")]
+    ConnectionAbruptlyClosed,
+
+    #[error("Connection was abruptly closed as gateway was stopped")]
+    ConnectionClosedGatewayShutdown,
+
+    #[error("Received response was malformed")]
+    MalformedResponse,
+
+    #[error("Credential could not be serialized")]
+    SerializeCredential,
+
+    #[error("can not spend bandwidth credential with the gateway as it's using outdated protocol (version: {negotiated_protocol:?})")]
+    OutdatedGatewayCredentialVersion { negotiated_protocol: Option<u8> },
+
+    #[error("Client is not authenticated")]
+    NotAuthenticated,
+
+    #[error("Client is not registered")]
+    NotRegistered,
+
+    #[error("Client does not have enough bandwidth: estimated {0}, remaining: {1}")]
+    NotEnoughBandwidth(i64, i64),
+
+    #[error("There are no more bandwidth credentials acquired. Please buy some more if you want to use the mixnet")]
+    NoMoreBandwidthCredentials,
+
+    #[error("the current available bandwidth ({available_bi2}) is below the minimum cutoff threshold off {cutoff_bi2}")]
+    BandwidthBelowCutoffValue {
+        available_bi2: String,
+        cutoff_bi2: String,
+    },
+
+    #[error("received an unexpected response of type {name}")]
+    UnexpectedResponse { name: String },
+
+    #[error("Connection is in an invalid state - please send a bug report")]
+    ConnectionInInvalidState,
+
+    #[error("Failed to finish registration handshake: {0}")]
+    RegistrationFailure(HandshakeError),
+
+    #[error("Authentication failure")]
+    AuthenticationFailure,
+
+    #[error("Authentication failure with preexisting shared key")]
+    AuthenticationFailureWithPreexistingSharedKey,
+
+    #[error("Timed out")]
+    Timeout,
+
+    #[error("Failed to send mixnet message")]
+    MixnetMsgSenderFailedToSend,
+
+    #[error("Attempted to negotiate connection with gateway using incompatible protocol version. Ours is {current} and the gateway reports {gateway}")]
+    IncompatibleProtocol { gateway: u8, current: u8 },
+
+    #[error(
+        "The packet router hasn't been set - are you sure you started up the client correctly?"
+    )]
+    PacketRouterUnavailable,
+
+    #[error(
+        "this operation couldn't be completed as the program is in the process of shutting down"
+    )]
+    ShutdownInProgress,
+
+    #[error("the system is an unexpected upgrade mode state")]
+    UnexpectedUpgradeModeState,
+}
+
+impl From<WsError> for GatewayClientError {
+    fn from(error: WsError) -> Self {
+        GatewayClientError::NetworkError(Box::new(error))
+    }
+}
+
+impl GatewayClientError {
+    pub fn is_closed_connection(&self) -> bool {
+        match self {
+            GatewayClientError::NetworkError(ws_err) => match ws_err.as_ref() {
+                WsError::AlreadyClosed | WsError::ConnectionClosed => true,
+                WsError::Io(io_err) => matches!(
+                    io_err.kind(),
+                    io::ErrorKind::ConnectionReset
+                        | io::ErrorKind::ConnectionAborted
+                        | io::ErrorKind::BrokenPipe
+                ),
+                _ => false,
+            },
+            _ => false,
+        }
+    }
+
+    pub fn is_ticket_replay(&self) -> bool {
+        match self {
+            GatewayClientError::TypedGatewayError(err) => err.is_ticket_replay(),
+            _ => false,
+        }
+    }
+}

@@ -11,6 +11,7 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import kotlinx.coroutines.*
+import kotlin.coroutines.coroutineContext
 import org.purplei2p.i2pd.I2PD_JNI
 import java.io.File
 import java.io.FileOutputStream
@@ -48,20 +49,35 @@ class I2PRouterService : Service() {
         var startError: String? = null
             private set
 
+        // FIX #4: Dedicated lock object — never lock on a mutable collection
+        private val lock = Any()
         private val readyListeners = mutableListOf<CompletableDeferred<Boolean>>()
+
+        /**
+         * FIX #3: Reset all companion state. Called at top of onCreate()
+         * so a re-created service never sees stale flags from a dead instance.
+         */
+        fun resetCompanionState() {
+            synchronized(lock) {
+                isRunning = false
+                isRouterReady = false
+                startError = null
+                readyListeners.forEach { it.complete(false) }
+                readyListeners.clear()
+            }
+        }
 
         /**
          * Wait until the router's SAM bridge is accepting connections.
          * Returns true if ready, false if timeout or error.
          */
         suspend fun waitUntilReady(timeoutMs: Long = SAM_READY_TIMEOUT_MS): Boolean {
-            if (isRouterReady) return true
-            if (startError != null) return false
-
-            val deferred = CompletableDeferred<Boolean>()
-            synchronized(readyListeners) {
+            // FIX #2: All state checks + registration INSIDE the lock
+            // to eliminate TOCTOU race with notifyReady()
+            val deferred = synchronized(lock) {
                 if (isRouterReady) return true
-                readyListeners.add(deferred)
+                if (startError != null) return false
+                CompletableDeferred<Boolean>().also { readyListeners.add(it) }
             }
 
             return try {
@@ -73,7 +89,7 @@ class I2PRouterService : Service() {
         }
 
         private fun notifyReady(ready: Boolean) {
-            synchronized(readyListeners) {
+            synchronized(lock) {
                 readyListeners.forEach { it.complete(ready) }
                 readyListeners.clear()
             }
@@ -95,16 +111,29 @@ class I2PRouterService : Service() {
 
     private val serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private lateinit var dataDir: String
+    private var bootstrapWakeLock: android.os.PowerManager.WakeLock? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
+        // FIX #3: Clear stale companion state from any previous instance
+        resetCompanionState()
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, buildNotification("I2P router starting..."))
         isRunning = true
         startError = null
         isRouterReady = false
+
+        // H4: Acquire wake lock during bootstrap (60s safety timeout)
+        val pm = getSystemService(POWER_SERVICE) as android.os.PowerManager
+        bootstrapWakeLock = pm.newWakeLock(
+            android.os.PowerManager.PARTIAL_WAKE_LOCK,
+            "zerochat:i2p-bootstrap"
+        ).apply {
+            acquire(60_000) // 60s max safety timeout
+        }
+        Log.i(TAG, "Bootstrap wake lock acquired")
 
         dataDir = File(filesDir, "i2pd").absolutePath
         serviceScope.launch { initAndStartRouter() }
@@ -113,19 +142,34 @@ class I2PRouterService : Service() {
     override fun onDestroy() {
         super.onDestroy()
         Log.i(TAG, "Stopping i2pd router...")
+        // R4 FIX: Mark NOT ready early (prevents new connections to dying daemon)
+        // but keep isRunning=true until daemon actually stops (prevents double-start)
+        isRouterReady = false
+        notifyReady(false)
+        releaseBootstrapWakeLock()
         serviceScope.cancel()
         try {
             I2PD_JNI.stopDaemon()
         } catch (e: Exception) {
             Log.e(TAG, "Error stopping daemon", e)
         }
+        // R4 FIX: Only now mark as not running — daemon is actually gone
         isRunning = false
-        isRouterReady = false
-        notifyReady(false)
         Log.i(TAG, "i2pd router stopped")
     }
 
+    private fun releaseBootstrapWakeLock() {
+        bootstrapWakeLock?.let {
+            if (it.isHeld) {
+                it.release()
+                Log.i(TAG, "Bootstrap wake lock released")
+            }
+        }
+        bootstrapWakeLock = null
+    }
+
     private suspend fun initAndStartRouter() {
+        var daemonStarted = false
         try {
             // Step 1: Ensure data directory exists
             val dir = File(dataDir)
@@ -166,6 +210,8 @@ class I2PRouterService : Service() {
                 return
             }
 
+            daemonStarted = true  // FIX #1: Track that daemon is running
+
             Log.i(TAG, "i2pd daemon started. Waiting for SAM bridge...")
             updateNotification("I2P router bootstrapping...")
 
@@ -173,18 +219,26 @@ class I2PRouterService : Service() {
             val samReady = pollSamReady()
             if (samReady) {
                 isRouterReady = true
+                releaseBootstrapWakeLock()
                 notifyReady(true)
                 updateNotification("I2P router ready")
                 Log.i(TAG, "✓ SAM bridge is ready on 127.0.0.1:7656")
             } else {
+                // FIX #1: Stop daemon if SAM never became ready
+                Log.e(TAG, "SAM bridge did not become ready in time — stopping daemon")
+                try { I2PD_JNI.stopDaemon() } catch (_: Exception) {}
+                daemonStarted = false
                 startError = "SAM bridge not ready after timeout"
                 notifyReady(false)
                 updateNotification("Router timeout")
-                Log.e(TAG, "SAM bridge did not become ready in time")
             }
 
         } catch (e: Exception) {
             Log.e(TAG, "Router init error", e)
+            // FIX #1: Stop daemon if it was started before the error
+            if (daemonStarted) {
+                try { I2PD_JNI.stopDaemon() } catch (_: Exception) {}
+            }
             startError = e.message
             notifyReady(false)
             updateNotification("Router error: ${e.message}")
@@ -194,6 +248,8 @@ class I2PRouterService : Service() {
     private suspend fun pollSamReady(): Boolean {
         val deadline = System.currentTimeMillis() + SAM_READY_TIMEOUT_MS
         while (System.currentTimeMillis() < deadline) {
+            // FIX #10: Check for cancellation BEFORE the blocking JNI call
+            coroutineContext.ensureActive()
             try {
                 if (I2PD_JNI.getSAMState()) {
                     return true

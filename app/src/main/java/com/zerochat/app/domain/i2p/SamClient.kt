@@ -2,6 +2,9 @@ package com.zerochat.app.domain.i2p
 
 import android.util.Log
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.*
 import java.net.Socket
@@ -32,7 +35,14 @@ class SamClient @Inject constructor() {
         private const val SAM_HOST = "127.0.0.1"
         private const val SAM_PORT = 7656
         private const val SAM_VERSION = "3.1"
+        private const val HANDSHAKE_TIMEOUT_MS = 30_000 // FIX #6: 30s timeout for SAM protocol phase
+        private const val SESSION_RETRY_TIMEOUT_MS = 60_000L // Total retry window for HELLO
+        private const val INITIAL_BACKOFF_MS = 1_000L        // 1s → 2s → 4s exponential
+        private const val MAX_BACKOFF_MS = 4_000L
     }
+
+    // FIX #5 / #7: Mutex guards session creation, access, and closure
+    private val sessionMutex = Mutex()
 
     @Volatile
     private var sessionId: String? = null
@@ -48,54 +58,80 @@ class SamClient @Inject constructor() {
      * Create a new SAM streaming session.
      * Returns the local I2P destination (Base64 string).
      */
-    suspend fun createSession(): String = withContext(Dispatchers.IO) {
-        val id = "zerochat-${UUID.randomUUID().toString().take(8)}"
+    suspend fun createSession(): String = sessionMutex.withLock {
+        // FIX #12: If a stale session exists, clean it up first
+        closeInternal()
 
-        // Connect control socket to SAM bridge
-        val controlSocket = Socket(SAM_HOST, SAM_PORT)
-        val input = controlSocket.getInputStream()
-        val output = controlSocket.getOutputStream()
+        withContext(Dispatchers.IO) {
+            val deadline = System.currentTimeMillis() + SESSION_RETRY_TIMEOUT_MS
+            var backoffMs = INITIAL_BACKOFF_MS
+            var lastException: Exception? = null
 
-        try {
-            // Step 1: HELLO handshake
-            writeCommand(output, "HELLO VERSION MIN=$SAM_VERSION MAX=$SAM_VERSION")
-            val helloReply = readLine(input)
-            Log.d(TAG, "HELLO reply: $helloReply")
+            // Retry with exponential backoff up to 60s
+            while (System.currentTimeMillis() < deadline) {
+                // Fresh random session ID per attempt — never reuse
+                val id = "zc-${UUID.randomUUID().toString().replace("-", "").take(12)}"
+                var controlSocket: Socket? = null
+                try {
+                    controlSocket = Socket(SAM_HOST, SAM_PORT).apply {
+                        soTimeout = HANDSHAKE_TIMEOUT_MS
+                    }
+                    val input = controlSocket.getInputStream()
+                    val output = controlSocket.getOutputStream()
 
-            if (!helloReply.contains("RESULT=OK")) {
-                throw IOException("SAM HELLO failed: $helloReply")
+                    // Step 1: HELLO handshake
+                    writeCommand(output, "HELLO VERSION MIN=$SAM_VERSION MAX=$SAM_VERSION")
+                    val helloReply = readLine(input)
+                    Log.d(TAG, "HELLO reply: $helloReply")
+
+                    if (!helloReply.contains("RESULT=OK")) {
+                        throw IOException("SAM HELLO failed: $helloReply")
+                    }
+
+                    // Step 2: SESSION CREATE
+                    writeCommand(output, "SESSION CREATE STYLE=STREAM ID=$id DESTINATION=TRANSIENT SIGNATURE_TYPE=7")
+                    val sessionReply = readLine(input)
+                    Log.d(TAG, "SESSION reply: $sessionReply")
+
+                    if (sessionReply.contains("DUPLICATED_ID")) {
+                        // Stale session with this ID — close socket and retry immediately with new ID
+                        Log.w(TAG, "SESSION DUPLICATED_ID for $id, retrying with new ID")
+                        controlSocket.close()
+                        continue
+                    }
+
+                    if (!sessionReply.contains("RESULT=OK")) {
+                        throw IOException("SAM SESSION CREATE failed: $sessionReply")
+                    }
+
+                    val dest = parseValue(sessionReply, "DESTINATION")
+                        ?: throw IOException("No DESTINATION in SESSION reply")
+
+                    sessionId = id
+                    localDestination = dest
+
+                    Log.i(TAG, "✓ SAM session created: $id")
+                    Log.i(TAG, "  Local destination: ${dest.take(32)}...")
+
+                    controlSocket.soTimeout = 0
+                    controlSocketRef = controlSocket
+
+                    return@withContext dest
+
+                } catch (e: Exception) {
+                    lastException = e
+                    controlSocket?.close()
+
+                    val remaining = deadline - System.currentTimeMillis()
+                    if (remaining <= 0) break
+
+                    Log.w(TAG, "Session attempt failed (${e.message}), retrying in ${backoffMs}ms (${remaining}ms left)")
+                    delay(backoffMs.coerceAtMost(remaining))
+                    backoffMs = (backoffMs * 2).coerceAtMost(MAX_BACKOFF_MS)
+                }
             }
 
-            // Step 2: Create session
-            // TRANSIENT destination = ephemeral keys (new destination each session)
-            // Use SIGNATURE_TYPE=7 (EdDSA) for modern crypto
-            writeCommand(output, "SESSION CREATE STYLE=STREAM ID=$id DESTINATION=TRANSIENT SIGNATURE_TYPE=7")
-            val sessionReply = readLine(input)
-            Log.d(TAG, "SESSION reply: $sessionReply")
-
-            if (!sessionReply.contains("RESULT=OK")) {
-                throw IOException("SAM SESSION CREATE failed: $sessionReply")
-            }
-
-            // Parse DESTINATION from reply
-            val dest = parseValue(sessionReply, "DESTINATION")
-                ?: throw IOException("No DESTINATION in SESSION reply")
-
-            sessionId = id
-            localDestination = dest
-
-            Log.i(TAG, "✓ SAM session created: $id")
-            Log.i(TAG, "  Local destination: ${dest.take(32)}...")
-
-            // Keep control socket alive (required by SAM protocol)
-            // The session lives as long as this socket stays open
-            controlSocketRef = controlSocket
-            
-            dest
-
-        } catch (e: Exception) {
-            controlSocket.close()
-            throw e
+            throw IOException("SAM session creation failed after ${SESSION_RETRY_TIMEOUT_MS / 1000}s", lastException)
         }
     }
 
@@ -115,7 +151,10 @@ class SamClient @Inject constructor() {
      * Used by INITIATOR role.
      */
     suspend fun connectStream(peerDestination: String): I2PStream = withContext(Dispatchers.IO) {
-        val id = sessionId ?: throw IllegalStateException("No active session")
+        // R6 FIX: Snapshot sessionId under mutex to prevent reading null if close() races
+        val id = sessionMutex.withLock {
+            sessionId ?: throw IllegalStateException("No active session")
+        }
 
         // Self-connect check
         if (peerDestination == localDestination) {
@@ -128,7 +167,7 @@ class SamClient @Inject constructor() {
         val streamSocket = Socket(SAM_HOST, SAM_PORT).apply {
             keepAlive = true
             tcpNoDelay = true
-            soTimeout = 0 // Infinite timeout for long-lived streams
+            soTimeout = HANDSHAKE_TIMEOUT_MS // FIX #6: timeout during SAM command phase
         }
         val input = streamSocket.getInputStream()
         val output = streamSocket.getOutputStream()
@@ -153,8 +192,9 @@ class SamClient @Inject constructor() {
 
             Log.i(TAG, "✓ Stream connected to peer")
 
-            // After STREAM CONNECT succeeds, the socket is now a raw data stream.
-            // DO NOT use any buffered readers on this socket before this point!
+            // FIX #6: Reset to infinite timeout for long-lived data stream
+            streamSocket.soTimeout = 0
+
             I2PStream(
                 socket = streamSocket,
                 inputStream = input,
@@ -175,7 +215,10 @@ class SamClient @Inject constructor() {
      * Used by RESPONDER role.
      */
     suspend fun acceptStream(): I2PStream = withContext(Dispatchers.IO) {
-        val id = sessionId ?: throw IllegalStateException("No active session")
+        // R6 FIX: Snapshot sessionId under mutex to prevent reading null if close() races
+        val id = sessionMutex.withLock {
+            sessionId ?: throw IllegalStateException("No active session")
+        }
 
         Log.i(TAG, "STREAM ACCEPT waiting for incoming connection...")
 
@@ -183,7 +226,7 @@ class SamClient @Inject constructor() {
         val acceptSocket = Socket(SAM_HOST, SAM_PORT).apply {
             keepAlive = true
             tcpNoDelay = true
-            soTimeout = 0 // Infinite timeout for long-lived streams
+            soTimeout = HANDSHAKE_TIMEOUT_MS // FIX #6: timeout during SAM command phase
         }
         val input = acceptSocket.getInputStream()
         val output = acceptSocket.getOutputStream()
@@ -196,7 +239,8 @@ class SamClient @Inject constructor() {
                 throw IOException("SAM HELLO (accept) failed: $helloReply")
             }
 
-            // STREAM ACCEPT — blocks until peer connects
+            // STREAM ACCEPT
+            // R2 FIX: Keep handshake timeout through the ACCEPT command reply
             writeCommand(output, "STREAM ACCEPT ID=$id SILENT=false")
             val acceptReply = readLine(input)
             Log.d(TAG, "STREAM ACCEPT reply: $acceptReply")
@@ -205,6 +249,9 @@ class SamClient @Inject constructor() {
                 val reason = parseValue(acceptReply, "MESSAGE") ?: acceptReply
                 throw IOException("STREAM ACCEPT failed: $reason")
             }
+
+            // R2 FIX: Reset to infinite timeout ONLY for peer-wait (peer may take a while)
+            acceptSocket.soTimeout = 0
 
             // Wait for incoming connection — SAM sends another line with peer's destination
             val peerLine = readLine(input)
@@ -224,9 +271,20 @@ class SamClient @Inject constructor() {
 
     /**
      * Close the SAM session and all streams.
+     * FIX #7: Thread-safe via sessionMutex.
      */
-    fun close() {
-        Log.i(TAG, "Closing SAM session: $sessionId")
+    suspend fun close() {
+        sessionMutex.withLock {
+            closeInternal()
+        }
+    }
+
+    /**
+     * Internal close — caller MUST hold sessionMutex.
+     */
+    private fun closeInternal() {
+        val sid = sessionId ?: return
+        Log.i(TAG, "Closing SAM session: $sid")
         try {
             controlSocketRef?.close()
         } catch (e: Exception) {

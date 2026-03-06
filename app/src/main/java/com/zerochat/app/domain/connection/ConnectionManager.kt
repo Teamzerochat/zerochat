@@ -27,7 +27,7 @@ import javax.inject.Singleton
  * 4. Derive Role (Initiator/Responder)
  * 5. Symmetric SPAKE2+ Handshake & Confirmation
  * 6. Exchange Encrypted I2P Destinations (Session Key)
- * 7. Teardown Rendezvous IMMEDIATELY
+ * 7. Teardown Rendezvous
  * 8. Establish I2P Streaming Connection (via SAM Bridge)
  */
 @Singleton
@@ -74,46 +74,82 @@ class ConnectionManager @Inject constructor(
                 return@flow
             }
             
-            // CRITICAL: Wait for peer to also connect to their slot before publishing.
-            // Without this delay, our message arrives at the peer's gateway BEFORE they
-            // finish registering, causing the gateway's packet_router to panic.
-            Log.i(TAG, "Connected to slot. Waiting 10s for peer to also connect...")
-            collector.emit(ConnectionState.WaitingForPeer)
-            delay(10_000)
+            // No fixed delay needed - Nym gateways buffer messages for registered addresses.
+            // Proceed directly to nonce exchange. Peer will receive our nonce when they connect.
+            Log.i(TAG, "Connected to slot. Proceeding to nonce exchange.")
             
-            // Phase 2: Role Election (Nonce Exchange)
+            // Phase 2: Derive Role BEFORE Nonce Exchange
+            val myAddr = rendezvousManager.getMyAddress() ?: run {
+                collector.emit(ConnectionState.Failed("My address not found"))
+                return@flow
+            }
+            val peerAddr = rendezvousManager.getPeerAddress() ?: run {
+                collector.emit(ConnectionState.Failed("Peer address not found"))
+                return@flow
+            }
+            
+            val role = if (myAddr < peerAddr) HandshakeRole.INITIATOR else HandshakeRole.RESPONDER
+            Log.i(TAG, "ROLE: $role (MyAddr: ${myAddr.take(8)}... vs PeerAddr: ${peerAddr.take(8)}...)")
+            
             collector.emit(ConnectionState.Handshaking)
             val myNonce = handshakeManager.generateElectionNonce()
             val ignoreBodies = mutableSetOf<String>()
             ignoreBodies.add(myNonce.toHexString())
             
-            // Phase 3: Publish Nonce
             val framedNonce = RendezvousFrame.wrap(RendezvousFrame.TYPE_NONCE, myNonce)
-            rendezvousManager.publish(rendezvousPoint, framedNonce).getOrElse { _ ->
-                collector.emit(ConnectionState.Failed("Publish failed"))
-                return@flow
-            }
-            
-            // Phase 4: Poll Peer Nonce
-            collector.emit(ConnectionState.PollingRendezvous)
             var peerNonce: ByteArray? = null
-            
-            try {
-                rendezvousManager.poll(rendezvousPoint, ignoreBodies, RendezvousFrame.TYPE_NONCE).collect { result ->
-                     if (result is PollResult.Found) {
-                        peerNonce = result.body
-                        throw CancellationException("FOUND")
-                     } else if (result is PollResult.Timeout) {
-                        throw Exception("Peer not online")
-                     } else if (result is PollResult.Expired) {
-                        throw Exception("Rendezvous expired")
-                     }
+
+            // Phase 3 & 4: Publish and Poll based on Role
+            if (role == HandshakeRole.INITIATOR) {
+                // INITIATOR: Publish first, then poll
+                rendezvousManager.publish(rendezvousPoint, framedNonce).getOrElse { _ ->
+                    collector.emit(ConnectionState.Failed("Publish failed"))
+                    return@flow
                 }
-            } catch (e: CancellationException) {
-                if (e.message != "FOUND") throw e
-            } catch (e: Exception) {
-                collector.emit(ConnectionState.Failed(e.message ?: "Polling error"))
-                return@flow
+                
+                collector.emit(ConnectionState.PollingRendezvous)
+                try {
+                    rendezvousManager.poll(rendezvousPoint, ignoreBodies, RendezvousFrame.TYPE_NONCE).collect { result ->
+                         if (result is PollResult.Found) {
+                            peerNonce = result.body
+                            throw CancellationException("FOUND")
+                         } else if (result is PollResult.Timeout) {
+                            throw Exception("Peer not online")
+                         } else if (result is PollResult.Expired) {
+                            throw Exception("Rendezvous expired")
+                         }
+                    }
+                } catch (e: CancellationException) {
+                    if (e.message != "FOUND") throw e
+                } catch (e: Exception) {
+                    collector.emit(ConnectionState.Failed(e.message ?: "Polling error"))
+                    return@flow
+                }
+            } else {
+                // RESPONDER: Poll first, then publish
+                collector.emit(ConnectionState.PollingRendezvous)
+                try {
+                    rendezvousManager.poll(rendezvousPoint, ignoreBodies, RendezvousFrame.TYPE_NONCE).collect { result ->
+                         if (result is PollResult.Found) {
+                            peerNonce = result.body
+                            throw CancellationException("FOUND")
+                         } else if (result is PollResult.Timeout) {
+                            throw Exception("Peer not online")
+                         } else if (result is PollResult.Expired) {
+                            throw Exception("Rendezvous expired")
+                         }
+                    }
+                } catch (e: CancellationException) {
+                    if (e.message != "FOUND") throw e
+                } catch (e: Exception) {
+                    collector.emit(ConnectionState.Failed(e.message ?: "Polling error"))
+                    return@flow
+                }
+                
+                rendezvousManager.publish(rendezvousPoint, framedNonce).getOrElse { _ ->
+                    collector.emit(ConnectionState.Failed("Publish failed"))
+                    return@flow
+                }
             }
             
             if (peerNonce == null) return@flow
@@ -123,14 +159,7 @@ class ConnectionManager @Inject constructor(
                  return@flow
             }
             
-            // Phase 5: Derive Role
-            val role = handshakeManager.determineRole(myNonce, peerNonce!!) ?: run {
-                 collector.emit(ConnectionState.Failed("Nonce collision (logic)"))
-                 return@flow
-            }
-            Log.i(TAG, "✓ DERIVED ROLE: $role")
-            
-            val sessionKey: ByteArray
+            val sessionHandle: ULong
             
             // Phase 6: SPAKE2+ Handshake
             if (role == HandshakeRole.INITIATOR) {
@@ -148,7 +177,7 @@ class ConnectionManager @Inject constructor(
                 } catch (e: CancellationException) { if (e.message != "FOUND") throw e }
                 catch (e: Exception) { collector.emit(ConnectionState.Failed(e.message ?: "Error")); return@flow }
                 
-                sessionKey = handshakeManager.finishAsInitiator(msgB ?: run {
+                sessionHandle = handshakeManager.finishAsInitiator(msgB ?: run {
                     collector.emit(ConnectionState.Failed("No SPAKE2 response received"))
                     return@flow
                 }).getOrThrow()
@@ -164,11 +193,11 @@ class ConnectionManager @Inject constructor(
                 } catch (e: CancellationException) { if (e.message != "FOUND") throw e }
                 catch (e: Exception) { collector.emit(ConnectionState.Failed(e.message ?: "Error")); return@flow }
                 
-                val (msgB, key) = handshakeManager.processAsResponder(sharedSecret, msgA ?: run {
+                val (msgB, handle) = handshakeManager.processAsResponder(sharedSecret, msgA ?: run {
                     collector.emit(ConnectionState.Failed("No SPAKE2 commitment received"))
                     return@flow
                 }).getOrThrow()
-                sessionKey = key
+                sessionHandle = handle
                 ignoreBodies.add(msgB.toHexString())
                 rendezvousManager.publish(rendezvousPoint, RendezvousFrame.wrap(RendezvousFrame.TYPE_SPAKE_B, msgB))
             }
@@ -176,10 +205,10 @@ class ConnectionManager @Inject constructor(
             Log.i(TAG, "✓ Handshake complete!")
             
             // Phase 7: Confirmation
-            val myRoleStr = if (role == HandshakeRole.INITIATOR) "INITIATOR" else "RESPONDER"
-            val peerRoleStr = if (role == HandshakeRole.INITIATOR) "RESPONDER" else "INITIATOR"
+            val myRoleU8: UByte = if (role == HandshakeRole.INITIATOR) 0u else 1u
+            val peerRoleU8: UByte = if (role == HandshakeRole.INITIATOR) 1u else 0u
             
-            val myConfirm = handshakeManager.generateConfirmation(sessionKey, myRoleStr)
+            val myConfirm = handshakeManager.generateConfirmation(sessionHandle, myRoleU8)
             ignoreBodies.add(myConfirm.toHexString())
             rendezvousManager.publish(rendezvousPoint, RendezvousFrame.wrap(RendezvousFrame.TYPE_CONFIRM, myConfirm))
             
@@ -194,6 +223,12 @@ class ConnectionManager @Inject constructor(
             
             val peerConfirmData = peerConfirm ?: run {
                 collector.emit(ConnectionState.Failed("No confirmation received from peer"))
+                return@flow
+            }
+            
+            // Verify peer's confirmation
+            if (!handshakeManager.verifyConfirmation(sessionHandle, peerConfirmData, peerRoleU8)) {
+                collector.emit(ConnectionState.Failed("Peer confirmation verification failed"))
                 return@flow
             }
             
@@ -217,7 +252,8 @@ class ConnectionManager @Inject constructor(
             // Create SAM session to get our I2P destination
             val myDestination = samClient.createSession()
             val myDestBytes = myDestination.toByteArray(Charsets.UTF_8)
-            val encryptedDest = keyManager.encrypt(myDestBytes, sessionKey)!!
+            val encryptedDest = uniffi.nym_transport.sessionEncryptWrapper(sessionHandle, myDestBytes.map { it.toUByte() })
+                .map { it.toByte() }.toByteArray()
             
             ignoreBodies.add(encryptedDest.toHexString())
             rendezvousManager.publish(rendezvousPoint, RendezvousFrame.wrap(RendezvousFrame.TYPE_HANDLE, encryptedDest))
@@ -231,13 +267,13 @@ class ConnectionManager @Inject constructor(
             } catch (e: CancellationException) { if (e.message != "FOUND") throw e }
             catch (e: Exception) { collector.emit(ConnectionState.Failed(e.message ?: "Error")); return@flow }
             
-            val peerDestBytes = keyManager.decrypt(peerEncryptedDest ?: run {
-                collector.emit(ConnectionState.Failed("No I2P destination received from peer"))
-                return@flow
-            }, sessionKey) ?: run {
-                collector.emit(ConnectionState.Failed("Decryption Error"))
-                return@flow
-            }
+            val peerDestBytes = uniffi.nym_transport.sessionDecryptWrapper(
+                sessionHandle,
+                (peerEncryptedDest ?: run {
+                    collector.emit(ConnectionState.Failed("No I2P destination received from peer"))
+                    return@flow
+                }).map { it.toUByte() }
+            ).map { it.toByte() }.toByteArray()
             
             val peerDestination = String(peerDestBytes, Charsets.UTF_8)
             Log.i(TAG, "✓ Peer I2P destination received: ${peerDestination.take(32)}...")
@@ -248,27 +284,29 @@ class ConnectionManager @Inject constructor(
                 return@flow
             }
             
-            // Phase 9: TEARDOWN Rendezvous
-            rendezvousManager.teardownRendezvous() // Strict teardown
+            // Phase 9: TEARDOWN Rendezvous (session handle stays alive for EncryptedChannel)
+            rendezvousManager.teardownRendezvous()
+            // NOTE: sessionHandle is NOT destroyed here — EncryptedChannel.close() handles it
             
             // Phase 10: Establish I2P Streaming Connection
             Log.i(TAG, "Establishing I2P stream (role=$role)...")
             
             val stream = if (role == HandshakeRole.INITIATOR) {
-                // INITIATOR connects to peer's destination (with retry for propagation delay)
-                delay(3_000) // Give responder a moment to start accepting
+                // INITIATOR: short delay for responder to start accepting, then connect
+                delay(2_000)
                 
                 var connectedStream: com.zerochat.app.domain.i2p.I2PStream? = null
                 var attempt = 1
-                val maxAttempts = 12 // ~60 seconds total wait
+                val maxAttempts = 24 // ~120 seconds total wait
                 
                 while (connectedStream == null && attempt <= maxAttempts) {
                     try {
-                         connectedStream = samClient.connectStream(peerDestination)
+                        Log.i(TAG, "I2P connect attempt $attempt/$maxAttempts")
+                        connectedStream = samClient.connectStream(peerDestination)
                     } catch (e: Exception) {
                         val msg = e.message ?: ""
                         if (msg.contains("LeaseSet not found") || msg.contains("CANT_REACH_PEER")) {
-                            Log.w(TAG, "Attempt $attempt failed: LeaseSet not found. Retrying in 5s...")
+                            Log.w(TAG, "Attempt $attempt/$maxAttempts failed: LeaseSet not found. Retrying in 5s...")
                             delay(5_000)
                             attempt++
                          } else {
@@ -279,14 +317,17 @@ class ConnectionManager @Inject constructor(
                 
                 connectedStream ?: throw java.io.IOException("Timeout waiting for peer LeaseSet")
             } else {
-                // RESPONDER accepts incoming connection
-                samClient.acceptStream()
+                // RESPONDER: accept incoming connection
+                // R7 FIX: Timeout aligned with INITIATOR's total retry window (~120s) + margin
+                val inbound = withTimeout(150_000) { samClient.acceptStream() }
+                Log.i(TAG, "I2P inbound stream accepted")
+                inbound
             }
             
             Log.i(TAG, "✓ I2P stream established!")
             
-            // Wrap stream with application-layer encryption
-            encryptedChannel = EncryptedChannel(sessionKey, stream)
+            // Wrap stream with application-layer encryption (handle-based)
+            encryptedChannel = EncryptedChannel(sessionHandle, stream)
             
             collector.emit(ConnectionState.Connected)
             
@@ -320,6 +361,8 @@ class ConnectionManager @Inject constructor(
             Log.e(TAG, "Connection Loop Error", e)
             collector.emit(ConnectionState.Failed("Error: ${e.message}"))
             rendezvousManager.teardownRendezvous() // Ensure teardown on error
+            // R5 FIX: Close SAM session to prevent resource leak after mid-flow failure
+            try { samClient.close() } catch (_: Exception) {}
         } finally {
             handshakeManager.cleanup()
         }
@@ -328,7 +371,9 @@ class ConnectionManager @Inject constructor(
     fun disconnect() {
         encryptedChannel?.close()
         encryptedChannel = null
-        samClient.close()
+        // R1 FIX: Use fire-and-forget instead of runBlocking to avoid deadlock.
+        // closeInternal() in createSession() ensures cleanup if this races with reconnect.
+        CoroutineScope(Dispatchers.IO).launch { samClient.close() }
         handshakeManager.cleanup()
         rendezvousManager.clearAll()
     }
