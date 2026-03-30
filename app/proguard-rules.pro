@@ -15,3 +15,9 @@
 -keep class dagger.hilt.** { *; }
 -keep class javax.inject.** { *; }
 -keep class * extends dagger.hilt.android.internal.managers.ComponentSupplier { *; }
+
+# Keep i2pd JNI methods directly exported to libi2pd.so
+-keep class org.purplei2p.i2pd.** { *; }
+-keepclasseswithmembernames class org.purplei2p.i2pd.I2PD_JNI {
+    native <methods>;
+}

@@ -393,6 +393,14 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_connect_with_custom_identity(`ptr`: Pointer,`rendezvousSeed`: RustBuffer.ByValue,`gatewayId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_cover_traffic_current_delay_ms(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Long
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_cover_traffic_set_thermal_throttle(`ptr`: Pointer,`active`: Byte,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_cover_traffic_start(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_cover_traffic_stop(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_disconnect(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_disconnect_all_rendezvous(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
@@ -407,12 +415,32 @@ internal interface _UniFFILib : Library {
     ): Byte
     fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_poll_rendezvous(`ptr`: Pointer,`pointId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_publish_at_rendezvous(`ptr`: Pointer,`pointId`: RustBuffer.ByValue,`myHandle`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_publish_at_rendezvous(`ptr`: Pointer,`pointId`: RustBuffer.ByValue,`myHandle`: RustBuffer.ByValue,`basePointId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
     fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_receive_message(`ptr`: Pointer,`timeoutMs`: Long,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_send_message(`ptr`: Pointer,`handle`: RustBuffer.ByValue,`payload`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_tli_check_churn(`ptr`: Pointer,`signalType`: Byte,_uniffi_out_err: RustCallStatus, 
+    ): Byte
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_tli_current_phase(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Byte
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_tli_terminate_session(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_tli_transition(`ptr`: Pointer,`phase`: Byte,_uniffi_out_err: RustCallStatus, 
+    ): Byte
+    fun uniffi_uniffi_nym_transport_fn_func_session_decrypt_wrapper(`handle`: Long,`ciphertext`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_session_destroy_wrapper(`handle`: Long,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_uniffi_nym_transport_fn_func_session_encrypt_wrapper(`handle`: Long,`plaintext`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_session_generate_confirmation_wrapper(`handle`: Long,`role`: Byte,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_session_get_obfs4_state_wrapper(`handle`: Long,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_session_verify_confirmation_wrapper(`handle`: Long,`confirmation`: RustBuffer.ByValue,`role`: Byte,_uniffi_out_err: RustCallStatus, 
+    ): Byte
     fun uniffi_uniffi_nym_transport_fn_func_spake2_active_count_wrapper(_uniffi_out_err: RustCallStatus, 
     ): Long
     fun uniffi_uniffi_nym_transport_fn_func_spake2_cleanup_state_wrapper(`handleId`: Long,_uniffi_out_err: RustCallStatus, 
@@ -423,16 +451,6 @@ internal interface _UniFFILib : Library {
     ): RustBuffer.ByValue
     fun uniffi_uniffi_nym_transport_fn_func_spake2_start_responder_wrapper(`password`: RustBuffer.ByValue,`inboundMsg`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
-    fun uniffi_uniffi_nym_transport_fn_func_session_encrypt_wrapper(`handle`: Long,`plaintext`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_uniffi_nym_transport_fn_func_session_decrypt_wrapper(`handle`: Long,`ciphertext`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_uniffi_nym_transport_fn_func_session_generate_confirmation_wrapper(`handle`: Long,`role`: Byte,_uniffi_out_err: RustCallStatus, 
-    ): RustBuffer.ByValue
-    fun uniffi_uniffi_nym_transport_fn_func_session_verify_confirmation_wrapper(`handle`: Long,`confirmation`: RustBuffer.ByValue,`role`: Byte,_uniffi_out_err: RustCallStatus, 
-    ): Byte
-    fun uniffi_uniffi_nym_transport_fn_func_session_destroy_wrapper(`handle`: Long,_uniffi_out_err: RustCallStatus, 
-    ): Unit
     fun ffi_uniffi_nym_transport_rustbuffer_alloc(`size`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun ffi_uniffi_nym_transport_rustbuffer_from_bytes(`bytes`: ForeignBytes.ByValue,_uniffi_out_err: RustCallStatus, 
@@ -547,6 +565,18 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_uniffi_nym_transport_rust_future_complete_void(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_uniffi_nym_transport_checksum_func_session_decrypt_wrapper(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_session_destroy_wrapper(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_session_encrypt_wrapper(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_session_generate_confirmation_wrapper(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_session_get_obfs4_state_wrapper(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_session_verify_confirmation_wrapper(
+    ): Short
     fun uniffi_uniffi_nym_transport_checksum_func_spake2_active_count_wrapper(
     ): Short
     fun uniffi_uniffi_nym_transport_checksum_func_spake2_cleanup_state_wrapper(
@@ -562,6 +592,14 @@ internal interface _UniFFILib : Library {
     fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_connect_rendezvous(
     ): Short
     fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_connect_with_custom_identity(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_cover_traffic_current_delay_ms(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_cover_traffic_set_thermal_throttle(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_cover_traffic_start(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_cover_traffic_stop(
     ): Short
     fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_disconnect(
     ): Short
@@ -583,6 +621,14 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_send_message(
     ): Short
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_tli_check_churn(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_tli_current_phase(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_tli_terminate_session(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_tli_transition(
+    ): Short
     fun uniffi_uniffi_nym_transport_checksum_constructor_nymtransportclient_new(
     ): Short
     fun ffi_uniffi_nym_transport_uniffi_contract_version(
@@ -602,7 +648,105 @@ private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
-    // Checksums temporarily disabled — will be valid after native library rebuild with uniffi-bindgen
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_session_decrypt_wrapper() != 47776.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_session_destroy_wrapper() != 34447.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_session_encrypt_wrapper() != 26061.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_session_generate_confirmation_wrapper() != 10139.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_session_get_obfs4_state_wrapper() != 46257.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_session_verify_confirmation_wrapper() != 1354.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_spake2_active_count_wrapper() != 32683.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_spake2_cleanup_state_wrapper() != 13351.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_spake2_finish_initiator_wrapper() != 42647.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_spake2_start_initiator_wrapper() != 59432.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_spake2_start_responder_wrapper() != 25414.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_connect() != 45052.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_connect_rendezvous() != 47100.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_connect_with_custom_identity() != 11788.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_cover_traffic_current_delay_ms() != 8540.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_cover_traffic_set_thermal_throttle() != 64454.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_cover_traffic_start() != 21367.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_cover_traffic_stop() != 15481.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_disconnect() != 44289.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_disconnect_all_rendezvous() != 55659.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_disconnect_rendezvous() != 36515.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_get_connection_info() != 19852.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_get_rendezvous_address() != 31249.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_is_connected() != 42808.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_poll_rendezvous() != 7260.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_publish_at_rendezvous() != 3637.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_receive_message() != 46455.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_send_message() != 23702.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_tli_check_churn() != 13540.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_tli_current_phase() != 56250.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_tli_terminate_session() != 24139.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_tli_transition() != 59607.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_constructor_nymtransportclient_new() != 45307.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
 }
 
 // Async support
@@ -892,6 +1036,10 @@ public interface NymTransportClientInterface {
     fun `connect`(`gatewayUrl`: String): String@Throws(TransportException::class)
     fun `connectRendezvous`(`pointId`: String): String@Throws(TransportException::class)
     fun `connectWithCustomIdentity`(`rendezvousSeed`: List<UByte>, `gatewayId`: String): String
+    fun `coverTrafficCurrentDelayMs`(): ULong
+    fun `coverTrafficSetThermalThrottle`(`active`: Boolean)
+    fun `coverTrafficStart`()
+    fun `coverTrafficStop`()
     fun `disconnect`()
     fun `disconnectAllRendezvous`()@Throws(TransportException::class)
     fun `disconnectRendezvous`(`pointId`: String)
@@ -899,9 +1047,13 @@ public interface NymTransportClientInterface {
     fun `getRendezvousAddress`(`pointId`: String): String
     fun `isConnected`(): Boolean@Throws(TransportException::class)
     fun `pollRendezvous`(`pointId`: String): List<RendezvousMessage>@Throws(TransportException::class)
-    fun `publishAtRendezvous`(`pointId`: String, `myHandle`: List<UByte>)@Throws(TransportException::class)
+    fun `publishAtRendezvous`(`pointId`: String, `myHandle`: List<UByte>, `basePointId`: String)@Throws(TransportException::class)
     fun `receiveMessage`(`timeoutMs`: ULong): RendezvousMessage?@Throws(TransportException::class)
     fun `sendMessage`(`handle`: List<UByte>, `payload`: List<UByte>)
+    fun `tliCheckChurn`(`signalType`: UByte): Boolean
+    fun `tliCurrentPhase`(): UByte
+    fun `tliTerminateSession`()@Throws(TransportException::class)
+    fun `tliTransition`(`phase`: UByte): UByte
     companion object
 }
 
@@ -963,6 +1115,47 @@ class NymTransportClient(
         }.let {
             FfiConverterString.lift(it)
         }
+    
+    override fun `coverTrafficCurrentDelayMs`(): ULong =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_cover_traffic_current_delay_ms(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterULong.lift(it)
+        }
+    
+    override fun `coverTrafficSetThermalThrottle`(`active`: Boolean) =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_cover_traffic_set_thermal_throttle(it,
+        FfiConverterBoolean.lower(`active`),
+        _status)
+}
+        }
+    
+    
+    override fun `coverTrafficStart`() =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_cover_traffic_start(it,
+        
+        _status)
+}
+        }
+    
+    
+    override fun `coverTrafficStop`() =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_cover_traffic_stop(it,
+        
+        _status)
+}
+        }
+    
     
     override fun `disconnect`() =
         callWithPointer {
@@ -1042,11 +1235,11 @@ class NymTransportClient(
         }
     
     
-    @Throws(TransportException::class)override fun `publishAtRendezvous`(`pointId`: String, `myHandle`: List<UByte>) =
+    @Throws(TransportException::class)override fun `publishAtRendezvous`(`pointId`: String, `myHandle`: List<UByte>, `basePointId`: String) =
         callWithPointer {
     rustCallWithError(TransportException) { _status ->
     _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_publish_at_rendezvous(it,
-        FfiConverterString.lower(`pointId`),FfiConverterSequenceUByte.lower(`myHandle`),
+        FfiConverterString.lower(`pointId`),FfiConverterSequenceUByte.lower(`myHandle`),FfiConverterString.lower(`basePointId`),
         _status)
 }
         }
@@ -1074,6 +1267,50 @@ class NymTransportClient(
 }
         }
     
+    
+    override fun `tliCheckChurn`(`signalType`: UByte): Boolean =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_tli_check_churn(it,
+        FfiConverterUByte.lower(`signalType`),
+        _status)
+}
+        }.let {
+            FfiConverterBoolean.lift(it)
+        }
+    
+    override fun `tliCurrentPhase`(): UByte =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_tli_current_phase(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterUByte.lift(it)
+        }
+    
+    override fun `tliTerminateSession`() =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_tli_terminate_session(it,
+        
+        _status)
+}
+        }
+    
+    
+    
+    @Throws(TransportException::class)override fun `tliTransition`(`phase`: UByte): UByte =
+        callWithPointer {
+    rustCallWithError(TransportException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_tli_transition(it,
+        FfiConverterUByte.lower(`phase`),
+        _status)
+}
+        }.let {
+            FfiConverterUByte.lift(it)
+        }
     
     
 
@@ -1228,50 +1465,9 @@ public object FfiConverterTypeSpake2ResponderResult: FfiConverterRustBuffer<Spak
 
 
 
-sealed class Spake2Exception(message: String): Exception(message) {
+sealed class SessionException(message: String): Exception(message) {
         // Each variant is a nested class
         // Flat enums carries a string error message, so no special implementation is necessary.
-        class InvalidHandle(message: String) : Spake2Exception(message)
-        class HandshakeFailed(message: String) : Spake2Exception(message)
-        
-
-    companion object ErrorHandler : CallStatusErrorHandler<Spake2Exception> {
-        override fun lift(error_buf: RustBuffer.ByValue): Spake2Exception = FfiConverterTypeSpake2Error.lift(error_buf)
-    }
-}
-
-public object FfiConverterTypeSpake2Error : FfiConverterRustBuffer<Spake2Exception> {
-    override fun read(buf: ByteBuffer): Spake2Exception {
-        
-            return when(buf.getInt()) {
-            1 -> Spake2Exception.InvalidHandle(FfiConverterString.read(buf))
-            2 -> Spake2Exception.HandshakeFailed(FfiConverterString.read(buf))
-            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
-        }
-        
-    }
-
-    override fun allocationSize(value: Spake2Exception): Int {
-        return 4
-    }
-
-    override fun write(value: Spake2Exception, buf: ByteBuffer) {
-        when(value) {
-            is Spake2Exception.InvalidHandle -> {
-                buf.putInt(1)
-                Unit
-            }
-            is Spake2Exception.HandshakeFailed -> {
-                buf.putInt(2)
-                Unit
-            }
-        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
-    }
-
-}
-
-
-sealed class SessionException(message: String): Exception(message) {
         class InvalidHandle(message: String) : SessionException(message)
         class EncryptionFailed(message: String) : SessionException(message)
         class DecryptionFailed(message: String) : SessionException(message)
@@ -1322,6 +1518,52 @@ public object FfiConverterTypeSessionError : FfiConverterRustBuffer<SessionExcep
             }
             is SessionException.SessionExpired -> {
                 buf.putInt(5)
+                Unit
+            }
+        }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
+    }
+
+}
+
+
+
+
+
+sealed class Spake2Exception(message: String): Exception(message) {
+        // Each variant is a nested class
+        // Flat enums carries a string error message, so no special implementation is necessary.
+        class InvalidHandle(message: String) : Spake2Exception(message)
+        class HandshakeFailed(message: String) : Spake2Exception(message)
+        
+
+    companion object ErrorHandler : CallStatusErrorHandler<Spake2Exception> {
+        override fun lift(error_buf: RustBuffer.ByValue): Spake2Exception = FfiConverterTypeSpake2Error.lift(error_buf)
+    }
+}
+
+public object FfiConverterTypeSpake2Error : FfiConverterRustBuffer<Spake2Exception> {
+    override fun read(buf: ByteBuffer): Spake2Exception {
+        
+            return when(buf.getInt()) {
+            1 -> Spake2Exception.InvalidHandle(FfiConverterString.read(buf))
+            2 -> Spake2Exception.HandshakeFailed(FfiConverterString.read(buf))
+            else -> throw RuntimeException("invalid error enum value, something is very wrong!!")
+        }
+        
+    }
+
+    override fun allocationSize(value: Spake2Exception): Int {
+        return 4
+    }
+
+    override fun write(value: Spake2Exception, buf: ByteBuffer) {
+        when(value) {
+            is Spake2Exception.InvalidHandle -> {
+                buf.putInt(1)
+                Unit
+            }
+            is Spake2Exception.HandshakeFailed -> {
+                buf.putInt(2)
                 Unit
             }
         }.let { /* this makes the `when` an expression, which ensures it is exhaustive */ }
@@ -1471,6 +1713,59 @@ public object FfiConverterSequenceTypeRendezvousMessage: FfiConverterRustBuffer<
         }
     }
 }
+@Throws(SessionException::class)
+
+fun `sessionDecryptWrapper`(`handle`: ULong, `ciphertext`: List<UByte>): List<UByte> {
+    return FfiConverterSequenceUByte.lift(
+    rustCallWithError(SessionException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_session_decrypt_wrapper(FfiConverterULong.lower(`handle`),FfiConverterSequenceUByte.lower(`ciphertext`),_status)
+})
+}
+
+
+fun `sessionDestroyWrapper`(`handle`: ULong) =
+    
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_session_destroy_wrapper(FfiConverterULong.lower(`handle`),_status)
+}
+
+
+@Throws(SessionException::class)
+
+fun `sessionEncryptWrapper`(`handle`: ULong, `plaintext`: List<UByte>): List<UByte> {
+    return FfiConverterSequenceUByte.lift(
+    rustCallWithError(SessionException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_session_encrypt_wrapper(FfiConverterULong.lower(`handle`),FfiConverterSequenceUByte.lower(`plaintext`),_status)
+})
+}
+
+@Throws(SessionException::class)
+
+fun `sessionGenerateConfirmationWrapper`(`handle`: ULong, `role`: UByte): List<UByte> {
+    return FfiConverterSequenceUByte.lift(
+    rustCallWithError(SessionException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_session_generate_confirmation_wrapper(FfiConverterULong.lower(`handle`),FfiConverterUByte.lower(`role`),_status)
+})
+}
+
+@Throws(SessionException::class)
+
+fun `sessionGetObfs4StateWrapper`(`handle`: ULong): List<UByte> {
+    return FfiConverterSequenceUByte.lift(
+    rustCallWithError(SessionException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_session_get_obfs4_state_wrapper(FfiConverterULong.lower(`handle`),_status)
+})
+}
+
+@Throws(SessionException::class)
+
+fun `sessionVerifyConfirmationWrapper`(`handle`: ULong, `confirmation`: List<UByte>, `role`: UByte): Boolean {
+    return FfiConverterBoolean.lift(
+    rustCallWithError(SessionException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_session_verify_confirmation_wrapper(FfiConverterULong.lower(`handle`),FfiConverterSequenceUByte.lower(`confirmation`),FfiConverterUByte.lower(`role`),_status)
+})
+}
+
 
 fun `spake2ActiveCountWrapper`(): ULong {
     return FfiConverterULong.lift(
@@ -1512,48 +1807,6 @@ fun `spake2StartResponderWrapper`(`password`: List<UByte>, `inboundMsg`: List<UB
     rustCallWithError(Spake2Exception) { _status ->
     _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_spake2_start_responder_wrapper(FfiConverterSequenceUByte.lower(`password`),FfiConverterSequenceUByte.lower(`inboundMsg`),_status)
 })
-}
-
-@Throws(SessionException::class)
-
-fun `sessionEncryptWrapper`(`handle`: ULong, `plaintext`: List<UByte>): List<UByte> {
-    return FfiConverterSequenceUByte.lift(
-    rustCallWithError(SessionException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_session_encrypt_wrapper(FfiConverterULong.lower(`handle`),FfiConverterSequenceUByte.lower(`plaintext`),_status)
-})
-}
-
-@Throws(SessionException::class)
-
-fun `sessionDecryptWrapper`(`handle`: ULong, `ciphertext`: List<UByte>): List<UByte> {
-    return FfiConverterSequenceUByte.lift(
-    rustCallWithError(SessionException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_session_decrypt_wrapper(FfiConverterULong.lower(`handle`),FfiConverterSequenceUByte.lower(`ciphertext`),_status)
-})
-}
-
-@Throws(SessionException::class)
-
-fun `sessionGenerateConfirmationWrapper`(`handle`: ULong, `role`: UByte): List<UByte> {
-    return FfiConverterSequenceUByte.lift(
-    rustCallWithError(SessionException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_session_generate_confirmation_wrapper(FfiConverterULong.lower(`handle`),FfiConverterUByte.lower(`role`),_status)
-})
-}
-
-@Throws(SessionException::class)
-
-fun `sessionVerifyConfirmationWrapper`(`handle`: ULong, `confirmation`: List<UByte>, `role`: UByte): Boolean {
-    return FfiConverterBoolean.lift(
-    rustCallWithError(SessionException) { _status ->
-    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_session_verify_confirmation_wrapper(FfiConverterULong.lower(`handle`),FfiConverterSequenceUByte.lower(`confirmation`),FfiConverterUByte.lower(`role`),_status)
-})
-}
-
-fun `sessionDestroyWrapper`(`handle`: ULong) {
-    rustCall() { _status ->
-    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_session_destroy_wrapper(FfiConverterULong.lower(`handle`),_status)
-}
 }
 
 

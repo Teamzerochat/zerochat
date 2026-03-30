@@ -2,10 +2,14 @@ package com.zerochat.app.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import android.content.Context
+import android.net.ConnectivityManager
+import com.zerochat.app.data.SettingsRepository
 import com.zerochat.app.domain.connection.ConnectionManager
 import com.zerochat.app.domain.connection.ConnectionState
 import com.zerochat.app.domain.transport.TransportController
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -23,7 +27,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ConnectViewModel @Inject constructor(
     private val connectionManager: ConnectionManager,
-    private val controller: TransportController
+    private val controller: TransportController,
+    private val settingsRepository: SettingsRepository,
+    @ApplicationContext private val context: Context
 ) : ViewModel() {
     
     private val _connectionState = MutableStateFlow<ConnectionState>(ConnectionState.Idle)
@@ -31,6 +37,33 @@ class ConnectViewModel @Inject constructor(
     
     private val _sharedSecret = MutableStateFlow("")
     val sharedSecret: StateFlow<String> = _sharedSecret.asStateFlow()
+
+    // Paper Table 6: metered data warning (1.34× bandwidth overhead)
+    private val _showMeteredWarning = MutableStateFlow(false)
+    val showMeteredWarning: StateFlow<Boolean> = _showMeteredWarning.asStateFlow()
+
+    init {
+        checkMeteredWarning()
+    }
+
+    private fun checkMeteredWarning() {
+        viewModelScope.launch {
+            val alreadyShown = settingsRepository.getMeteredWarningShownSync()
+            if (!alreadyShown) {
+                val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                if (cm.isActiveNetworkMetered) {
+                    _showMeteredWarning.value = true
+                }
+            }
+        }
+    }
+
+    fun dismissMeteredWarning() {
+        _showMeteredWarning.value = false
+        viewModelScope.launch {
+            settingsRepository.setMeteredWarningShown(true)
+        }
+    }
     
     /**
      * Update shared secret input

@@ -1,0 +1,875 @@
+my logs:- 
+---------------------------- PROCESS STARTED (15798) for package com.zerochat.app ----------------------------
+2026-03-30 16:57:59.794 15798-15798 CompatChangeReporter    com.zerochat.app                     D  Compat change id reported: 242716250; UID 10551; state: ENABLED
+2026-03-30 16:58:00.153 15798-15798 nativeloader            com.zerochat.app                     D  Configuring clns-7 for other apk /data/app/~~E1ZKfgXPVuBdsPyOLGC8tQ==/com.zerochat.app-mmJDwYcSInqf05_gMyFf5g==/base.apk. target_sdk_version=34, uses_libraries=, library_path=/data/app/~~E1ZKfgXPVuBdsPyOLGC8tQ==/com.zerochat.app-mmJDwYcSInqf05_gMyFf5g==/lib/arm64:/data/app/~~E1ZKfgXPVuBdsPyOLGC8tQ==/com.zerochat.app-mmJDwYcSInqf05_gMyFf5g==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/com.zerochat.app
+2026-03-30 16:58:00.171 15798-15798 GraphicsEnvironment     com.zerochat.app                     V  Currently set values for:
+2026-03-30 16:58:00.171 15798-15798 GraphicsEnvironment     com.zerochat.app                     V    angle_gl_driver_selection_pkgs=[com.android.angle, com.linecorp.b612.android, com.campmobile.snow, com.google.android.apps.tachyon]
+2026-03-30 16:58:00.171 15798-15798 GraphicsEnvironment     com.zerochat.app                     V    angle_gl_driver_selection_values=[angle, native, native, native]
+2026-03-30 16:58:00.171 15798-15798 GraphicsEnvironment     com.zerochat.app                     V  com.zerochat.app is not listed in per-application setting
+2026-03-30 16:58:00.171 15798-15798 GraphicsEnvironment     com.zerochat.app                     V  Neither updatable production driver nor prerelease driver is supported.
+2026-03-30 16:58:00.211 15798-15798 om.zerochat.app         com.zerochat.app                     E  BBinder_init Processname  com.zerochat.app  
+2026-03-30 16:58:00.211 15798-15798 om.zerochat.app         com.zerochat.app                     E  BBinder_init hasGetProcessName  com.zerochat.app
+2026-03-30 16:58:00.234 15798-15798 nativeloader            com.zerochat.app                     D  Load /data/app/~~E1ZKfgXPVuBdsPyOLGC8tQ==/com.zerochat.app-mmJDwYcSInqf05_gMyFf5g==/base.apk!/lib/arm64-v8a/libjnidispatch.so using class loader ns clns-7 (caller=/data/app/~~E1ZKfgXPVuBdsPyOLGC8tQ==/com.zerochat.app-mmJDwYcSInqf05_gMyFf5g==/base.apk!classes17.dex): ok
+2026-03-30 16:58:00.276 15798-15798 ZeroChatApplication     com.zerochat.app                     D  onCreate() - starting on thread: main
+2026-03-30 16:58:00.281 15798-15798 ZeroChatApplication     com.zerochat.app                     D  onCreate() complete - main thread free for first frame render
+2026-03-30 16:58:00.285 15798-16530 ZeroChatApplication     com.zerochat.app                     I  Starting I2P Router Service in background...
+2026-03-30 16:58:00.290 15798-15798 nativeloader            com.zerochat.app                     D  Load libpowerhalwrap_jni.so using system ns (caller=/system_ext/framework/mediatek-framework.jar): ok
+2026-03-30 16:58:00.290 15798-15798 PowerHalWrapper         com.zerochat.app                     I  PowerHalWrapper.getInstance 
+2026-03-30 16:58:00.290 15798-15798 M-ProMotion             com.zerochat.app                     I  M-ProMotion is disabled
+2026-03-30 16:58:00.322 15798-15798 MainActivity            com.zerochat.app                     D  onCreate() - orientation=1
+2026-03-30 16:58:00.367 15798-15798 AppLifecycle            com.zerochat.app                     I  App entered foreground
+2026-03-30 16:58:00.367 15798-15798 AppLifecycle            com.zerochat.app                     I  Starting i2pd router eagerly (foreground optimization)
+2026-03-30 16:58:00.373 15798-16532 PowerHalWrapper         com.zerochat.app                     I  PowerHalWrapper.getInstance 
+2026-03-30 16:58:00.381 15798-15798 UltraFrame...entFactory com.zerochat.app                     E  Failed to create UltraFrameworkComponentFactoryImpl (Ask Gemini)
+                                                                                                    java.lang.ClassNotFoundException: android.os.ufw.UltraFrameworkComponentFactoryImpl
+                                                                                                    	at java.lang.Class.classForName(Native Method)
+                                                                                                    	at java.lang.Class.forName(Class.java:597)
+                                                                                                    	at java.lang.Class.forName(Class.java:502)
+                                                                                                    	at android.os.ufw.UltraFrameworkComponentFactory.getInstance(UltraFrameworkComponentFactory.java:78)
+                                                                                                    	at android.view.SurfaceControl.<init>(SurfaceControl.java:1358)
+                                                                                                    	at android.view.ViewRootImpl.<init>(ViewRootImpl.java:953)
+                                                                                                    	at android.view.ViewRootImpl.<init>(ViewRootImpl.java:1400)
+                                                                                                    	at android.view.WindowManagerGlobal.addView(WindowManagerGlobal.java:477)
+                                                                                                    	at android.view.WindowManagerImpl.addView(WindowManagerImpl.java:169)
+                                                                                                    	at android.app.ActivityThread.handleResumeActivity(ActivityThread.java:6092)
+                                                                                                    	at android.app.servertransaction.ResumeActivityItem.execute(ResumeActivityItem.java:70)
+                                                                                                    	at android.app.servertransaction.ActivityTransactionItem.execute(ActivityTransactionItem.java:60)
+                                                                                                    	at android.app.servertransaction.TransactionExecutor.executeLifecycleItem(TransactionExecutor.java:271)
+                                                                                                    	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:146)
+                                                                                                    	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:120)
+                                                                                                    	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:3089)
+                                                                                                    	at android.os.Handler.dispatchMessage(Handler.java:109)
+                                                                                                    	at android.os.Looper.loopOnce(Looper.java:250)
+                                                                                                    	at android.os.Looper.loop(Looper.java:340)
+                                                                                                    	at android.app.ActivityThread.main(ActivityThread.java:9878)
+                                                                                                    	at java.lang.reflect.Method.invoke(Native Method)
+                                                                                                    	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:625)
+                                                                                                    	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:957)
+                                                                                                    Caused by: java.lang.ClassNotFoundException: android.os.ufw.UltraFrameworkComponentFactoryImpl
+                                                                                                    	at java.lang.Class.classForName(Native Method)
+                                                                                                    	at java.lang.BootClassLoader.findClass(ClassLoader.java:2698)
+                                                                                                    	at java.lang.BootClassLoader.loadClass(ClassLoader.java:2758)
+                                                                                                    	at java.lang.ClassLoader.loadClass(ClassLoader.java:573)
+                                                                                                    	at java.lang.Class.classForName(Native Method) 
+                                                                                                    	at java.lang.Class.forName(Class.java:597) 
+                                                                                                    	at java.lang.Class.forName(Class.java:502) 
+                                                                                                    	at android.os.ufw.UltraFrameworkComponentFactory.getInstance(UltraFrameworkComponentFactory.java:78) 
+                                                                                                    	at android.view.SurfaceControl.<init>(SurfaceControl.java:1358) 
+                                                                                                    	at android.view.ViewRootImpl.<init>(ViewRootImpl.java:953) 
+                                                                                                    	at android.view.ViewRootImpl.<init>(ViewRootImpl.java:1400) 
+                                                                                                    	at android.view.WindowManagerGlobal.addView(WindowManagerGlobal.java:477) 
+                                                                                                    	at android.view.WindowManagerImpl.addView(WindowManagerImpl.java:169) 
+                                                                                                    	at android.app.ActivityThread.handleResumeActivity(ActivityThread.java:6092) 
+                                                                                                    	at android.app.servertransaction.ResumeActivityItem.execute(ResumeActivityItem.java:70) 
+                                                                                                    	at android.app.servertransaction.ActivityTransactionItem.execute(ActivityTransactionItem.java:60) 
+                                                                                                    	at android.app.servertransaction.TransactionExecutor.executeLifecycleItem(TransactionExecutor.java:271) 
+                                                                                                    	at android.app.servertransaction.TransactionExecutor.executeTransactionItems(TransactionExecutor.java:146) 
+                                                                                                    	at android.app.servertransaction.TransactionExecutor.execute(TransactionExecutor.java:120) 
+                                                                                                    	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:3089) 
+                                                                                                    	at android.os.Handler.dispatchMessage(Handler.java:109) 
+                                                                                                    	at android.os.Looper.loopOnce(Looper.java:250) 
+                                                                                                    	at android.os.Looper.loop(Looper.java:340) 
+                                                                                                    	at android.app.ActivityThread.main(ActivityThread.java:9878) 
+                                                                                                    	at java.lang.reflect.Method.invoke(Native Method) 
+                                                                                                    	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:625) 
+                                                                                                    	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:957) 
+                                                                                                    Caused by: java.lang.NoClassDefFoundError: Class not found using the boot class loader; no stack trace available
+2026-03-30 16:58:00.385 15798-15798 libc                    com.zerochat.app                     W  Access denied finding property "persist.vivo.ltw.enabled"
+2026-03-30 16:58:00.677 15798-15798 CompatChangeReporter    com.zerochat.app                     D  Compat change id reported: 289878283; UID 10551; state: ENABLED
+2026-03-30 16:58:00.777 15798-15798 ViewRootImpl            com.zerochat.app                     D  AppSizeAfterRelayout, size: Point(1080, 2400), rotation: ROTATION_0
+2026-03-30 16:58:00.777 15798-15798 BufferQueueConsumer     com.zerochat.app                     D  [](id:3db600000000,api:0,p:-1,c:15798) connect: controlledByApp=false
+2026-03-30 16:58:00.778 15798-15798 BLASTBufferQueue        com.zerochat.app                     D  [VRI[MainActivity]#0](f:0,a:0) constructor()
+2026-03-30 16:58:00.778 15798-15798 BLASTBufferQueue        com.zerochat.app                     D  [VRI[MainActivity]#0](f:0,a:0) update width=1080 height=2400 format=-1 mTransformHint=0
+2026-03-30 16:58:00.788 15798-16533 BLASTBufferQueue        com.zerochat.app                     I  QoSAllocBuff Successful. Ret 0 
+2026-03-30 16:58:00.809 15798-16533 MAGT_SYNC_FRAME         com.zerochat.app                     D  MAGT Sync: MAGT is not supported. Disabling Sync.
+2026-03-30 16:58:00.832 15798-16533 GrallocExtra            com.zerochat.app                     I  gralloc_extra_query:is_SW3D 0
+2026-03-30 16:58:00.832 15798-16533 BLASTBufferQueue        com.zerochat.app                     D  [VRI[MainActivity]#0](f:0,a:1) acquireNextBufferLocked size=1080x2400 mFrameNumber=1 applyTransaction=true mTimestamp=2124920250566039(auto) mPendingTransactions.size=0 graphicBufferId=67851893342214 transform=0
+2026-03-30 16:58:00.880 15798-15798 I2PRouterService        com.zerochat.app                     D  onCreate() - starting on thread: main
+2026-03-30 16:58:00.889 15798-15798 I2PRouterService        com.zerochat.app                     I  Bootstrap wake lock acquired
+2026-03-30 16:58:00.896 15798-15798 ImeFocusController      com.zerochat.app                     V  onWindowFocus: com.android.internal.policy.DecorView{17688dd V.E...... R....... 0,0-1080,2400}[MainActivity] softInputMode=STATE_UNSPECIFIED|ADJUST_RESIZE|IS_FORWARD_NAVIGATION
+2026-03-30 16:58:00.921 15798-16530 I2PRouterService        com.zerochat.app                     I  NetDB decrypted from Keystore-protected storage
+2026-03-30 16:58:01.124 15798-16512 om.zerochat.app         com.zerochat.app                     I  Compiler allocated 7574KB to compile void android.view.ViewRootImpl.performTraversals()
+2026-03-30 16:58:02.894 15798-16530 I2PRouterService        com.zerochat.app                     I  Restart window expired (300s), resetting counter
+2026-03-30 16:58:02.896 15798-16530 I2PRouterService        com.zerochat.app                     I  Copying i2pd assets to /data/user/0/com.zerochat.app/files/i2pd...
+2026-03-30 16:58:02.965 15798-16530 I2PRouterService        com.zerochat.app                     I  Assets copied successfully
+2026-03-30 16:58:02.966 15798-16530 I2PRouterService        com.zerochat.app                     D  i2pd.conf validated: file exists, contains reseed URLs
+2026-03-30 16:58:02.966 15798-16530 I2PRouterService        com.zerochat.app                     D  Loading native libraries...
+2026-03-30 16:58:02.973 15798-16530 nativeloader            com.zerochat.app                     D  Load /data/app/~~E1ZKfgXPVuBdsPyOLGC8tQ==/com.zerochat.app-mmJDwYcSInqf05_gMyFf5g==/base.apk!/lib/arm64-v8a/libi2pd.so using class loader ns clns-7 (caller=/data/app/~~E1ZKfgXPVuBdsPyOLGC8tQ==/com.zerochat.app-mmJDwYcSInqf05_gMyFf5g==/base.apk!classes12.dex): ok
+2026-03-30 16:58:02.973 15798-16530 I2PRouterService        com.zerochat.app                     D  Loaded libraries successfully
+2026-03-30 16:58:02.973 15798-16530 I2PRouterService        com.zerochat.app                     I  Starting i2pd daemon (dataDir=/data/user/0/com.zerochat.app/files/i2pd)...
+2026-03-30 16:58:02.973 15798-16530 I2PRouterService        com.zerochat.app                     D  Config verified at /data/user/0/com.zerochat.app/files/i2pd/i2pd.conf, size=248
+2026-03-30 16:58:05.683 15798-16574 ProfileInstaller        com.zerochat.app                     D  Installing profile for com.zerochat.app
+2026-03-30 16:58:06.952 15798-15798 Compose Focus           com.zerochat.app                     D  Owner FocusChanged(true)
+2026-03-30 16:58:07.001 15798-15798 InsetsController        com.zerochat.app                     D  show(ime(), fromIme=false)
+2026-03-30 16:58:07.002 15798-15798 ImeTracker              com.zerochat.app                     I  com.zerochat.app:17ff69f6: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT_BY_INSETS_API fromUser false
+2026-03-30 16:58:07.156 15798-15798 InsetsController        com.zerochat.app                     D  show(ime(), fromIme=true)
+2026-03-30 16:58:07.168 15798-16584 InteractionJankMonitor  com.zerochat.app                     W  Initializing without READ_DEVICE_CONFIG permission. enabled=false, interval=1, missedFrameThreshold=3, frameTimeThreshold=64, package=com.zerochat.app
+2026-03-30 16:58:07.416 15798-15798 ImeTracker              com.zerochat.app                     I  com.zerochat.app:17ff69f6: onShown
+2026-03-30 16:58:19.160 15798-16552 I2PRouterService        com.zerochat.app                     I  i2pd daemon started successfully
+2026-03-30 16:58:19.161 15798-16552 I2PRouterService        com.zerochat.app                     I  i2pd daemon started. Waiting for SAM bridge...
+2026-03-30 16:58:19.166 15798-16552 I2PRouterService        com.zerochat.app                     I  Bootstrap wake lock released
+2026-03-30 16:58:19.173 15798-16552 I2PRouterService        com.zerochat.app                     I  ✓ SAM bridge is ready on *********:7656
+2026-03-30 16:58:19.173 15798-16552 I2PRouterService        com.zerochat.app                     I  Restart succeeded, resetting circuit-breaker counter
+2026-03-30 16:58:19.181 15798-16552 SamClient               com.zerochat.app                     D  HELLO reply: HELLO REPLY RESULT=OK VERSION=3.1
+2026-03-30 16:58:19.181 15798-16552 SamClient               com.zerochat.app                     D  Checking router tunnel readiness...
+2026-03-30 16:58:19.197 15798-16552 I2PRouterService        com.zerochat.app                     I  Router tunnel-ready after 1 checks (routers=127, floodfills=89, has tunnel activity)
+2026-03-30 16:58:19.197 15798-16552 SamClient               com.zerochat.app                     D  Router tunnel-ready, proceeding to SESSION CREATE
+2026-03-30 16:58:21.643 15798-15798 InsetsController        com.zerochat.app                     D  hide(ime(), fromIme=false)
+2026-03-30 16:58:21.644 15798-15798 ImeTracker              com.zerochat.app                     I  com.zerochat.app:d50221ef: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT_BY_INSETS_API fromUser false
+2026-03-30 16:58:21.645 15798-15798 ImeTracker              com.zerochat.app                     I  com.zerochat.app:62a541be: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT_REQUEST_HIDE_WITH_CONTROL fromUser false
+2026-03-30 16:58:21.671 15798-15798 RemoteInpu...ectionImpl com.zerochat.app                     W  requestCursorUpdates on inactive InputConnection
+2026-03-30 16:58:21.672 15798-15798 InsetsController        com.zerochat.app                     D  hide(ime(), fromIme=true)
+2026-03-30 16:58:21.672 15798-15798 ImeTracker              com.zerochat.app                     I  com.zerochat.app:62a541be: onCancelled at PHASE_CLIENT_APPLY_ANIMATION
+2026-03-30 16:58:21.889 15798-15798 ImeTracker              com.zerochat.app                     I  com.zerochat.app:7c9591ed: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT_ON_ANIMATION_STATE_CHANGED fromUser false
+2026-03-30 16:58:21.890 15798-15798 ImeTracker              com.zerochat.app                     I  com.zerochat.app:d50221ef: onHidden
+2026-03-30 16:58:26.396 15798-15798 InsetsController        com.zerochat.app                     D  show(ime(), fromIme=false)
+2026-03-30 16:58:26.397 15798-15798 ImeTracker              com.zerochat.app                     I  com.zerochat.app:1069d1ff: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT_BY_INSETS_API fromUser false
+2026-03-30 16:58:26.520 15798-15798 InsetsController        com.zerochat.app                     D  show(ime(), fromIme=true)
+2026-03-30 16:58:26.766 15798-15798 ImeTracker              com.zerochat.app                     I  com.zerochat.app:1069d1ff: onShown
+2026-03-30 16:58:31.467 15798-16530 TransportController     com.zerochat.app                     I  Creating fresh transport
+2026-03-30 16:58:31.470 15798-16530 RealNymTransport        com.zerochat.app                     I  Attempting to connect to NYM mixnet...
+2026-03-30 16:58:31.482 15798-16530 RealNymTransport        com.zerochat.app                     I  Created NymTransportClient instance
+2026-03-30 16:58:31.484 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connecting to NYM public mainnet...
+2026-03-30 16:58:31.485 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetching gateways from SDK-compatible API (gateways_for_init)
+2026-03-30 16:58:31.485 15798-16530 NymTransport            com.zerochat.app                     I  nym_http_api_client::dns: building new configured resolver
+2026-03-30 16:58:31.547 15798-15798 InsetsController        com.zerochat.app                     D  hide(ime(), fromIme=false)
+2026-03-30 16:58:31.547 15798-15798 ImeTracker              com.zerochat.app                     I  com.zerochat.app:56cedb93: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT_BY_INSETS_API fromUser false
+2026-03-30 16:58:31.548 15798-15798 ImeTracker              com.zerochat.app                     I  com.zerochat.app:978e4a5c: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT_REQUEST_HIDE_WITH_CONTROL fromUser false
+2026-03-30 16:58:31.579 15798-15798 RemoteInpu...ectionImpl com.zerochat.app                     W  requestCursorUpdates on inactive InputConnection
+2026-03-30 16:58:31.580 15798-15798 InsetsController        com.zerochat.app                     D  hide(ime(), fromIme=true)
+2026-03-30 16:58:31.580 15798-15798 ImeTracker              com.zerochat.app                     I  com.zerochat.app:978e4a5c: onCancelled at PHASE_CLIENT_APPLY_ANIMATION
+2026-03-30 16:58:31.775 15798-15798 ImeTracker              com.zerochat.app                     I  com.zerochat.app:b89820e4: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT_ON_ANIMATION_STATE_CHANGED fromUser false
+2026-03-30 16:58:31.775 15798-15798 ImeTracker              com.zerochat.app                     I  com.zerochat.app:56cedb93: onHidden
+2026-03-30 16:58:32.394 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 474 gateways
+2026-03-30 16:58:32.394 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 474 valid gateways after filtering
+2026-03-30 16:58:32.395 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: SDK reports 474 valid gateways
+2026-03-30 16:58:32.397 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetched 400 valid WSS gateways for deterministic selection (from 474 total)
+2026-03-30 16:58:32.397 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Main Gateway attempt 1/3: GZEPaLJQ7dJMkMNF56FdrJmtoRZqKYXvnKBJ3S6JA5mc (wss_port: 9001)
+2026-03-30 16:58:33.187 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 474 gateways
+2026-03-30 16:58:33.187 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 458 valid gateways after filtering
+2026-03-30 16:58:34.727 15798-16530 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=GZEPaLJQ7dJMkMNF56FdrJmtoRZqKYXvnKBJ3S6JA5mc gateway_address=ws://petroff-gw12.fun:9000/
+2026-03-30 16:58:35.829 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting nym client
+2026-03-30 16:58:35.829 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Building nym-api client from provided URLs (with domain fronting support): 3 URLs
+2026-03-30 16:58:36.289 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting statistics control...
+2026-03-30 16:58:36.290 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Obtaining initial network topology
+2026-03-30 16:58:37.011 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting topology refresher...
+2026-03-30 16:58:37.011 15798-16530 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=GZEPaLJQ7dJMkMNF56FdrJmtoRZqKYXvnKBJ3S6JA5mc gateway_address=ws://petroff-gw12.fun:9000/
+2026-03-30 16:58:37.716 15798-16530 NymTransport            com.zerochat.app                     I  nym_gateway_client::bandwidth: remaining bandwidth: 0.00 B. in 'upgrade mode': false
+2026-03-30 16:58:37.716 15798-16530 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: Claiming more bandwidth with existing credentials. Stop the process now if you don't want that to happen.
+2026-03-30 16:58:37.716 15798-16530 NymTransport            com.zerochat.app                     W  nym_gateway_client::client: Not enough bandwidth. Trying to get more bandwidth, this might take a while
+2026-03-30 16:58:37.716 15798-16530 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: The client is running in disabled credentials mode - attempting to claim bandwidth without a credential
+2026-03-30 16:58:37.903 15798-16530 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: managed to claim testnet bandwidth
+2026-03-30 16:58:37.904 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting received messages buffer controller...
+2026-03-30 16:58:37.904 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting mix traffic controller...
+2026-03-30 16:58:37.904 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting real traffic stream...
+2026-03-30 16:58:37.904 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting loop cover traffic stream...
+2026-03-30 16:58:37.904 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connected! Address: Dyxi96UBv5D4DAQFmpF6BVQMC6uduruY4epWP4QJ7QWX.FJQaGYsWSfdfxjXubdi3zPoPW5FurDdRUgq7gXGiA8gi@GZEPaLJQ7dJMkMNF56FdrJmtoRZqKYXvnKBJ3S6JA5mc
+2026-03-30 16:58:37.904 15798-16668 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Churn oracle started (2 Hz sampling)
+2026-03-30 16:58:37.906 15798-16530 RealNymTransport        com.zerochat.app                     I  Successfully connected! NYM Address: Dyxi96UBv5D4DAQFmpF6BVQMC6uduruY4epWP4QJ7QWX.FJQaGYsWSfdfxjXubdi3zPoPW5FurDdRUgq7gXGiA8gi@GZEPaLJQ7dJMkMNF56FdrJmtoRZqKYXvnKBJ3S6JA5mc
+2026-03-30 16:58:37.912 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport::tli: TLI lifecycle: Init → Rendezvous
+2026-03-30 16:58:37.913 15798-16530 ConnectionManager       com.zerochat.app                     I  TLI: Init → Rendezvous
+2026-03-30 16:58:37.914 15798-16530 RendezvousManager       com.zerochat.app                     I  Derived BASE rendezvous point: a7cd554370f1c589... (Epoch: 5916233)
+2026-03-30 16:58:37.915 15798-16530 ConnectionManager       com.zerochat.app                     I  derived rendezvous point: a7cd554370f1c589 (epoch: 5916233) (token: 961536bc...)
+2026-03-30 16:58:37.915 15798-16530 RendezvousManager       com.zerochat.app                     D  State Transition: IDLE -> CONNECTING
+2026-03-30 16:58:37.917 15798-16530 RendezvousManager       com.zerochat.app                     I  Attempting Slot A (e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660) with deterministic gateway auth...
+2026-03-30 16:58:37.917 15798-16530 RealNymTransport        com.zerochat.app                     I  Connecting to rendezvous point: e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660
+2026-03-30 16:58:37.919 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connecting to rendezvous point: e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660 (Deterministic Gateway)
+2026-03-30 16:58:37.919 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetching gateways from SDK-compatible API (gateways_for_init)
+2026-03-30 16:58:38.758 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 474 gateways
+2026-03-30 16:58:38.758 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 474 valid gateways after filtering
+2026-03-30 16:58:38.759 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: SDK reports 474 valid gateways
+2026-03-30 16:58:38.761 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetched 400 valid WSS gateways for deterministic selection (from 474 total)
+2026-03-30 16:58:38.761 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Cached 400 gateways (fresh fetch)
+2026-03-30 16:58:38.761 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Identity derived from base_id: e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660 (slot input: e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660)
+2026-03-30 16:58:38.761 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Rendezvous seed (Identity): d9de5b45641571cc5714a878990fd07d4dabd025305fb7185887cdd5c0704c02
+2026-03-30 16:58:38.761 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Selected Deterministic Gateway: 9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe (Index: 179/400)
+2026-03-30 16:58:38.761 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Derived public key (Identity): e131d9ec22f76d7b7bc4b3ea6037cd91c8aa686ed1db73874dbf28488ad6a817
+2026-03-30 16:58:38.761 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Deriving Encryption KeyPair (x25519)...
+2026-03-30 16:58:38.761 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Deterministic seeds zeroized
+2026-03-30 16:58:39.503 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 474 gateways
+2026-03-30 16:58:39.504 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 458 valid gateways after filtering
+2026-03-30 16:58:41.704 15798-16530 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe gateway_address=ws://nym-exit-ninjiana.bwnym.xyz:9000/
+2026-03-30 16:58:42.382 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting nym client
+2026-03-30 16:58:42.382 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Building nym-api client from provided URLs (with domain fronting support): 3 URLs
+2026-03-30 16:58:42.831 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting statistics control...
+2026-03-30 16:58:42.831 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Obtaining initial network topology
+2026-03-30 16:58:43.231 15798-16552 SamClient               com.zerochat.app                     D  SESSION reply: SESSION STATUS RESULT=OK DESTINATION=ad4WDJtXTRstmLr9Hl3l-gb7Y9q6IwVgTGVc3gfxGHBp3hYMm1dNGy2Yuv0eXeX6Bvtj2rojBWBMZVzeB~EYcGneFgybV00bLZi6~R5d5foG-2PauiMFYExlXN4H8Rhwad4WDJtXTRstmLr9Hl3l-gb7Y9q6IwVgTGVc3gfxGHBp3hYMm1dNGy2Yuv0eXeX6Bvtj2rojBWBMZVzeB~EYcGneFgybV00bLZi6~R5d5foG-2PauiMFYExlXN4H8Rhwad4WDJtXTRstmLr9Hl3l-gb7Y9q6IwVgTGVc3gfxGHBp3hYMm1dNGy2Yuv0eXeX6Bvtj2rojBWBMZVzeB~EYcGneFgybV00bLZi6~R5d5foG-2PauiMFYExlXN4H8Rhwad4WDJtXTRstmLr9Hl3l-gb7Y9q6IwVgTGVc3gfxGHBp3hYMm1dNGy2Yuv0eXeX6Bvtj2rojBWBMZVzeB~EYcEF7RxIYYfAUf1bDSU51I6AhsMq4Qhxh0kyOBXtjPmhDBQAEAAcAAEk0OFE1jHosSTzs30ugFhGx14WMYYvuGxZjEUR7vBBaDof28rtBa074uj6lCEecLu0T7V3g6QHwunYfMoIkniaUqEBF3bt7Y~57hzTls3Q629TObTb3o2gbIKF8F4BgNkXX1voiZcTpEad6y8Xhp1dFpeNhV0t~K1zyrA0uCK2YwlugjKplkpIoz6QiBDR-Dyw97Ea4sH9A9JKdDSoCf08oDHqZGj3mpLsW~0dfzAYl80l~eUcKdPuJ5KiOLdGeRkF5-4egjXImZAkiuB2VtK1O0IMSnH77FJZPorD2zdfhJ7GKImYP88wfPQJgFC-~ezoa67ohb96i5HFr4lCS7NQMyUPdfjc3r7FbODFpfPjaRjUJNJAx0AgH15wwKZ4wHg==
+2026-03-30 16:58:43.231 15798-16552 SamClient               com.zerochat.app                     I  ✓ SAM session created: zc-94514889-0000
+2026-03-30 16:58:43.231 15798-16552 SamClient               com.zerochat.app                     I    Local destination: ad4WDJtXTRstmLr9Hl3l-gb7Y9q6IwVg...
+2026-03-30 16:58:43.231 15798-16552 I2PRouterService        com.zerochat.app                     I  ✓ Pre-warmed SAM session (destination cached, LeaseSet publishing)
+2026-03-30 16:58:43.232 15798-16531 I2PRouterService        com.zerochat.app                     I  Restart window expired (300s), resetting counter
+2026-03-30 16:58:43.233 15798-16531 I2PRouterService        com.zerochat.app                     I  Copying i2pd assets to /data/user/0/com.zerochat.app/files/i2pd...
+2026-03-30 16:58:43.273 15798-16531 I2PRouterService        com.zerochat.app                     I  Assets copied successfully
+2026-03-30 16:58:43.273 15798-16531 I2PRouterService        com.zerochat.app                     D  i2pd.conf validated: file exists, contains reseed URLs
+2026-03-30 16:58:43.273 15798-16531 I2PRouterService        com.zerochat.app                     D  Loading native libraries...
+2026-03-30 16:58:43.274 15798-16531 I2PRouterService        com.zerochat.app                     D  Loaded libraries successfully
+2026-03-30 16:58:43.274 15798-16531 I2PRouterService        com.zerochat.app                     I  Starting i2pd daemon (dataDir=/data/user/0/com.zerochat.app/files/i2pd)...
+2026-03-30 16:58:43.590 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting topology refresher...
+2026-03-30 16:58:43.590 15798-16530 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe gateway_address=ws://nym-exit-ninjiana.bwnym.xyz:9000/
+2026-03-30 16:58:44.270 15798-16530 NymTransport            com.zerochat.app                     I  nym_gateway_client::bandwidth: remaining bandwidth: 0.00 B. in 'upgrade mode': false
+2026-03-30 16:58:44.270 15798-16530 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: Claiming more bandwidth with existing credentials. Stop the process now if you don't want that to happen.
+2026-03-30 16:58:44.270 15798-16530 NymTransport            com.zerochat.app                     W  nym_gateway_client::client: Not enough bandwidth. Trying to get more bandwidth, this might take a while
+2026-03-30 16:58:44.270 15798-16530 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: The client is running in disabled credentials mode - attempting to claim bandwidth without a credential
+2026-03-30 16:58:44.440 15798-16530 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: managed to claim testnet bandwidth
+2026-03-30 16:58:44.440 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting received messages buffer controller...
+2026-03-30 16:58:44.440 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting mix traffic controller...
+2026-03-30 16:58:44.441 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting real traffic stream...
+2026-03-30 16:58:44.441 15798-16530 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting loop cover traffic stream...
+2026-03-30 16:58:44.942 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connected Deterministic Mailbox Client! Address: GA4pbqy9C8oZ3UfEY9ZeUBczyMKQbYggf8d5WqPHMX7c.9cRMLQL3VnpEcKrAvo7tEU4m9iMFvnadrqsVQCHbXrvq@9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe
+2026-03-30 16:58:44.944 15798-16530 RealNymTransport        com.zerochat.app                     I  Rendezvous connected: GA4pbqy9C8oZ3UfEY9ZeUBczyMKQbYggf8d5WqPHMX7c.9cRMLQL3VnpEcKrAvo7tEU4m9iMFvnadrqsVQCHbXrvq@9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe
+2026-03-30 16:58:44.944 15798-16530 RendezvousManager       com.zerochat.app                     I  ROLE assigned: INITIATOR (connected to Slot A)
+2026-03-30 16:58:44.946 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Using cached gateway list (400 gateways, age: 6.185266462s)
+2026-03-30 16:58:44.947 15798-16530 RendezvousManager       com.zerochat.app                     I  Connected to Slot A. Peer (Slot B) Address: E8vJMbMk2wopxm6itnAbyCr96dzoBQKSm2hkmA5eNpht.9XgpBsBaBtavYTVD7hDTm5ds34Jg9e5P88mT3d2tCRcn@8Jzd9BN751rH8WTMy7QzZBA2dX1oAK8rC37UJPWpn8FZ
+2026-03-30 16:58:44.947 15798-16530 RendezvousManager       com.zerochat.app                     D  State Transition: CONNECTING -> CONNECTED
+2026-03-30 16:58:44.947 15798-16530 RendezvousManager       com.zerochat.app                     I  obfs4 context marked as ready
+2026-03-30 16:58:44.948 15798-16530 RendezvousManager       com.zerochat.app                     I  Derived temporary obfs4_state from deterministic seed: 2dc3b35cb9d53239 (first 8 bytes)
+2026-03-30 16:58:44.948 15798-16530 RendezvousManager       com.zerochat.app                     I  obfs4_state set: first 8 bytes = 2dc3b35cb9d53239 (CHANGED from null)
+2026-03-30 16:58:44.948 15798-16530 ConnectionManager       com.zerochat.app                     I  Connected to slot. Proceeding to nonce exchange.
+2026-03-30 16:58:44.949 15798-16530 ConnectionManager       com.zerochat.app                     I  ROLE: INITIATOR (mySlot=A myId=e917e05d...)
+2026-03-30 16:58:44.952 15798-16530 Obfs4FrameWrapper       com.zerochat.app                     D  Initialized with obfs4_state[0..7]=2dc3b35cb9d53239 (full 64 bytes)
+2026-03-30 16:58:44.952 15798-16530 Obfs4FrameWrapper       com.zerochat.app                     D    nonce_seed[0..7]=fc316bc575aa407b
+2026-03-30 16:58:44.953 15798-16530 Obfs4FrameWrapper       com.zerochat.app                     D  Encrypted frame: counter=1, plaintext=43 bytes, ciphertext=59 bytes, with_length_field=63 bytes
+2026-03-30 16:58:44.953 15798-16530 RendezvousManager       com.zerochat.app                     D  Publishing encrypted payload: 43 bytes (plaintext) → 63 bytes (ciphertext)
+2026-03-30 16:58:44.957 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (63 bytes, padded to 1452)
+2026-03-30 16:58:44.957 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Message sent successfully (obfs4-obfuscated and padded)
+2026-03-30 16:58:44.958 15798-16530 RendezvousManager       com.zerochat.app                     D  State Transition: CONNECTED -> PUBLISHED
+2026-03-30 16:58:44.958 15798-16530 RendezvousManager       com.zerochat.app                     D  State Transition: PUBLISHED -> POLLING
+2026-03-30 16:58:44.958 15798-16530 RendezvousManager       com.zerochat.app                     I  POLLING my slot: e917e05d9289ce20... (Strict Mode)
+2026-03-30 16:58:44.962 15798-16671 NymTransport            com.zerochat.app                     I  nym_client_core::client::real_messages_control::message_handler: using Ty4N11uVFmCMjSSsNHafTw for all anonymous messages sent to E8vJMbMk2wopxm6itnAbyCr96dzoBQKSm2hkmA5eNpht.9XgpBsBaBtavYTVD7hDTm5ds34Jg9e5P88mT3d2tCRcn@8Jzd9BN751rH8WTMy7QzZBA2dX1oAK8rC37UJPWpn8FZ
+2026-03-30 16:58:53.421 15798-16530 ConnectionManager       com.zerochat.app                     I  Re-publishing nonce (RESPONDER may not have received it)
+2026-03-30 16:58:53.423 15798-16530 Obfs4FrameWrapper       com.zerochat.app                     D  Initialized with obfs4_state[0..7]=2dc3b35cb9d53239 (full 64 bytes)
+2026-03-30 16:58:53.423 15798-16530 Obfs4FrameWrapper       com.zerochat.app                     D    nonce_seed[0..7]=fc316bc575aa407b
+2026-03-30 16:58:53.424 15798-16530 Obfs4FrameWrapper       com.zerochat.app                     D  Encrypted frame: counter=1, plaintext=43 bytes, ciphertext=59 bytes, with_length_field=63 bytes
+2026-03-30 16:58:53.424 15798-16530 RendezvousManager       com.zerochat.app                     D  Publishing encrypted payload: 43 bytes (plaintext) → 63 bytes (ciphertext)
+2026-03-30 16:58:53.439 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (63 bytes, padded to 1452)
+2026-03-30 16:58:53.439 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Message sent successfully (obfs4-obfuscated and padded)
+2026-03-30 16:58:57.611 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: poll_rendezvous: Received message from NYM SDK: 1452 bytes
+2026-03-30 16:58:57.611 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Polled 1 messages total for rendezvous e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660
+2026-03-30 16:58:57.617 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D  Initialized with obfs4_state[0..7]=2dc3b35cb9d53239 (full 64 bytes)
+2026-03-30 16:58:57.618 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D    nonce_seed[0..7]=fc316bc575aa407b
+2026-03-30 16:58:57.624 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D  Unpadded frame: removed 1389 zero bytes (length_field=59, total=63)
+2026-03-30 16:58:57.624 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D  ✅ Decrypted frame: 43 bytes (counter=1, ciphertext_size=59)
+2026-03-30 16:58:57.625 15798-16530 RendezvousManager       com.zerochat.app                     I  ACCEPTED PEER MESSAGE (Type=0x00)
+2026-03-30 16:58:57.625 15798-16530 HandshakeManager        com.zerochat.app                     I  Starting SPAKE2+ handshake as initiator
+2026-03-30 16:58:57.627 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport::spake2: Starting SPAKE2+ as initiator
+2026-03-30 16:58:57.627 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport::spake2: SPAKE2+ initiator state stored with handle 11876962930849378751
+2026-03-30 16:58:57.629 15798-16530 HandshakeManager        com.zerochat.app                     I  Generated commitment (33 bytes), handle=11876962930849378751
+2026-03-30 16:58:57.629 15798-16530 Obfs4FrameWrapper       com.zerochat.app                     D  Initialized with obfs4_state[0..7]=2dc3b35cb9d53239 (full 64 bytes)
+2026-03-30 16:58:57.629 15798-16530 Obfs4FrameWrapper       com.zerochat.app                     D    nonce_seed[0..7]=fc316bc575aa407b
+2026-03-30 16:58:57.630 15798-16530 Obfs4FrameWrapper       com.zerochat.app                     D  Encrypted frame: counter=1, plaintext=60 bytes, ciphertext=76 bytes, with_length_field=80 bytes
+2026-03-30 16:58:57.630 15798-16530 RendezvousManager       com.zerochat.app                     D  Publishing encrypted payload: 60 bytes (plaintext) → 80 bytes (ciphertext)
+2026-03-30 16:58:57.632 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (80 bytes, padded to 1452)
+2026-03-30 16:58:57.632 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Message sent successfully (obfs4-obfuscated and padded)
+2026-03-30 16:58:57.633 15798-16530 RendezvousManager       com.zerochat.app                     D  State Transition: POLLING -> POLLING
+2026-03-30 16:58:57.633 15798-16530 RendezvousManager       com.zerochat.app                     I  POLLING my slot: e917e05d9289ce20... (Strict Mode)
+2026-03-30 16:59:03.919 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: poll_rendezvous: Received message from NYM SDK: 1452 bytes
+2026-03-30 16:59:03.919 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Polled 1 messages total for rendezvous e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660
+2026-03-30 16:59:03.928 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D  Initialized with obfs4_state[0..7]=2dc3b35cb9d53239 (full 64 bytes)
+2026-03-30 16:59:03.928 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D    nonce_seed[0..7]=fc316bc575aa407b
+2026-03-30 16:59:03.932 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D  Unpadded frame: removed 1372 zero bytes (length_field=76, total=80)
+2026-03-30 16:59:03.932 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D  ✅ Decrypted frame: 60 bytes (counter=1, ciphertext_size=76)
+2026-03-30 16:59:03.932 15798-16530 RendezvousManager       com.zerochat.app                     I  ACCEPTED PEER MESSAGE (Type=0x02)
+2026-03-30 16:59:03.933 15798-16530 HandshakeManager        com.zerochat.app                     I  Finishing SPAKE2+ handshake as initiator with handle=11876962930849378751
+2026-03-30 16:59:03.934 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport::spake2: Finishing SPAKE2+ as initiator with handle 11876962930849378751
+2026-03-30 16:59:03.934 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport::session_store: Session stored with handle 5636193229592689264 (1 active), obfs4_state derived
+2026-03-30 16:59:03.934 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport::spake2: SPAKE2+ initiator complete. Session handle: 5636193229592689264
+2026-03-30 16:59:03.935 15798-16530 HandshakeManager        com.zerochat.app                     I  Handshake complete! Session handle: 5636193229592689264
+2026-03-30 16:59:03.935 15798-16530 ConnectionManager       com.zerochat.app                     I  ✓ Handshake complete!
+2026-03-30 16:59:03.936 15798-16530 HandshakeManager        com.zerochat.app                     I  Generated confirmation for role: 0
+2026-03-30 16:59:03.936 15798-16530 Obfs4FrameWrapper       com.zerochat.app                     D  Initialized with obfs4_state[0..7]=2dc3b35cb9d53239 (full 64 bytes)
+2026-03-30 16:59:03.936 15798-16530 Obfs4FrameWrapper       com.zerochat.app                     D    nonce_seed[0..7]=fc316bc575aa407b
+2026-03-30 16:59:03.937 15798-16530 Obfs4FrameWrapper       com.zerochat.app                     D  Encrypted frame: counter=1, plaintext=59 bytes, ciphertext=75 bytes, with_length_field=79 bytes
+2026-03-30 16:59:03.937 15798-16530 RendezvousManager       com.zerochat.app                     D  Publishing encrypted payload: 59 bytes (plaintext) → 79 bytes (ciphertext)
+2026-03-30 16:59:03.940 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (79 bytes, padded to 1452)
+2026-03-30 16:59:03.940 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Message sent successfully (obfs4-obfuscated and padded)
+2026-03-30 16:59:03.941 15798-16530 RendezvousManager       com.zerochat.app                     D  State Transition: POLLING -> POLLING
+2026-03-30 16:59:03.941 15798-16530 RendezvousManager       com.zerochat.app                     I  POLLING my slot: e917e05d9289ce20... (Strict Mode)
+2026-03-30 16:59:04.000 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: poll_rendezvous: Received message from NYM SDK: 1452 bytes
+2026-03-30 16:59:04.000 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Polled 1 messages total for rendezvous e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660
+2026-03-30 16:59:04.004 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D  Initialized with obfs4_state[0..7]=2dc3b35cb9d53239 (full 64 bytes)
+2026-03-30 16:59:04.005 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D    nonce_seed[0..7]=fc316bc575aa407b
+2026-03-30 16:59:04.008 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D  Unpadded frame: removed 1373 zero bytes (length_field=75, total=79)
+2026-03-30 16:59:04.008 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D  ✅ Decrypted frame: 59 bytes (counter=1, ciphertext_size=75)
+2026-03-30 16:59:04.009 15798-16530 RendezvousManager       com.zerochat.app                     I  ACCEPTED PEER MESSAGE (Type=0x03)
+2026-03-30 16:59:04.011 15798-16530 HandshakeManager        com.zerochat.app                     I  ✓ Peer confirmation verified for role: 1
+2026-03-30 16:59:04.012 15798-16530 ConnectionManager       com.zerochat.app                     I  🔄 SPAKE2+ handshake complete. Switching obfs4_state to final: f922b442dac13755 (role=INITIATOR)
+2026-03-30 16:59:04.012 15798-16530 RendezvousManager       com.zerochat.app                     I  obfs4_state set: first 8 bytes = f922b442dac13755 (CHANGED from 2dc3b35cb9d53239)
+2026-03-30 16:59:04.012 15798-16530 RendezvousManager       com.zerochat.app                     W  ⚠️ obfs4_state SWITCHED (race condition risk): 2dc3b35cb9d53239 → f922b442dac13755
+2026-03-30 16:59:04.013 15798-16530 System.err              com.zerochat.app                     W  java.lang.Exception: Stack trace
+2026-03-30 16:59:04.013 15798-16530 System.err              com.zerochat.app                     W  	at java.lang.Thread.dumpStack(Thread.java:1727)
+2026-03-30 16:59:04.013 15798-16530 System.err              com.zerochat.app                     W  	at com.zerochat.app.domain.rendezvous.RendezvousManager.setObfs4State(RendezvousManager.kt:116)
+2026-03-30 16:59:04.013 15798-16530 System.err              com.zerochat.app                     W  	at com.zerochat.app.domain.connection.ConnectionManager$connect$1.invokeSuspend(ConnectionManager.kt:313)
+2026-03-30 16:59:04.013 15798-16530 System.err              com.zerochat.app                     W  	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+2026-03-30 16:59:04.013 15798-16530 System.err              com.zerochat.app                     W  	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:108)
+2026-03-30 16:59:04.013 15798-16530 System.err              com.zerochat.app                     W  	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:115)
+2026-03-30 16:59:04.013 15798-16530 System.err              com.zerochat.app                     W  	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:103)
+2026-03-30 16:59:04.013 15798-16530 System.err              com.zerochat.app                     W  	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
+2026-03-30 16:59:04.013 15798-16530 System.err              com.zerochat.app                     W  	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:793)
+2026-03-30 16:59:04.013 15798-16530 System.err              com.zerochat.app                     W  	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:697)
+2026-03-30 16:59:04.013 15798-16530 System.err              com.zerochat.app                     W  	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:684)
+2026-03-30 16:59:04.014 15798-16530 ConnectionManager       com.zerochat.app                     I  ✅ obfs4_state retrieved and passed to RendezvousManager (64 bytes)
+2026-03-30 16:59:04.014 15798-16530 RendezvousManager       com.zerochat.app                     I  Epoch frozen after handshake.
+2026-03-30 16:59:04.014 15798-16530 ConnectionManager       com.zerochat.app                     I  Waiting for I2P router to be ready...
+2026-03-30 16:59:04.014 15798-16530 ConnectionManager       com.zerochat.app                     I  ✓ I2P router ready
+2026-03-30 16:59:04.016 15798-16530 SamClient               com.zerochat.app                     D  HELLO reply: HELLO REPLY RESULT=OK VERSION=3.1
+2026-03-30 16:59:04.016 15798-16530 SamClient               com.zerochat.app                     D  Checking router tunnel readiness...
+2026-03-30 16:59:04.026 15798-16530 I2PRouterService        com.zerochat.app                     I  Router tunnel-ready after 1 checks (routers=130, floodfills=91, has tunnel activity)
+2026-03-30 16:59:04.026 15798-16530 SamClient               com.zerochat.app                     D  Router tunnel-ready, proceeding to SESSION CREATE
+2026-03-30 16:59:04.028 15798-16530 SamClient               com.zerochat.app                     D  SESSION reply: SESSION STATUS RESULT=DUPLICATED_ID
+2026-03-30 16:59:04.028 15798-16530 SamClient               com.zerochat.app                     W  SESSION DUPLICATED_ID for zc-94514889-0000, retrying with new ID
+2026-03-30 16:59:05.035 15798-16530 SamClient               com.zerochat.app                     D  HELLO reply: HELLO REPLY RESULT=OK VERSION=3.1
+2026-03-30 16:59:05.035 15798-16530 SamClient               com.zerochat.app                     D  Checking router tunnel readiness...
+2026-03-30 16:59:05.043 15798-16530 I2PRouterService        com.zerochat.app                     I  Router tunnel-ready after 1 checks (routers=130, floodfills=91, has tunnel activity)
+2026-03-30 16:59:05.044 15798-16530 SamClient               com.zerochat.app                     D  Router tunnel-ready, proceeding to SESSION CREATE
+2026-03-30 16:59:14.067 15798-16530 SamClient               com.zerochat.app                     D  SESSION reply: SESSION STATUS RESULT=OK DESTINATION=DF31O9aB1JlfvpPZyMiNcN9w4BkApdqj91JeK06ogmwMXfU71oHUmV--k9nIyI1w33DgGQCl2qP3Ul4rTqiCbAxd9TvWgdSZX76T2cjIjXDfcOAZAKXao~dSXitOqIJsDF31O9aB1JlfvpPZyMiNcN9w4BkApdqj91JeK06ogmwMXfU71oHUmV--k9nIyI1w33DgGQCl2qP3Ul4rTqiCbAxd9TvWgdSZX76T2cjIjXDfcOAZAKXao~dSXitOqIJsDF31O9aB1JlfvpPZyMiNcN9w4BkApdqj91JeK06ogmwMXfU71oHUmV--k9nIyI1w33DgGQCl2qP3Ul4rTqiCbAxd9TvWgdSZX76T2cjIjXDfcOAZAKXao~dSXitOqIJsDF31O9aB1JlfvpPZyMiNcN9w4BkApdqj91JeK06ogmwMXfU71oHUmV--k9nIyI1w33DgGQCl2qP3Ul4rTqiCbJqY0n2Y8ERwVIWe1VG2Ie5PiOdDU1McSrGt7f9VoMD8BQAEAAcAAAUzw9SelAlfZ7zP4yALSkQqZfXzuWgu1Rn3eWgHrFg1CfnMxHvBhNTcoRVAbduaReIoVO5YUZvgBR0En8ei1Sl3pWL0cLQPAa8geWrhaxW~CZWUR3aV-pWO49uFYVaTcxvnFwUZgeb702Me-~AbGK-pSfMsI-vS55nAQyGSGVnFmJAEG0G4UqM72AT-XfB1EcfeKtOK2PQLRcCVkx08dWiFopHcr9s8SVS1bkyI64IzQrN5mdymJW8fTrFcKassZ6ww4OebE~oFixdDwo3SfEdij8FHPJM66hCltdqMn9kvXvD7wvh~hr4IZBuHpvHRvNTBR0F1Pz3caoWB0wgJE9v9fIkatvUppN~RZ-mf4eVIGF8yeQCElS7lxUkC7ALicQ==
+2026-03-30 16:59:14.067 15798-16530 SamClient               com.zerochat.app                     I  ✓ SAM session created: zc-94514889-0001
+2026-03-30 16:59:14.068 15798-16530 SamClient               com.zerochat.app                     I    Local destination: DF31O9aB1JlfvpPZyMiNcN9w4BkApdqj...
+2026-03-30 16:59:14.088 15798-16530 Obfs4FrameWrapper       com.zerochat.app                     D  Initialized with obfs4_state[0..7]=f922b442dac13755 (full 64 bytes)
+2026-03-30 16:59:14.088 15798-16530 Obfs4FrameWrapper       com.zerochat.app                     D    nonce_seed[0..7]=1d2391e8ac898080
+2026-03-30 16:59:14.088 15798-16530 Obfs4FrameWrapper       com.zerochat.app                     D  Encrypted frame: counter=1, plaintext=975 bytes, ciphertext=991 bytes, with_length_field=995 bytes
+2026-03-30 16:59:14.088 15798-16530 RendezvousManager       com.zerochat.app                     D  Publishing encrypted payload: 975 bytes (plaintext) → 995 bytes (ciphertext)
+2026-03-30 16:59:14.092 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (995 bytes, padded to 1452)
+2026-03-30 16:59:14.092 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Message sent successfully (obfs4-obfuscated and padded)
+2026-03-30 16:59:14.093 15798-16530 RendezvousManager       com.zerochat.app                     D  State Transition: POLLING -> POLLING
+2026-03-30 16:59:14.093 15798-16530 RendezvousManager       com.zerochat.app                     I  POLLING my slot: e917e05d9289ce20... (Strict Mode)
+2026-03-30 16:59:22.645 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: poll_rendezvous: Received message from NYM SDK: 1452 bytes
+2026-03-30 16:59:22.645 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Polled 1 messages total for rendezvous e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660
+2026-03-30 16:59:22.648 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D  Initialized with obfs4_state[0..7]=f922b442dac13755 (full 64 bytes)
+2026-03-30 16:59:22.649 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D    nonce_seed[0..7]=1d2391e8ac898080
+2026-03-30 16:59:22.652 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D  Unpadded frame: removed 457 zero bytes (length_field=991, total=995)
+2026-03-30 16:59:22.653 15798-16530 Obfs4FrameUnwrapper     com.zerochat.app                     D  ✅ Decrypted frame: 975 bytes (counter=1, ciphertext_size=991)
+2026-03-30 16:59:22.662 15798-16530 RendezvousManager       com.zerochat.app                     I  ACCEPTED PEER MESSAGE (Type=0x04)
+2026-03-30 16:59:22.668 15798-16530 ConnectionManager       com.zerochat.app                     I  ✓ Peer I2P destination received: BgN92jf1HfkWVLwqZjT2oMVmcvw2Ye3P...
+2026-03-30 16:59:22.668 15798-16530 RendezvousManager       com.zerochat.app                     I  🔥 TEARDOWN: Cleanup rendezvous session...
+2026-03-30 16:59:22.668 15798-16530 RendezvousManager       com.zerochat.app                     D  State Transition: POLLING -> TEARDOWN
+2026-03-30 16:59:22.668 15798-16530 RendezvousManager       com.zerochat.app                     D  State Transition: TEARDOWN -> IDLE
+2026-03-30 16:59:22.668 15798-16530 NymTransport            com.zerochat.app                     I  uniffi_nym_transport::tli: TLI lifecycle: Rendezvous → Hardened
+2026-03-30 16:59:22.668 15798-16530 ConnectionManager       com.zerochat.app                     I  TLI: Rendezvous → Hardened
+2026-03-30 16:59:22.668 15798-16530 HybridTransport         com.zerochat.app                     I  I2P ready — stochastic migration delay: 20s (U[5,40]s)
+2026-03-30 16:59:22.669 15798-16530 ConnectionManager       com.zerochat.app                     I  Establishing I2P stream (role=INITIATOR)...
+2026-03-30 16:59:24.670 15798-16528 ConnectionManager       com.zerochat.app                     I  I2P connect attempt 1/24
+2026-03-30 16:59:24.671 15798-16528 SamClient               com.zerochat.app                     I  STREAM CONNECT to BgN92jf1HfkWVLwqZjT2oMVmcvw2Ye3P...
+2026-03-30 16:59:28.402 15798-16528 SamClient               com.zerochat.app                     D  STREAM CONNECT reply: STREAM STATUS RESULT=OK
+2026-03-30 16:59:28.402 15798-16528 SamClient               com.zerochat.app                     I  ✓ Stream connected to peer
+2026-03-30 16:59:28.403 15798-16528 ConnectionManager       com.zerochat.app                     I  ✓ I2P stream established!
+2026-03-30 16:59:28.406 15798-16528 ConnectionManager       com.zerochat.app                     I  Thermal monitoring enabled (throttle at 82°C)
+2026-03-30 16:59:28.407 15798-16530 ThermalMonitor          com.zerochat.app                     I  Thermal monitoring started (throttle=82°C, resume=78°C)
+2026-03-30 16:59:28.408 15798-16528 NymTransport            com.zerochat.app                     I  uniffi_nym_transport::cover_traffic: Cover traffic started (λ_min=0.1036)
+2026-03-30 16:59:28.408 15798-16528 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Cover traffic started (λ_min=3.0550)
+2026-03-30 16:59:28.409 15798-16528 ConnectionManager       com.zerochat.app                     I  Cover traffic started (adaptive λ_min)
+2026-03-30 16:59:28.411 15798-16528 ConnectionManager       com.zerochat.app                     I  Starting I2P message listener loop...
+2026-03-30 16:59:28.412 15798-16528 I2PStream               com.zerochat.app                     V  Reading 4 bytes...
+2026-03-30 16:59:28.482 15798-15798 WindowOnBackDispatcher  com.zerochat.app                     W  OnBackInvokedCallback is not enabled for the application.
+                                                                                                    Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+2026-03-30 16:59:28.915 15798-16530 ConnectionManager       com.zerochat.app                     W  Churn detection: 1/3
+2026-03-30 16:59:29.419 15798-16531 ConnectionManager       com.zerochat.app                     W  Churn detection: 2/3
+2026-03-30 16:59:29.922 15798-16531 ConnectionManager       com.zerochat.app                     W  Churn detection: 3/3
+2026-03-30 16:59:29.922 15798-16531 ConnectionManager       com.zerochat.app                     E  Churn threshold reached - attempting recovery
+2026-03-30 16:59:29.923 15798-16531 NymTransport            com.zerochat.app                     I  uniffi_nym_transport::tli: TLI lifecycle: Hardened → Fallback
+--------- beginning of crash
+2026-03-30 16:59:29.924 15798-16531 ConnectionManager       com.zerochat.app                     I  TLI: Hardened → Fallback
+2026-03-30 16:59:29.936 15798-16531 AndroidRuntime          com.zerochat.app                     E  FATAL EXCEPTION: DefaultDispatcher-worker-3 (Ask Gemini)
+                                                                                                    Process: com.zerochat.app, PID: 15798
+                                                                                                    java.lang.IllegalStateException: Flow invariant is violated:
+                                                                                                    		Emission from another coroutine is detected.
+                                                                                                    		Child of StandaloneCoroutine{Active}@ae79cac, expected child of ProducerCoroutine{Active}@f624d75.
+                                                                                                    		FlowCollector is not thread-safe and concurrent emissions are prohibited.
+                                                                                                    		To mitigate this restriction please use 'channelFlow' builder instead of 'flow'
+                                                                                                    	at kotlinx.coroutines.flow.internal.SafeCollector_commonKt$checkContext$result$1.invoke(SafeCollector.common.kt:69)
+                                                                                                    	at kotlinx.coroutines.flow.internal.SafeCollector_commonKt$checkContext$result$1.invoke(SafeCollector.common.kt:26)
+                                                                                                    	at kotlin.coroutines.CoroutineContext$Element$DefaultImpls.fold(CoroutineContext.kt:70)
+                                                                                                    	at kotlinx.coroutines.Job$DefaultImpls.fold(Job.kt:112)
+                                                                                                    	at kotlinx.coroutines.JobSupport.fold(JobSupport.kt:25)
+                                                                                                    	at kotlin.coroutines.CombinedContext.fold(CoroutineContextImpl.kt:131)
+                                                                                                    	at kotlinx.coroutines.flow.internal.SafeCollector_commonKt.checkContext(SafeCollector.common.kt:26)
+                                                                                                    	at kotlinx.coroutines.flow.internal.SafeCollector.checkContext(SafeCollector.kt:106)
+                                                                                                    	at kotlinx.coroutines.flow.internal.SafeCollector.emit(SafeCollector.kt:83)
+                                                                                                    	at kotlinx.coroutines.flow.internal.SafeCollector.emit(SafeCollector.kt:66)
+                                                                                                    	at com.zerochat.app.domain.connection.ConnectionManager$connect$1$churnMonitorJob$1.invokeSuspend(ConnectionManager.kt:467)
+                                                                                                    	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+                                                                                                    	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:108)
+                                                                                                    	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:115)
+                                                                                                    	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:103)
+                                                                                                    	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
+                                                                                                    	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:793)
+                                                                                                    	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:697)
+                                                                                                    	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:684)
+                                                                                                    	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@ae79cac, Dispatchers.IO]
+                                                                                                        emu logs:-
+                                                                                                        2026-03-30 16:57:58.101  6806-6806  om.zerochat.app         com.zerochat.app                     I  Late-enabling -Xcheck:jni
+2026-03-30 16:57:58.149  6806-6806  om.zerochat.app         com.zerochat.app                     I  Using CollectorTypeCMC GC.
+2026-03-30 16:57:58.152  6806-6806  om.zerochat.app         com.zerochat.app                     W  Unexpected CPU variant for x86: x86_64.
+                                                                                                    Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, goldmont-without-sha-xsaves, tremont, kabylake, alderlake, default
+2026-03-30 16:57:58.188  6806-6806  nativeloader            com.zerochat.app                     D  Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+2026-03-30 16:57:58.249  6806-6806  nativeloader            com.zerochat.app                     D  Load /data/user/0/com.zerochat.app/code_cache/startup_agents/3fc68f17-agent.so using system ns (caller=<unknown>): ok
+2026-03-30 16:57:58.240  6806-6806  re-initialized>         com.zerochat.app                     W  type=1400 audit(0.0:478): avc:  granted  { execute } for  path="/data/data/com.zerochat.app/code_cache/startup_agents/3fc68f17-agent.so" dev="dm-55" ino=369955 scontext=u:r:untrusted_app:s0:c220,c256,c512,c768 tcontext=u:object_r:app_data_file:s0:c220,c256,c512,c768 tclass=file app=com.zerochat.app
+2026-03-30 16:57:58.268  6806-6806  om.zerochat.app         com.zerochat.app                     W  hiddenapi: DexFile /data/data/com.zerochat.app/code_cache/.studio/instruments-c9b0d10a.jar is in boot class path but is not in a known location
+2026-03-30 16:57:58.612  6806-6806  om.zerochat.app         com.zerochat.app                     W  Redefining intrinsic method java.lang.Thread java.lang.Thread.currentThread(). This may cause the unexpected use of the original definition of java.lang.Thread java.lang.Thread.currentThread()in methods that have already been compiled.
+2026-03-30 16:57:58.612  6806-6806  om.zerochat.app         com.zerochat.app                     W  Redefining intrinsic method boolean java.lang.Thread.interrupted(). This may cause the unexpected use of the original definition of boolean java.lang.Thread.interrupted()in methods that have already been compiled.
+2026-03-30 16:57:58.623  6806-6806  CompatChangeReporter    com.zerochat.app                     D  Compat change id reported: 242716250; UID 10220; state: ENABLED
+2026-03-30 16:57:59.256  6806-6806  nativeloader            com.zerochat.app                     D  Configuring clns-9 for other apk /data/app/~~GKK84a5nb4B4izvAw11RAQ==/com.zerochat.app-6cTnDjSl79IOXEcEqqu1xA==/base.apk. target_sdk_version=34, uses_libraries=, library_path=/data/app/~~GKK84a5nb4B4izvAw11RAQ==/com.zerochat.app-6cTnDjSl79IOXEcEqqu1xA==/lib/x86_64:/data/app/~~GKK84a5nb4B4izvAw11RAQ==/com.zerochat.app-6cTnDjSl79IOXEcEqqu1xA==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.zerochat.app
+2026-03-30 16:57:59.267  6806-6806  om.zerochat.app         com.zerochat.app                     I  AssetManager2(0x7b064ee5acb8) locale list changing from [] to [en-US]
+2026-03-30 16:57:59.273  6806-6806  om.zerochat.app         com.zerochat.app                     I  AssetManager2(0x7b064ee60758) locale list changing from [] to [en-US]
+2026-03-30 16:57:59.284  6806-6806  GraphicsEnvironment     com.zerochat.app                     V  Currently set values for:
+2026-03-30 16:57:59.284  6806-6806  GraphicsEnvironment     com.zerochat.app                     V    angle_gl_driver_selection_pkgs=[]
+2026-03-30 16:57:59.284  6806-6806  GraphicsEnvironment     com.zerochat.app                     V    angle_gl_driver_selection_values=[]
+2026-03-30 16:57:59.284  6806-6806  GraphicsEnvironment     com.zerochat.app                     V  com.zerochat.app is not listed in per-application setting
+2026-03-30 16:57:59.284  6806-6806  GraphicsEnvironment     com.zerochat.app                     V  ANGLE allowlist from config: com.dreamgames.royalmatch com.dts.freefiremax com.dxx.firenow com.gramgames.mergedragons com.ludo.king com.mojang.minecraftpe com.my.defense com.nintendo.zaka com.os.airforce com.playrix.fishdomdd.gplay io.teslatech.callbreak jp.konami.prospia net.peakgames.toonblast
+2026-03-30 16:57:59.284  6806-6806  GraphicsEnvironment     com.zerochat.app                     V  com.zerochat.app is not listed in ANGLE allowlist or settings, returning default
+2026-03-30 16:57:59.285  6806-6806  GraphicsEnvironment     com.zerochat.app                     V  Neither updatable production driver nor prerelease driver is supported.
+2026-03-30 16:57:59.458  6806-6806  nativeloader            com.zerochat.app                     D  Load /data/app/~~GKK84a5nb4B4izvAw11RAQ==/com.zerochat.app-6cTnDjSl79IOXEcEqqu1xA==/base.apk!/lib/x86_64/libjnidispatch.so using class loader ns clns-9 (caller=/data/app/~~GKK84a5nb4B4izvAw11RAQ==/com.zerochat.app-6cTnDjSl79IOXEcEqqu1xA==/base.apk!classes17.dex): ok
+2026-03-30 16:57:59.549  6806-6806  ZeroChatApplication     com.zerochat.app                     D  onCreate() - starting on thread: main
+2026-03-30 16:57:59.571  6806-6806  ZeroChatApplication     com.zerochat.app                     D  onCreate() complete - main thread free for first frame render
+2026-03-30 16:57:59.580  6806-6823  ZeroChatApplication     com.zerochat.app                     I  Starting I2P Router Service in background...
+2026-03-30 16:57:59.582  6806-6826  DisplayManager          com.zerochat.app                     I  Choreographer implicitly registered for the refresh rate.
+2026-03-30 16:57:59.586  6806-6806  om.zerochat.app         com.zerochat.app                     I  AssetManager2(0x7b064ee65ed8) locale list changing from [] to [en-US]
+2026-03-30 16:57:59.624  6806-6806  ashmem                  com.zerochat.app                     E  Pinning is deprecated since Android Q. Please use trim or other methods.
+2026-03-30 16:57:59.646  6806-6806  MainActivity            com.zerochat.app                     D  onCreate() - orientation=1
+2026-03-30 16:57:59.652  6806-6826  EGL_emulation           com.zerochat.app                     I  Opening libGLESv1_CM_emulation.so
+2026-03-30 16:57:59.653  6806-6826  EGL_emulation           com.zerochat.app                     I  Opening libGLESv2_emulation.so
+2026-03-30 16:57:59.701  6806-6826  HWUI                    com.zerochat.app                     W  Failed to choose config with EGL_SWAP_BEHAVIOR_PRESERVED, retrying without...
+2026-03-30 16:57:59.701  6806-6826  HWUI                    com.zerochat.app                     W  Failed to initialize 101010-2 format, error = EGL_SUCCESS
+2026-03-30 16:57:59.701  6806-6806  DesktopModeFlags        com.zerochat.app                     D  Toggle override initialized to: OVERRIDE_UNSET
+2026-03-30 16:57:59.800  6806-6806  AppLifecycle            com.zerochat.app                     I  App entered foreground
+2026-03-30 16:57:59.800  6806-6806  AppLifecycle            com.zerochat.app                     I  Starting i2pd router eagerly (foreground optimization)
+2026-03-30 16:57:59.819  6806-6806  HWUI                    com.zerochat.app                     W  Unknown dataspace 0
+2026-03-30 16:57:59.841  6806-6806  I2PRouterService        com.zerochat.app                     D  onCreate() - starting on thread: main
+2026-03-30 16:57:59.854  6806-6806  I2PRouterService        com.zerochat.app                     I  Bootstrap wake lock acquired
+2026-03-30 16:57:59.864  6806-6823  I2PRouterService        com.zerochat.app                     I  NetDB decrypted from Keystore-protected storage
+2026-03-30 16:58:00.386  6806-6811  om.zerochat.app         com.zerochat.app                     I  Compiler allocated 5042KB to compile void android.view.ViewRootImpl.performTraversals()
+2026-03-30 16:58:00.728  6806-6806  CompatChangeReporter    com.zerochat.app                     D  Compat change id reported: 289878283; UID 10220; state: ENABLED
+2026-03-30 16:58:01.033  6806-6819  HWUI                    com.zerochat.app                     I  Davey! duration=1197ms; Flags=1, FrameTimelineVsyncId=265391, IntendedVsync=3272733865018, Vsync=3272750531684, InputEventId=0, HandleInputStart=3272765206500, AnimationStart=3272765281500, PerformTraversalsStart=3272765346800, DrawStart=3273842242600, FrameDeadline=3272750531684, FrameStartTime=3272765196900, FrameInterval=16666666, WorkloadTarget=16666666, SyncQueued=3273860239600, SyncStart=3273863631900, IssueDrawCommandsStart=3273863831900, SwapBuffers=3273929793000, FrameCompleted=3273934885000, DequeueBufferDuration=20000, QueueBufferDuration=253700, GpuCompleted=3273934885000, SwapBuffersCompleted=3273931140100, DisplayPresentTime=0, CommandSubmissionCompleted=3273929793000, 
+2026-03-30 16:58:01.042  6806-6806  Choreographer           com.zerochat.app                     I  Skipped 65 frames!  The application may be doing too much work on its main thread.
+2026-03-30 16:58:01.081  6806-6806  InsetsController        com.zerochat.app                     D  hide(ime(), fromIme=false)
+2026-03-30 16:58:01.081  6806-6806  ImeTracker              com.zerochat.app                     I  com.zerochat.app:bea8c855: onCancelled at PHASE_CLIENT_ALREADY_HIDDEN
+2026-03-30 16:58:01.084  6806-6817  HWUI                    com.zerochat.app                     I  Davey! duration=1135ms; Flags=0, FrameTimelineVsyncId=265413, IntendedVsync=3272850531680, Vsync=3273933864970, InputEventId=0, HandleInputStart=3273948897600, AnimationStart=3273949249900, PerformTraversalsStart=3273965861600, DrawStart=3273965984900, FrameDeadline=3273967198302, FrameStartTime=3273948373200, FrameInterval=16666666, WorkloadTarget=16666666, SyncQueued=3273967687500, SyncStart=3273967764000, IssueDrawCommandsStart=3273967866600, SwapBuffers=3273968821300, FrameCompleted=3273985829600, DequeueBufferDuration=25600, QueueBufferDuration=258500, GpuCompleted=3273985829600, SwapBuffersCompleted=3273970260600, DisplayPresentTime=0, CommandSubmissionCompleted=3273968821300, 
+2026-03-30 16:58:01.861  6806-6825  I2PRouterService        com.zerochat.app                     I  Restart window expired (300s), resetting counter
+2026-03-30 16:58:01.862  6806-6825  I2PRouterService        com.zerochat.app                     I  Copying i2pd assets to /data/user/0/com.zerochat.app/files/i2pd...
+2026-03-30 16:58:01.885  6806-6825  I2PRouterService        com.zerochat.app                     I  Assets copied successfully
+2026-03-30 16:58:01.887  6806-6825  I2PRouterService        com.zerochat.app                     D  i2pd.conf validated: file exists, contains reseed URLs
+2026-03-30 16:58:01.887  6806-6825  I2PRouterService        com.zerochat.app                     D  Loading native libraries...
+2026-03-30 16:58:01.913  6806-6825  nativeloader            com.zerochat.app                     D  Load /data/app/~~GKK84a5nb4B4izvAw11RAQ==/com.zerochat.app-6cTnDjSl79IOXEcEqqu1xA==/base.apk!/lib/x86_64/libi2pd.so using class loader ns clns-9 (caller=/data/app/~~GKK84a5nb4B4izvAw11RAQ==/com.zerochat.app-6cTnDjSl79IOXEcEqqu1xA==/base.apk!classes12.dex): ok
+2026-03-30 16:58:01.913  6806-6825  I2PRouterService        com.zerochat.app                     D  Loaded libraries successfully
+2026-03-30 16:58:01.913  6806-6825  I2PRouterService        com.zerochat.app                     I  Starting i2pd daemon (dataDir=/data/user/0/com.zerochat.app/files/i2pd)...
+2026-03-30 16:58:01.914  6806-6825  I2PRouterService        com.zerochat.app                     D  Config verified at /data/user/0/com.zerochat.app/files/i2pd/i2pd.conf, size=248
+2026-03-30 16:58:02.733  6806-6806  Compose Focus           com.zerochat.app                     D  Owner FocusChanged(true)
+2026-03-30 16:58:02.786  6806-6806  InsetsController        com.zerochat.app                     D  show(ime(), fromIme=false)
+2026-03-30 16:58:02.787  6806-6806  ImeTracker              com.zerochat.app                     I  com.zerochat.app:f818277: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT_BY_INSETS_API fromUser false
+2026-03-30 16:58:02.790  6806-6806  InsetsController        com.zerochat.app                     D  Setting requestedVisibleTypes to -1 (was -9)
+2026-03-30 16:58:02.810  6806-6806  RemoteInpu...ectionImpl com.zerochat.app                     W  requestCursorUpdates on inactive InputConnection
+2026-03-30 16:58:02.988  6806-6845  InteractionJankMonitor  com.zerochat.app                     W  Initializing without READ_DEVICE_CONFIG permission. enabled=false, interval=1, missedFrameThreshold=3, frameTimeThreshold=64, package=com.zerochat.app
+2026-03-30 16:58:03.216  6806-6806  ImeTracker              com.zerochat.app                     I  com.zerochat.app:f818277: onShown
+2026-03-30 16:58:05.169  6806-6847  ProfileInstaller        com.zerochat.app                     D  Installing profile for com.zerochat.app
+2026-03-30 16:58:14.222  6806-6806  InsetsController        com.zerochat.app                     D  hide(ime(), fromIme=false)
+2026-03-30 16:58:14.223  6806-6806  ImeTracker              com.zerochat.app                     I  com.zerochat.app:fca862ca: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT_BY_INSETS_API fromUser false
+2026-03-30 16:58:14.224  6806-6806  WindowOnBackDispatcher  com.zerochat.app                     W  sendCancelIfRunning: isInProgress=false callback=android.view.ImeBackAnimationController@b5b7fb2
+2026-03-30 16:58:14.224  6806-6806  InsetsController        com.zerochat.app                     D  Setting requestedVisibleTypes to -9 (was -1)
+2026-03-30 16:58:14.466  6806-6806  ImeTracker              com.zerochat.app                     I  system_server:704a9214: onCancelled at PHASE_CLIENT_ON_CONTROLS_CHANGED
+2026-03-30 16:58:18.039  6806-6825  I2PRouterService        com.zerochat.app                     I  i2pd daemon started successfully
+2026-03-30 16:58:18.040  6806-6825  I2PRouterService        com.zerochat.app                     I  i2pd daemon started. Waiting for SAM bridge...
+2026-03-30 16:58:18.044  6806-6825  I2PRouterService        com.zerochat.app                     I  Bootstrap wake lock released
+2026-03-30 16:58:18.047  6806-6825  I2PRouterService        com.zerochat.app                     I  ✓ SAM bridge is ready on 127.0.0.1:7656
+2026-03-30 16:58:18.047  6806-6825  I2PRouterService        com.zerochat.app                     I  Restart succeeded, resetting circuit-breaker counter
+2026-03-30 16:58:18.053  6806-6825  SamClient               com.zerochat.app                     D  HELLO reply: HELLO REPLY RESULT=OK VERSION=3.1
+2026-03-30 16:58:18.053  6806-6825  SamClient               com.zerochat.app                     D  Checking router tunnel readiness...
+2026-03-30 16:58:18.067  6806-6825  I2PRouterService        com.zerochat.app                     I  Router tunnel-ready after 1 checks (routers=882, floodfills=471, has tunnel activity)
+2026-03-30 16:58:18.067  6806-6825  SamClient               com.zerochat.app                     D  Router tunnel-ready, proceeding to SESSION CREATE
+2026-03-30 16:58:22.043  6806-6806  InsetsController        com.zerochat.app                     D  show(ime(), fromIme=false)
+2026-03-30 16:58:22.044  6806-6806  ImeTracker              com.zerochat.app                     I  com.zerochat.app:22d0a505: onRequestShow at ORIGIN_CLIENT reason SHOW_SOFT_INPUT_BY_INSETS_API fromUser false
+2026-03-30 16:58:22.044  6806-6806  InsetsController        com.zerochat.app                     D  Setting requestedVisibleTypes to -1 (was -9)
+2026-03-30 16:58:22.398  6806-6806  ImeTracker              com.zerochat.app                     I  com.zerochat.app:22d0a505: onShown
+2026-03-30 16:58:30.823  6806-6824  TransportController     com.zerochat.app                     I  Creating fresh transport
+2026-03-30 16:58:30.826  6806-6824  RealNymTransport        com.zerochat.app                     I  Attempting to connect to NYM mixnet...
+2026-03-30 16:58:30.855  6806-6824  RealNymTransport        com.zerochat.app                     I  Created NymTransportClient instance
+2026-03-30 16:58:30.857  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connecting to NYM public mainnet...
+2026-03-30 16:58:30.857  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetching gateways from SDK-compatible API (gateways_for_init)
+2026-03-30 16:58:30.858  6806-6824  NymTransport            com.zerochat.app                     I  nym_http_api_client::dns: building new configured resolver
+2026-03-30 16:58:30.908  6806-6806  InsetsController        com.zerochat.app                     D  hide(ime(), fromIme=false)
+2026-03-30 16:58:30.908  6806-6806  ImeTracker              com.zerochat.app                     I  com.zerochat.app:4edcf8d0: onRequestHide at ORIGIN_CLIENT reason HIDE_SOFT_INPUT_BY_INSETS_API fromUser false
+2026-03-30 16:58:30.909  6806-6806  WindowOnBackDispatcher  com.zerochat.app                     W  sendCancelIfRunning: isInProgress=false callback=android.view.ImeBackAnimationController@b5b7fb2
+2026-03-30 16:58:30.909  6806-6806  InsetsController        com.zerochat.app                     D  Setting requestedVisibleTypes to -9 (was -1)
+2026-03-30 16:58:31.153  6806-6806  ImeTracker              com.zerochat.app                     I  system_server:4309ddd9: onCancelled at PHASE_CLIENT_ON_CONTROLS_CHANGED
+2026-03-30 16:58:31.742  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 474 gateways
+2026-03-30 16:58:31.743  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 474 valid gateways after filtering
+2026-03-30 16:58:31.743  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: SDK reports 474 valid gateways
+2026-03-30 16:58:31.744  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetched 400 valid WSS gateways for deterministic selection (from 474 total)
+2026-03-30 16:58:31.744  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Main Gateway attempt 1/3: 9AHi1PfuFEH2XAM4czMpB7DbD389QQ4eCxTV87YeKZ2t (wss_port: 9001)
+2026-03-30 16:58:32.558  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 474 gateways
+2026-03-30 16:58:32.558  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 458 valid gateways after filtering
+2026-03-30 16:58:33.044  6806-6824  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=9AHi1PfuFEH2XAM4czMpB7DbD389QQ4eCxTV87YeKZ2t gateway_address=ws://pulse8.nymgateway.com:9000/
+2026-03-30 16:58:33.146  6806-6825  SamClient               com.zerochat.app                     D  SESSION reply: SESSION STATUS RESULT=OK DESTINATION=C2w47pFoOs6cSWVGSRX5QxtgLOgyAwbPfmjCQbB~COoLbDjukWg6zpxJZUZJFflDG2As6DIDBs9-aMJBsH8I6gtsOO6RaDrOnEllRkkV-UMbYCzoMgMGz35owkGwfwjqC2w47pFoOs6cSWVGSRX5QxtgLOgyAwbPfmjCQbB~COoLbDjukWg6zpxJZUZJFflDG2As6DIDBs9-aMJBsH8I6gtsOO6RaDrOnEllRkkV-UMbYCzoMgMGz35owkGwfwjqC2w47pFoOs6cSWVGSRX5QxtgLOgyAwbPfmjCQbB~COoLbDjukWg6zpxJZUZJFflDG2As6DIDBs9-aMJBsH8I6gtsOO6RaDrOnEllRkkV-UMbYCzoMgMGz35owkGwfwjqC2w47pFoOs6cSWVGSRX5QxtgLOgyAwbPfmjCQbB~COoLbDjukWg6zpxJZUZJFflDG2As6DIDBs9-aMJBsH8I6s2i-zNYXnhjJ5ggicTaXaned2lOg4HoWJCkmQanu5EzBQAEAAcAAGypWf9ENe1IWe~tCDbh3c64xFUIl1snVErtGBL0YR45hewTarJwDrC92DubD01Mg8Xt3XQIyGJLuQ5yZM-5~dPJ~0sP4Y3Mx8Y5FZPTzuguKnRE0HBYunXHIs3hUytuvuD-M2oS71Ca5Ial7HUSt8n6XQtbcn07r--tV7AOMRHxHJo6G2ZQNNEWJZRqt0ETMtxstwy5OvO~fX2NDi0srAaCWsdvVYACzSTeyX1AnwbO8GA83t~7Q9kjbZMXr4o96~fW9775FkN-xkLs9Jg2s5qfhc7Fc4WFX1QNOXHYDjVB90j2Vtm-lvmIUh7wdJwkVqGsuIRui2Y8GOvwoVF6~f~EWWuz1sxYEh-jbUPXrNPvAhvB7h9Hj~d4XtpvFU2cRg==
+2026-03-30 16:58:33.146  6806-6825  SamClient               com.zerochat.app                     I  ✓ SAM session created: zc-6a6f2ea1-0000
+2026-03-30 16:58:33.146  6806-6825  SamClient               com.zerochat.app                     I    Local destination: C2w47pFoOs6cSWVGSRX5QxtgLOgyAwbP...
+2026-03-30 16:58:33.146  6806-6825  I2PRouterService        com.zerochat.app                     I  ✓ Pre-warmed SAM session (destination cached, LeaseSet publishing)
+2026-03-30 16:58:33.148  6806-6823  I2PRouterService        com.zerochat.app                     I  Restart window expired (300s), resetting counter
+2026-03-30 16:58:33.149  6806-6823  I2PRouterService        com.zerochat.app                     I  Copying i2pd assets to /data/user/0/com.zerochat.app/files/i2pd...
+2026-03-30 16:58:33.177  6806-6823  I2PRouterService        com.zerochat.app                     I  Assets copied successfully
+2026-03-30 16:58:33.178  6806-6823  I2PRouterService        com.zerochat.app                     D  i2pd.conf validated: file exists, contains reseed URLs
+2026-03-30 16:58:33.178  6806-6823  I2PRouterService        com.zerochat.app                     D  Loading native libraries...
+2026-03-30 16:58:33.178  6806-6823  I2PRouterService        com.zerochat.app                     D  Loaded libraries successfully
+2026-03-30 16:58:33.178  6806-6823  I2PRouterService        com.zerochat.app                     I  Starting i2pd daemon (dataDir=/data/user/0/com.zerochat.app/files/i2pd)...
+2026-03-30 16:58:33.663  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting nym client
+2026-03-30 16:58:33.663  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Building nym-api client from provided URLs (with domain fronting support): 3 URLs
+2026-03-30 16:58:34.096  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting statistics control...
+2026-03-30 16:58:34.096  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Obtaining initial network topology
+2026-03-30 16:58:34.795  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting topology refresher...
+2026-03-30 16:58:34.795  6806-6824  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=9AHi1PfuFEH2XAM4czMpB7DbD389QQ4eCxTV87YeKZ2t gateway_address=ws://pulse8.nymgateway.com:9000/
+2026-03-30 16:58:35.371  6806-6824  NymTransport            com.zerochat.app                     I  nym_gateway_client::bandwidth: remaining bandwidth: 0.00 B. in 'upgrade mode': false
+2026-03-30 16:58:35.371  6806-6824  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: Claiming more bandwidth with existing credentials. Stop the process now if you don't want that to happen.
+2026-03-30 16:58:35.371  6806-6824  NymTransport            com.zerochat.app                     W  nym_gateway_client::client: Not enough bandwidth. Trying to get more bandwidth, this might take a while
+2026-03-30 16:58:35.371  6806-6824  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: The client is running in disabled credentials mode - attempting to claim bandwidth without a credential
+2026-03-30 16:58:35.517  6806-6824  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: managed to claim testnet bandwidth
+2026-03-30 16:58:35.517  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting received messages buffer controller...
+2026-03-30 16:58:35.518  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting mix traffic controller...
+2026-03-30 16:58:35.518  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting real traffic stream...
+2026-03-30 16:58:35.518  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting loop cover traffic stream...
+2026-03-30 16:58:35.519  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connected! Address: BnFeB1xUd7nf75n2D7dWPKxT8UB9M6uP3sooJhLJXNmv.AYAu6znw5sBLuRGt1AZGYZawK9kWfGkVXnK9BetD4mXX@9AHi1PfuFEH2XAM4czMpB7DbD389QQ4eCxTV87YeKZ2t
+2026-03-30 16:58:35.520  6806-6885  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Churn oracle started (2 Hz sampling)
+2026-03-30 16:58:35.520  6806-6824  RealNymTransport        com.zerochat.app                     I  Successfully connected! NYM Address: BnFeB1xUd7nf75n2D7dWPKxT8UB9M6uP3sooJhLJXNmv.AYAu6znw5sBLuRGt1AZGYZawK9kWfGkVXnK9BetD4mXX@9AHi1PfuFEH2XAM4czMpB7DbD389QQ4eCxTV87YeKZ2t
+2026-03-30 16:58:35.526  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport::tli: TLI lifecycle: Init → Rendezvous
+2026-03-30 16:58:35.530  6806-6824  ConnectionManager       com.zerochat.app                     I  TLI: Init → Rendezvous
+2026-03-30 16:58:35.532  6806-6824  RendezvousManager       com.zerochat.app                     I  Derived BASE rendezvous point: a7cd554370f1c589... (Epoch: 5916233)
+2026-03-30 16:58:35.533  6806-6824  ConnectionManager       com.zerochat.app                     I  derived rendezvous point: a7cd554370f1c589 (epoch: 5916233) (token: 961536bc...)
+2026-03-30 16:58:35.534  6806-6824  RendezvousManager       com.zerochat.app                     D  State Transition: IDLE -> CONNECTING
+2026-03-30 16:58:35.536  6806-6824  RendezvousManager       com.zerochat.app                     I  Attempting Slot A (e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660) with deterministic gateway auth...
+2026-03-30 16:58:35.537  6806-6824  RealNymTransport        com.zerochat.app                     I  Connecting to rendezvous point: e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660
+2026-03-30 16:58:35.539  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connecting to rendezvous point: e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660 (Deterministic Gateway)
+2026-03-30 16:58:35.540  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetching gateways from SDK-compatible API (gateways_for_init)
+2026-03-30 16:58:36.309  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 474 gateways
+2026-03-30 16:58:36.309  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 474 valid gateways after filtering
+2026-03-30 16:58:36.309  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: SDK reports 474 valid gateways
+2026-03-30 16:58:36.310  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetched 400 valid WSS gateways for deterministic selection (from 474 total)
+2026-03-30 16:58:36.311  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Cached 400 gateways (fresh fetch)
+2026-03-30 16:58:36.311  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Identity derived from base_id: e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660 (slot input: e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660)
+2026-03-30 16:58:36.311  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Rendezvous seed (Identity): d9de5b45641571cc5714a878990fd07d4dabd025305fb7185887cdd5c0704c02
+2026-03-30 16:58:36.311  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Selected Deterministic Gateway: 9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe (Index: 179/400)
+2026-03-30 16:58:36.311  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Derived public key (Identity): e131d9ec22f76d7b7bc4b3ea6037cd91c8aa686ed1db73874dbf28488ad6a817
+2026-03-30 16:58:36.311  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Deriving Encryption KeyPair (x25519)...
+2026-03-30 16:58:36.311  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Deterministic seeds zeroized
+2026-03-30 16:58:37.134  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 474 gateways
+2026-03-30 16:58:37.134  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 458 valid gateways after filtering
+2026-03-30 16:58:40.188  6806-6824  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe gateway_address=ws://nym-exit-ninjiana.bwnym.xyz:9000/
+2026-03-30 16:58:40.875  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting nym client
+2026-03-30 16:58:40.876  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Building nym-api client from provided URLs (with domain fronting support): 3 URLs
+2026-03-30 16:58:41.327  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting statistics control...
+2026-03-30 16:58:41.327  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Obtaining initial network topology
+2026-03-30 16:58:42.059  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting topology refresher...
+2026-03-30 16:58:42.059  6806-6824  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe gateway_address=ws://nym-exit-ninjiana.bwnym.xyz:9000/
+2026-03-30 16:58:42.685  6806-6824  NymTransport            com.zerochat.app                     E  nym_client_core::client::base_client: Could not authenticate and start up the gateway connection - gateway returned an error response: failed to verify provided address ciphertext
+2026-03-30 16:58:42.686  6806-6824  NymTransport            com.zerochat.app                     W  uniffi_nym_transport: Gateway 9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe connection failed: gateway client error (9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe): gateway returned an error response: failed to verify provided address ciphertext
+2026-03-30 16:58:42.690  6806-6824  RealNymTransport        com.zerochat.app                     E  Rendezvous connection failed (Ask Gemini)
+                                                                                                    uniffi.nym_transport.TransportException$ConnectionFailed: Connection failed: gateway client error (9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe): gateway client error (9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe): gateway returned an error response: failed to verify provided address ciphertext
+                                                                                                    	at uniffi.nym_transport.FfiConverterTypeTransportError.read(nym_transport.kt:1598)
+                                                                                                    	at uniffi.nym_transport.FfiConverterTypeTransportError.read(nym_transport.kt:1593)
+                                                                                                    	at uniffi.nym_transport.FfiConverter$DefaultImpls.liftFromRustBuffer(nym_transport.kt:177)
+                                                                                                    	at uniffi.nym_transport.FfiConverterRustBuffer$DefaultImpls.liftFromRustBuffer(nym_transport.kt:189)
+                                                                                                    	at uniffi.nym_transport.FfiConverterTypeTransportError.liftFromRustBuffer(nym_transport.kt:1593)
+                                                                                                    	at uniffi.nym_transport.FfiConverterTypeTransportError.liftFromRustBuffer(nym_transport.kt:1593)
+                                                                                                    	at uniffi.nym_transport.FfiConverterRustBuffer$DefaultImpls.lift(nym_transport.kt:190)
+                                                                                                    	at uniffi.nym_transport.FfiConverterTypeTransportError.lift(nym_transport.kt:1593)
+                                                                                                    	at uniffi.nym_transport.FfiConverterTypeTransportError.lift(nym_transport.kt:1593)
+                                                                                                    	at uniffi.nym_transport.TransportException$ErrorHandler.lift(nym_transport.kt:1589)
+                                                                                                    	at uniffi.nym_transport.TransportException$ErrorHandler.lift(nym_transport.kt:1588)
+                                                                                                    	at uniffi.nym_transport.Nym_transportKt.checkCallStatus(nym_transport.kt:240)
+                                                                                                    	at uniffi.nym_transport.Nym_transportKt.access$checkCallStatus(nym_transport.kt:1)
+                                                                                                    	at uniffi.nym_transport.NymTransportClient.connectRendezvous(nym_transport.kt:1854)
+                                                                                                    	at com.zerochat.app.domain.transport.RealNymTransport.connectRendezvous-gIAlu-s(RealNymTransport.kt:99)
+                                                                                                    	at com.zerochat.app.domain.rendezvous.RendezvousManager$connect$2$resultA$1.invokeSuspend(RendezvousManager.kt:260)
+                                                                                                    	at com.zerochat.app.domain.rendezvous.RendezvousManager$connect$2$resultA$1.invoke(Unknown Source:8)
+                                                                                                    	at com.zerochat.app.domain.rendezvous.RendezvousManager$connect$2$resultA$1.invoke(Unknown Source:4)
+                                                                                                    	at com.zerochat.app.domain.transport.TransportController.withTransport(TransportController.kt:59)
+                                                                                                    	at com.zerochat.app.domain.rendezvous.RendezvousManager.connect-gIAlu-s(RendezvousManager.kt:260)
+                                                                                                    	at com.zerochat.app.domain.connection.ConnectionManager$connect$1.invokeSuspend(ConnectionManager.kt:110)
+                                                                                                    	at com.zerochat.app.domain.connection.ConnectionManager$connect$1.invoke(Unknown Source:8)
+                                                                                                    	at com.zerochat.app.domain.connection.ConnectionManager$connect$1.invoke(Unknown Source:4)
+                                                                                                    	at kotlinx.coroutines.flow.SafeFlow.collectSafely(Builders.kt:61)
+                                                                                                    	at kotlinx.coroutines.flow.AbstractFlow.collect(Flow.kt:230)
+                                                                                                    	at kotlinx.coroutines.flow.internal.ChannelFlowOperatorImpl.flowCollect(ChannelFlow.kt:195)
+                                                                                                    	at kotlinx.coroutines.flow.internal.ChannelFlowOperator.collectTo$suspendImpl(ChannelFlow.kt:157)
+                                                                                                    	at kotlinx.coroutines.flow.internal.ChannelFlowOperator.collectTo(Unknown Source:0)
+                                                                                                    	at kotlinx.coroutines.flow.internal.ChannelFlow$collectToFun$1.invokeSuspend(ChannelFlow.kt:60)
+                                                                                                    	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+                                                                                                    	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:108)
+                                                                                                    	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:115)
+                                                                                                    	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:103)
+                                                                                                    	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
+                                                                                                    	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:793)
+                                                                                                    	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:697)
+                                                                                                    	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:684)
+2026-03-30 16:58:42.690  6806-6824  RendezvousManager       com.zerochat.app                     W  Slot A failed: Connection failed: gateway client error (9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe): gateway client error (9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe): gateway returned an error response: failed to verify provided address ciphertext
+2026-03-30 16:58:42.693  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Disconnecting rendezvous point: e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660
+2026-03-30 16:58:42.693  6806-6824  NymTransport            com.zerochat.app                     W  uniffi_nym_transport: No rendezvous client found to disconnect for e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660
+2026-03-30 16:58:42.693  6806-6824  RealNymTransport        com.zerochat.app                     I  Rendezvous client disconnected: e917e05d9289ce207e3a8cfa8d5a448246f6fa630a0bf90a73ae14c5bdfd9660
+2026-03-30 16:58:42.693  6806-6824  RendezvousManager       com.zerochat.app                     I  Draining Slot A connection. Waiting 300ms...
+2026-03-30 16:58:42.994  6806-6824  RendezvousManager       com.zerochat.app                     I  Drain complete. Attempting Slot B (c68a7535386b0ab7c72cdc1eb61818f7255499afa0965dd9d106a30e6d0db742) with deterministic gateway auth...
+2026-03-30 16:58:42.995  6806-6824  RealNymTransport        com.zerochat.app                     I  Connecting to rendezvous point: c68a7535386b0ab7c72cdc1eb61818f7255499afa0965dd9d106a30e6d0db742
+2026-03-30 16:58:42.996  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connecting to rendezvous point: c68a7535386b0ab7c72cdc1eb61818f7255499afa0965dd9d106a30e6d0db742 (Deterministic Gateway)
+2026-03-30 16:58:42.996  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Using cached gateway list (400 gateways, age: 6.6852725s)
+2026-03-30 16:58:42.996  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Identity derived from base_id: c68a7535386b0ab7c72cdc1eb61818f7255499afa0965dd9d106a30e6d0db742 (slot input: c68a7535386b0ab7c72cdc1eb61818f7255499afa0965dd9d106a30e6d0db742)
+2026-03-30 16:58:42.996  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Rendezvous seed (Identity): 5d13c39e7970ea0c53ae47ad0113c334d018506f7c678a0f9c5c2bed5f783d96
+2026-03-30 16:58:42.996  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Selected Deterministic Gateway: 8Jzd9BN751rH8WTMy7QzZBA2dX1oAK8rC37UJPWpn8FZ (Index: 154/400)
+2026-03-30 16:58:42.996  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Derived public key (Identity): c32f42e6a37e2b33185e6a2e7437c86cd1592ecaeeb72dce382af705e5f0a737
+2026-03-30 16:58:42.996  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Deriving Encryption KeyPair (x25519)...
+2026-03-30 16:58:42.996  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Deterministic seeds zeroized
+2026-03-30 16:58:43.741  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 474 gateways
+2026-03-30 16:58:43.741  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 458 valid gateways after filtering
+2026-03-30 16:58:46.275  6806-6824  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=8Jzd9BN751rH8WTMy7QzZBA2dX1oAK8rC37UJPWpn8FZ gateway_address=ws://exit-node.finland-1.nym.cat:9000/
+2026-03-30 16:58:46.933  6806-6824  NymTransport            com.zerochat.app                     W  nym_gateway_client::traits: Received message of unexpected size. Probably from an outdated client... len: 1673
+2026-03-30 16:58:46.933  6806-6824  NymTransport            com.zerochat.app                     E  nym_gateway_client::packet_router: Failed to send mixnet message (receiver gone): send failed because receiver is gone
+2026-03-30 16:58:46.933  6806-6824  NymTransport            com.zerochat.app                     E  nym_gateway_client::traits: failed to route received messages: this operation couldn't be completed as the program is in the process of shutting down
+2026-03-30 16:58:46.933  6806-6824  NymTransport            com.zerochat.app                     W  nym_gateway_client::client: Route received failed: this operation couldn't be completed as the program is in the process of shutting down
+2026-03-30 16:58:46.934  6806-6824  NymTransport            com.zerochat.app                     W  nym_gateway_client::traits: Received message of unexpected size. Probably from an outdated client... len: 1673
+2026-03-30 16:58:46.934  6806-6824  NymTransport            com.zerochat.app                     E  nym_gateway_client::packet_router: Failed to send mixnet message (receiver gone): send failed because receiver is gone
+2026-03-30 16:58:46.934  6806-6824  NymTransport            com.zerochat.app                     E  nym_gateway_client::traits: failed to route received messages: this operation couldn't be completed as the program is in the process of shutting down
+2026-03-30 16:58:46.934  6806-6824  NymTransport            com.zerochat.app                     W  nym_gateway_client::client: Route received failed: this operation couldn't be completed as the program is in the process of shutting down
+2026-03-30 16:58:46.934  6806-6824  NymTransport            com.zerochat.app                     W  nym_gateway_client::traits: Received message of unexpected size. Probably from an outdated client... len: 1673
+2026-03-30 16:58:46.934  6806-6824  NymTransport            com.zerochat.app                     E  nym_gateway_client::packet_router: Failed to send mixnet message (receiver gone): send failed because receiver is gone
+2026-03-30 16:58:46.934  6806-6824  NymTransport            com.zerochat.app                     E  nym_gateway_client::traits: failed to route received messages: this operation couldn't be completed as the program is in the process of shutting down
+2026-03-30 16:58:46.934  6806-6824  NymTransport            com.zerochat.app                     W  nym_gateway_client::client: Route received failed: this operation couldn't be completed as the program is in the process of shutting down
+2026-03-30 16:58:47.137  6806-6824  NymTransport            com.zerochat.app                     W  nym_gateway_client::traits: Received message of unexpected size. Probably from an outdated client... len: 1673
+2026-03-30 16:58:47.137  6806-6824  NymTransport            com.zerochat.app                     E  nym_gateway_client::packet_router: Failed to send mixnet message (receiver gone): send failed because receiver is gone
+2026-03-30 16:58:47.137  6806-6824  NymTransport            com.zerochat.app                     E  nym_gateway_client::traits: failed to route received messages: this operation couldn't be completed as the program is in the process of shutting down
+2026-03-30 16:58:47.137  6806-6824  NymTransport            com.zerochat.app                     W  nym_gateway_client::client: Route received failed: this operation couldn't be completed as the program is in the process of shutting down
+2026-03-30 16:58:47.137  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting nym client
+2026-03-30 16:58:47.138  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Building nym-api client from provided URLs (with domain fronting support): 3 URLs
+2026-03-30 16:58:47.594  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting statistics control...
+2026-03-30 16:58:47.594  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Obtaining initial network topology
+2026-03-30 16:58:48.365  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting topology refresher...
+2026-03-30 16:58:48.365  6806-6824  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=8Jzd9BN751rH8WTMy7QzZBA2dX1oAK8rC37UJPWpn8FZ gateway_address=ws://exit-node.finland-1.nym.cat:9000/
+2026-03-30 16:58:49.278  6806-6824  NymTransport            com.zerochat.app                     I  nym_gateway_client::bandwidth: remaining bandwidth: 0.00 B. in 'upgrade mode': false
+2026-03-30 16:58:49.278  6806-6824  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: Claiming more bandwidth with existing credentials. Stop the process now if you don't want that to happen.
+2026-03-30 16:58:49.278  6806-6824  NymTransport            com.zerochat.app                     W  nym_gateway_client::client: Not enough bandwidth. Trying to get more bandwidth, this might take a while
+2026-03-30 16:58:49.278  6806-6824  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: The client is running in disabled credentials mode - attempting to claim bandwidth without a credential
+2026-03-30 16:58:49.491  6806-6824  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: managed to claim testnet bandwidth
+2026-03-30 16:58:49.492  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting received messages buffer controller...
+2026-03-30 16:58:49.492  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting mix traffic controller...
+2026-03-30 16:58:49.492  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting real traffic stream...
+2026-03-30 16:58:49.492  6806-6824  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting loop cover traffic stream...
+2026-03-30 16:58:49.994  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connected Deterministic Mailbox Client! Address: E8vJMbMk2wopxm6itnAbyCr96dzoBQKSm2hkmA5eNpht.9XgpBsBaBtavYTVD7hDTm5ds34Jg9e5P88mT3d2tCRcn@8Jzd9BN751rH8WTMy7QzZBA2dX1oAK8rC37UJPWpn8FZ
+2026-03-30 16:58:49.995  6806-6824  RealNymTransport        com.zerochat.app                     I  Rendezvous connected: E8vJMbMk2wopxm6itnAbyCr96dzoBQKSm2hkmA5eNpht.9XgpBsBaBtavYTVD7hDTm5ds34Jg9e5P88mT3d2tCRcn@8Jzd9BN751rH8WTMy7QzZBA2dX1oAK8rC37UJPWpn8FZ
+2026-03-30 16:58:49.995  6806-6824  RendezvousManager       com.zerochat.app                     I  ROLE assigned: RESPONDER (connected to Slot B)
+2026-03-30 16:58:49.996  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Using cached gateway list (400 gateways, age: 13.685664s)
+2026-03-30 16:58:49.997  6806-6824  RendezvousManager       com.zerochat.app                     I  Connected to Slot B. Peer (Slot A) Address: GA4pbqy9C8oZ3UfEY9ZeUBczyMKQbYggf8d5WqPHMX7c.9cRMLQL3VnpEcKrAvo7tEU4m9iMFvnadrqsVQCHbXrvq@9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe
+2026-03-30 16:58:49.997  6806-6824  RendezvousManager       com.zerochat.app                     D  State Transition: CONNECTING -> CONNECTED
+2026-03-30 16:58:49.997  6806-6824  RendezvousManager       com.zerochat.app                     I  obfs4 context marked as ready
+2026-03-30 16:58:49.997  6806-6824  RendezvousManager       com.zerochat.app                     I  Derived temporary obfs4_state from deterministic seed: 2dc3b35cb9d53239 (first 8 bytes)
+2026-03-30 16:58:49.998  6806-6824  RendezvousManager       com.zerochat.app                     I  obfs4_state set: first 8 bytes = 2dc3b35cb9d53239 (CHANGED from null)
+2026-03-30 16:58:49.999  6806-6824  ConnectionManager       com.zerochat.app                     I  Connected to slot. Proceeding to nonce exchange.
+2026-03-30 16:58:50.000  6806-6824  ConnectionManager       com.zerochat.app                     I  ROLE: RESPONDER (mySlot=B myId=c68a7535...)
+2026-03-30 16:58:50.003  6806-6824  RendezvousManager       com.zerochat.app                     D  State Transition: CONNECTED -> POLLING
+2026-03-30 16:58:50.003  6806-6824  RendezvousManager       com.zerochat.app                     I  POLLING my slot: c68a7535386b0ab7... (Strict Mode)
+2026-03-30 16:58:54.275  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: poll_rendezvous: Received message from NYM SDK: 1452 bytes
+2026-03-30 16:58:54.275  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Polled 1 messages total for rendezvous c68a7535386b0ab7c72cdc1eb61818f7255499afa0965dd9d106a30e6d0db742
+2026-03-30 16:58:54.282  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D  Initialized with obfs4_state[0..7]=2dc3b35cb9d53239 (full 64 bytes)
+2026-03-30 16:58:54.282  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D    nonce_seed[0..7]=fc316bc575aa407b
+2026-03-30 16:58:54.285  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D  Unpadded frame: removed 1389 zero bytes (length_field=59, total=63)
+2026-03-30 16:58:54.286  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D  ✅ Decrypted frame: 43 bytes (counter=1, ciphertext_size=59)
+2026-03-30 16:58:54.288  6806-6824  RendezvousManager       com.zerochat.app                     I  ACCEPTED PEER MESSAGE (Type=0x00)
+2026-03-30 16:58:54.289  6806-6824  Obfs4FrameWrapper       com.zerochat.app                     D  Initialized with obfs4_state[0..7]=2dc3b35cb9d53239 (full 64 bytes)
+2026-03-30 16:58:54.289  6806-6824  Obfs4FrameWrapper       com.zerochat.app                     D    nonce_seed[0..7]=fc316bc575aa407b
+2026-03-30 16:58:54.290  6806-6824  Obfs4FrameWrapper       com.zerochat.app                     D  Encrypted frame: counter=1, plaintext=43 bytes, ciphertext=59 bytes, with_length_field=63 bytes
+2026-03-30 16:58:54.290  6806-6824  RendezvousManager       com.zerochat.app                     D  Publishing encrypted payload: 43 bytes (plaintext) → 63 bytes (ciphertext)
+2026-03-30 16:58:54.292  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (63 bytes, padded to 1452)
+2026-03-30 16:58:54.292  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Message sent successfully (obfs4-obfuscated and padded)
+2026-03-30 16:58:54.292  6806-6885  NymTransport            com.zerochat.app                     I  nym_client_core::client::real_messages_control::message_handler: using Pz7h89YnMjiVSqZ36DaxGH for all anonymous messages sent to GA4pbqy9C8oZ3UfEY9ZeUBczyMKQbYggf8d5WqPHMX7c.9cRMLQL3VnpEcKrAvo7tEU4m9iMFvnadrqsVQCHbXrvq@9Mhzo8vTY5QNdb8qJHL97L5MpsAqdzwWzwPUHMBp5eUe
+2026-03-30 16:58:54.293  6806-6824  RendezvousManager       com.zerochat.app                     D  State Transition: POLLING -> POLLING
+2026-03-30 16:58:54.293  6806-6824  RendezvousManager       com.zerochat.app                     I  POLLING my slot: c68a7535386b0ab7... (Strict Mode)
+2026-03-30 16:59:00.464  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: poll_rendezvous: Received message from NYM SDK: 1452 bytes
+2026-03-30 16:59:00.464  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Polled 1 messages total for rendezvous c68a7535386b0ab7c72cdc1eb61818f7255499afa0965dd9d106a30e6d0db742
+2026-03-30 16:59:00.466  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D  Initialized with obfs4_state[0..7]=2dc3b35cb9d53239 (full 64 bytes)
+2026-03-30 16:59:00.467  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D    nonce_seed[0..7]=fc316bc575aa407b
+2026-03-30 16:59:00.468  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D  Unpadded frame: removed 1372 zero bytes (length_field=76, total=80)
+2026-03-30 16:59:00.468  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D  ✅ Decrypted frame: 60 bytes (counter=1, ciphertext_size=76)
+2026-03-30 16:59:00.469  6806-6824  RendezvousManager       com.zerochat.app                     I  ACCEPTED PEER MESSAGE (Type=0x01)
+2026-03-30 16:59:00.469  6806-6824  HandshakeManager        com.zerochat.app                     I  Processing SPAKE2+ handshake as responder
+2026-03-30 16:59:00.471  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport::spake2: Starting SPAKE2+ as responder
+2026-03-30 16:59:00.472  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport::session_store: Session stored with handle 7603666537356756010 (1 active), obfs4_state derived
+2026-03-30 16:59:00.472  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport::spake2: SPAKE2+ responder complete. Session handle: 7603666537356756010
+2026-03-30 16:59:00.473  6806-6824  HandshakeManager        com.zerochat.app                     I  Handshake complete! Session handle: 7603666537356756010
+2026-03-30 16:59:00.473  6806-6824  Obfs4FrameWrapper       com.zerochat.app                     D  Initialized with obfs4_state[0..7]=2dc3b35cb9d53239 (full 64 bytes)
+2026-03-30 16:59:00.473  6806-6824  Obfs4FrameWrapper       com.zerochat.app                     D    nonce_seed[0..7]=fc316bc575aa407b
+2026-03-30 16:59:00.474  6806-6824  Obfs4FrameWrapper       com.zerochat.app                     D  Encrypted frame: counter=1, plaintext=60 bytes, ciphertext=76 bytes, with_length_field=80 bytes
+2026-03-30 16:59:00.474  6806-6824  RendezvousManager       com.zerochat.app                     D  Publishing encrypted payload: 60 bytes (plaintext) → 80 bytes (ciphertext)
+2026-03-30 16:59:00.475  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (80 bytes, padded to 1452)
+2026-03-30 16:59:00.475  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Message sent successfully (obfs4-obfuscated and padded)
+2026-03-30 16:59:00.476  6806-6824  ConnectionManager       com.zerochat.app                     I  ✓ Handshake complete!
+2026-03-30 16:59:00.478  6806-6824  HandshakeManager        com.zerochat.app                     I  Generated confirmation for role: 1
+2026-03-30 16:59:00.478  6806-6824  Obfs4FrameWrapper       com.zerochat.app                     D  Initialized with obfs4_state[0..7]=2dc3b35cb9d53239 (full 64 bytes)
+2026-03-30 16:59:00.478  6806-6824  Obfs4FrameWrapper       com.zerochat.app                     D    nonce_seed[0..7]=fc316bc575aa407b
+2026-03-30 16:59:00.479  6806-6824  Obfs4FrameWrapper       com.zerochat.app                     D  Encrypted frame: counter=1, plaintext=59 bytes, ciphertext=75 bytes, with_length_field=79 bytes
+2026-03-30 16:59:00.479  6806-6824  RendezvousManager       com.zerochat.app                     D  Publishing encrypted payload: 59 bytes (plaintext) → 79 bytes (ciphertext)
+2026-03-30 16:59:00.480  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (79 bytes, padded to 1452)
+2026-03-30 16:59:00.481  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Message sent successfully (obfs4-obfuscated and padded)
+2026-03-30 16:59:00.481  6806-6824  RendezvousManager       com.zerochat.app                     D  State Transition: POLLING -> POLLING
+2026-03-30 16:59:00.481  6806-6824  RendezvousManager       com.zerochat.app                     I  POLLING my slot: c68a7535386b0ab7... (Strict Mode)
+2026-03-30 16:59:00.523  6806-6888  NymTransport            com.zerochat.app                     I  nym_client_core::client::real_messages_control::real_traffic_stream: Packet backlog: General: 6, avg delay: 20ms (1)
+2026-03-30 16:59:04.749  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: poll_rendezvous: Received message from NYM SDK: 1452 bytes
+2026-03-30 16:59:04.749  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Polled 1 messages total for rendezvous c68a7535386b0ab7c72cdc1eb61818f7255499afa0965dd9d106a30e6d0db742
+2026-03-30 16:59:04.752  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D  Initialized with obfs4_state[0..7]=2dc3b35cb9d53239 (full 64 bytes)
+2026-03-30 16:59:04.752  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D    nonce_seed[0..7]=fc316bc575aa407b
+2026-03-30 16:59:04.754  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D  Unpadded frame: removed 1373 zero bytes (length_field=75, total=79)
+2026-03-30 16:59:04.754  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D  ✅ Decrypted frame: 59 bytes (counter=1, ciphertext_size=75)
+2026-03-30 16:59:04.754  6806-6824  RendezvousManager       com.zerochat.app                     I  ACCEPTED PEER MESSAGE (Type=0x03)
+2026-03-30 16:59:04.757  6806-6824  HandshakeManager        com.zerochat.app                     I  ✓ Peer confirmation verified for role: 0
+2026-03-30 16:59:04.759  6806-6824  ConnectionManager       com.zerochat.app                     I  🔄 SPAKE2+ handshake complete. Switching obfs4_state to final: f922b442dac13755 (role=RESPONDER)
+2026-03-30 16:59:04.759  6806-6824  RendezvousManager       com.zerochat.app                     I  obfs4_state set: first 8 bytes = f922b442dac13755 (CHANGED from 2dc3b35cb9d53239)
+2026-03-30 16:59:04.759  6806-6824  RendezvousManager       com.zerochat.app                     W  ⚠️ obfs4_state SWITCHED (race condition risk): 2dc3b35cb9d53239 → f922b442dac13755
+2026-03-30 16:59:04.759  6806-6824  System.err              com.zerochat.app                     W  java.lang.Exception: Stack trace
+2026-03-30 16:59:04.760  6806-6824  System.err              com.zerochat.app                     W  	at java.lang.Thread.dumpStack(Thread.java:1727)
+2026-03-30 16:59:04.760  6806-6824  System.err              com.zerochat.app                     W  	at com.zerochat.app.domain.rendezvous.RendezvousManager.setObfs4State(RendezvousManager.kt:116)
+2026-03-30 16:59:04.760  6806-6824  System.err              com.zerochat.app                     W  	at com.zerochat.app.domain.connection.ConnectionManager$connect$1.invokeSuspend(ConnectionManager.kt:313)
+2026-03-30 16:59:04.760  6806-6824  System.err              com.zerochat.app                     W  	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+2026-03-30 16:59:04.760  6806-6824  System.err              com.zerochat.app                     W  	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:108)
+2026-03-30 16:59:04.760  6806-6824  System.err              com.zerochat.app                     W  	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:115)
+2026-03-30 16:59:04.760  6806-6824  System.err              com.zerochat.app                     W  	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:103)
+2026-03-30 16:59:04.760  6806-6824  System.err              com.zerochat.app                     W  	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
+2026-03-30 16:59:04.760  6806-6824  System.err              com.zerochat.app                     W  	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:793)
+2026-03-30 16:59:04.760  6806-6824  System.err              com.zerochat.app                     W  	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:697)
+2026-03-30 16:59:04.761  6806-6824  System.err              com.zerochat.app                     W  	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:684)
+2026-03-30 16:59:04.761  6806-6824  ConnectionManager       com.zerochat.app                     I  ✅ obfs4_state retrieved and passed to RendezvousManager (64 bytes)
+2026-03-30 16:59:04.761  6806-6824  RendezvousManager       com.zerochat.app                     I  Epoch frozen after handshake.
+2026-03-30 16:59:04.762  6806-6824  ConnectionManager       com.zerochat.app                     I  Waiting for I2P router to be ready...
+2026-03-30 16:59:04.762  6806-6824  ConnectionManager       com.zerochat.app                     I  ✓ I2P router ready
+2026-03-30 16:59:04.784  6806-6824  SamClient               com.zerochat.app                     D  HELLO reply: HELLO REPLY RESULT=OK VERSION=3.1
+2026-03-30 16:59:04.784  6806-6824  SamClient               com.zerochat.app                     D  Checking router tunnel readiness...
+2026-03-30 16:59:04.794  6806-6824  I2PRouterService        com.zerochat.app                     I  Router tunnel-ready after 1 checks (routers=886, floodfills=473, has tunnel activity)
+2026-03-30 16:59:04.794  6806-6824  SamClient               com.zerochat.app                     D  Router tunnel-ready, proceeding to SESSION CREATE
+2026-03-30 16:59:04.800  6806-6824  SamClient               com.zerochat.app                     D  SESSION reply: SESSION STATUS RESULT=DUPLICATED_ID
+2026-03-30 16:59:04.801  6806-6824  SamClient               com.zerochat.app                     W  SESSION DUPLICATED_ID for zc-6a6f2ea1-0000, retrying with new ID
+2026-03-30 16:59:05.815  6806-6824  SamClient               com.zerochat.app                     D  HELLO reply: HELLO REPLY RESULT=OK VERSION=3.1
+2026-03-30 16:59:05.816  6806-6824  SamClient               com.zerochat.app                     D  Checking router tunnel readiness...
+2026-03-30 16:59:05.829  6806-6824  I2PRouterService        com.zerochat.app                     I  Router tunnel-ready after 1 checks (routers=886, floodfills=473, has tunnel activity)
+2026-03-30 16:59:05.829  6806-6824  SamClient               com.zerochat.app                     D  Router tunnel-ready, proceeding to SESSION CREATE
+2026-03-30 16:59:20.924  6806-6824  SamClient               com.zerochat.app                     D  SESSION reply: SESSION STATUS RESULT=OK DESTINATION=BgN92jf1HfkWVLwqZjT2oMVmcvw2Ye3PDsMunCV6fOkGA33aN~Ud-RZUvCpmNPagxWZy~DZh7c8Owy6cJXp86QYDfdo39R35FlS8KmY09qDFZnL8NmHtzw7DLpwlenzpBgN92jf1HfkWVLwqZjT2oMVmcvw2Ye3PDsMunCV6fOkGA33aN~Ud-RZUvCpmNPagxWZy~DZh7c8Owy6cJXp86QYDfdo39R35FlS8KmY09qDFZnL8NmHtzw7DLpwlenzpBgN92jf1HfkWVLwqZjT2oMVmcvw2Ye3PDsMunCV6fOkGA33aN~Ud-RZUvCpmNPagxWZy~DZh7c8Owy6cJXp86QYDfdo39R35FlS8KmY09qDFZnL8NmHtzw7DLpwlenzpBgN92jf1HfkWVLwqZjT2oMVmcvw2Ye3PDsMunCV6fOkGA33aN~Ud-RZUvCpmNPagxWZy~DZh7c8Owy6cJXp86aqd4LWdgcwYekiB2yWLE4Zgh6X6XLTaxJapN4WUBQlQBQAEAAcAAK8ekcRbHDlskhQ7MC3zPHpyRKHnRfXPe0UbLI12ApQNCHuFMG-actwo626Us352p29H-jasQrWGOdAPS-AkOoOvOYgLzV1Vdz1ufxvKRxFFeXR2AFZZieoAWZojQFfx0yX6elOPaaABHJ0z6faRLouYoz0JvpWv3LizT9Tt-tb-wJTtDQzFgzdwHUFqAs8eaAtZ-lLog-Hs6Iy-8DNHAQgOa1jQz16esC4h3l8bc~cgBVZdWruz0nyEufOkGZ2mc7jva1lqrzGJ-vlD-eE5qk0sooq2ZrEvnfH20lzxXXs5SUvEfQS-8ZUWiLPtZiwPyqYNMbZMFm3HNnOsY0FYCykkrmZEOqvjbmEIuXAzADugUd2glrdefRsI~yTRCMNtUQ==
+2026-03-30 16:59:20.924  6806-6824  SamClient               com.zerochat.app                     I  ✓ SAM session created: zc-6a6f2ea1-0001
+2026-03-30 16:59:20.924  6806-6824  SamClient               com.zerochat.app                     I    Local destination: BgN92jf1HfkWVLwqZjT2oMVmcvw2Ye3P...
+2026-03-30 16:59:20.935  6806-6824  Obfs4FrameWrapper       com.zerochat.app                     D  Initialized with obfs4_state[0..7]=f922b442dac13755 (full 64 bytes)
+2026-03-30 16:59:20.935  6806-6824  Obfs4FrameWrapper       com.zerochat.app                     D    nonce_seed[0..7]=1d2391e8ac898080
+2026-03-30 16:59:20.937  6806-6824  Obfs4FrameWrapper       com.zerochat.app                     D  Encrypted frame: counter=1, plaintext=975 bytes, ciphertext=991 bytes, with_length_field=995 bytes
+2026-03-30 16:59:20.937  6806-6824  RendezvousManager       com.zerochat.app                     D  Publishing encrypted payload: 975 bytes (plaintext) → 995 bytes (ciphertext)
+2026-03-30 16:59:20.941  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (995 bytes, padded to 1452)
+2026-03-30 16:59:20.941  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Message sent successfully (obfs4-obfuscated and padded)
+2026-03-30 16:59:20.942  6806-6824  RendezvousManager       com.zerochat.app                     D  State Transition: POLLING -> POLLING
+2026-03-30 16:59:20.942  6806-6824  RendezvousManager       com.zerochat.app                     I  POLLING my slot: c68a7535386b0ab7... (Strict Mode)
+2026-03-30 16:59:20.996  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: poll_rendezvous: Received message from NYM SDK: 1452 bytes
+2026-03-30 16:59:20.996  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Polled 1 messages total for rendezvous c68a7535386b0ab7c72cdc1eb61818f7255499afa0965dd9d106a30e6d0db742
+2026-03-30 16:59:20.997  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D  Initialized with obfs4_state[0..7]=f922b442dac13755 (full 64 bytes)
+2026-03-30 16:59:20.997  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D    nonce_seed[0..7]=1d2391e8ac898080
+2026-03-30 16:59:20.999  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D  Unpadded frame: removed 457 zero bytes (length_field=991, total=995)
+2026-03-30 16:59:20.999  6806-6824  Obfs4FrameUnwrapper     com.zerochat.app                     D  ✅ Decrypted frame: 975 bytes (counter=1, ciphertext_size=991)
+2026-03-30 16:59:21.005  6806-6824  RendezvousManager       com.zerochat.app                     I  ACCEPTED PEER MESSAGE (Type=0x04)
+2026-03-30 16:59:21.011  6806-6824  ConnectionManager       com.zerochat.app                     I  ✓ Peer I2P destination received: DF31O9aB1JlfvpPZyMiNcN9w4BkApdqj...
+2026-03-30 16:59:21.011  6806-6824  RendezvousManager       com.zerochat.app                     I  🔥 TEARDOWN: Cleanup rendezvous session...
+2026-03-30 16:59:21.011  6806-6824  RendezvousManager       com.zerochat.app                     D  State Transition: POLLING -> TEARDOWN
+2026-03-30 16:59:21.011  6806-6824  RendezvousManager       com.zerochat.app                     D  State Transition: TEARDOWN -> IDLE
+2026-03-30 16:59:21.011  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport::tli: TLI lifecycle: Rendezvous → Hardened
+2026-03-30 16:59:21.012  6806-6824  ConnectionManager       com.zerochat.app                     I  TLI: Rendezvous → Hardened
+2026-03-30 16:59:21.012  6806-6824  HybridTransport         com.zerochat.app                     I  I2P ready — stochastic migration delay: 39s (U[5,40]s)
+2026-03-30 16:59:21.013  6806-6824  ConnectionManager       com.zerochat.app                     I  Establishing I2P stream (role=RESPONDER)...
+2026-03-30 16:59:21.017  6806-6824  SamClient               com.zerochat.app                     I  STREAM ACCEPT waiting for incoming connection...
+2026-03-30 16:59:21.026  6806-6824  SamClient               com.zerochat.app                     D  STREAM ACCEPT reply: STREAM STATUS RESULT=OK
+2026-03-30 16:59:28.059  6806-6824  SamClient               com.zerochat.app                     I  ✓ Inbound stream accepted from: DF31O9aB1JlfvpPZyMiNcN9w4BkApdqj...
+2026-03-30 16:59:28.060  6806-6824  ConnectionManager       com.zerochat.app                     I  I2P inbound stream accepted
+2026-03-30 16:59:28.060  6806-6824  ConnectionManager       com.zerochat.app                     I  ✓ I2P stream established!
+2026-03-30 16:59:28.062  6806-6824  ConnectionManager       com.zerochat.app                     I  Thermal monitoring enabled (throttle at 82°C)
+2026-03-30 16:59:28.063  6806-6823  ThermalMonitor          com.zerochat.app                     I  Thermal monitoring started (throttle=82°C, resume=78°C)
+2026-03-30 16:59:28.064  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport::cover_traffic: Cover traffic started (λ_min=0.1036)
+2026-03-30 16:59:28.064  6806-6824  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Cover traffic started (λ_min=3.0590)
+2026-03-30 16:59:28.064  6806-6824  ConnectionManager       com.zerochat.app                     I  Cover traffic started (adaptive λ_min)
+2026-03-30 16:59:28.067  6806-6824  ConnectionManager       com.zerochat.app                     I  Starting I2P message listener loop...
+2026-03-30 16:59:28.069  6806-6824  I2PStream               com.zerochat.app                     V  Reading 4 bytes...
+2026-03-30 16:59:28.064  6806-6806  DefaultDispatch         com.zerochat.app                     W  type=1400 audit(0.0:479): avc:  denied  { read } for  name="temp" dev="sysfs" ino=37056 scontext=u:r:untrusted_app:s0:c220,c256,c512,c768 tcontext=u:object_r:sysfs:s0 tclass=file permissive=0 app=com.zerochat.app
+2026-03-30 16:59:28.177  6806-6806  WindowOnBackDispatcher  com.zerochat.app                     W  OnBackInvokedCallback is not enabled for the application.
+                                                                                                    Set 'android:enableOnBackInvokedCallback="true"' in the application manifest.
+2026-03-30 16:59:28.571  6806-6823  ConnectionManager       com.zerochat.app                     W  Churn detection: 1/3
+2026-03-30 16:59:29.075  6806-6823  ConnectionManager       com.zerochat.app                     W  Churn detection: 2/3
+2026-03-30 16:59:29.577  6806-6823  ConnectionManager       com.zerochat.app                     W  Churn detection: 3/3
+2026-03-30 16:59:29.577  6806-6823  ConnectionManager       com.zerochat.app                     E  Churn threshold reached - attempting recovery
+2026-03-30 16:59:29.577  6806-6823  NymTransport            com.zerochat.app                     I  uniffi_nym_transport::tli: TLI lifecycle: Hardened → Fallback
+2026-03-30 16:59:29.577  6806-6823  ConnectionManager       com.zerochat.app                     I  TLI: Hardened → Fallback
+2026-03-30 16:59:29.610  6806-6823  AndroidRuntime          com.zerochat.app                     E  FATAL EXCEPTION: DefaultDispatcher-worker-1 (Ask Gemini)
+                                                                                                    Process: com.zerochat.app, PID: 6806
+                                                                                                    java.lang.IllegalStateException: Flow invariant is violated:
+                                                                                                    		Emission from another coroutine is detected.
+                                                                                                    		Child of StandaloneCoroutine{Active}@c9794b4, expected child of ProducerCoroutine{Active}@31158dd.
+                                                                                                    		FlowCollector is not thread-safe and concurrent emissions are prohibited.
+                                                                                                    		To mitigate this restriction please use 'channelFlow' builder instead of 'flow'
+                                                                                                    	at kotlinx.coroutines.flow.internal.SafeCollector_commonKt$checkContext$result$1.invoke(SafeCollector.common.kt:69)
+                                                                                                    	at kotlinx.coroutines.flow.internal.SafeCollector_commonKt$checkContext$result$1.invoke(SafeCollector.common.kt:26)
+                                                                                                    	at kotlin.coroutines.CoroutineContext$Element$DefaultImpls.fold(CoroutineContext.kt:70)
+                                                                                                    	at kotlinx.coroutines.Job$DefaultImpls.fold(Job.kt:112)
+                                                                                                    	at kotlinx.coroutines.JobSupport.fold(JobSupport.kt:25)
+                                                                                                    	at kotlin.coroutines.CombinedContext.fold(CoroutineContextImpl.kt:131)
+                                                                                                    	at kotlinx.coroutines.flow.internal.SafeCollector_commonKt.checkContext(SafeCollector.common.kt:26)
+                                                                                                    	at kotlinx.coroutines.flow.internal.SafeCollector.checkContext(SafeCollector.kt:106)
+                                                                                                    	at kotlinx.coroutines.flow.internal.SafeCollector.emit(SafeCollector.kt:83)
+                                                                                                    	at kotlinx.coroutines.flow.internal.SafeCollector.emit(SafeCollector.kt:66)
+                                                                                                    	at com.zerochat.app.domain.connection.ConnectionManager$connect$1$churnMonitorJob$1.invokeSuspend(ConnectionManager.kt:467)
+                                                                                                    	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+                                                                                                    	at kotlinx.coroutines.DispatchedTask.run(DispatchedTask.kt:108)
+                                                                                                    	at kotlinx.coroutines.internal.LimitedDispatcher$Worker.run(LimitedDispatcher.kt:115)
+                                                                                                    	at kotlinx.coroutines.scheduling.TaskImpl.run(Tasks.kt:103)
+                                                                                                    	at kotlinx.coroutines.scheduling.CoroutineScheduler.runSafely(CoroutineScheduler.kt:584)
+                                                                                                    	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.executeTask(CoroutineScheduler.kt:793)
+                                                                                                    	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.runWorker(CoroutineScheduler.kt:697)
+                                                                                                    	at kotlinx.coroutines.scheduling.CoroutineScheduler$Worker.run(CoroutineScheduler.kt:684)
+                                                                                                    	Suppressed: kotlinx.coroutines.internal.DiagnosticCoroutineContextException: [StandaloneCoroutine{Cancelling}@c9794b4, Dispatchers.IO]
+2026-03-30 16:59:29.663  6806-6823  Process                 com.zerochat.app                     I  Sending signal. PID: 6806 SIG: 9
+2026-03-30 16:59:30.767  6924-6924  om.zerochat.app         com.zerochat.app                     I  Late-enabling -Xcheck:jni
+2026-03-30 16:59:30.792  6924-6924  om.zerochat.app         com.zerochat.app                     I  Using CollectorTypeCMC GC.
+2026-03-30 16:59:30.793  6924-6924  om.zerochat.app         com.zerochat.app                     W  Unexpected CPU variant for x86: x86_64.
+                                                                                                    Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, goldmont-without-sha-xsaves, tremont, kabylake, alderlake, default
+2026-03-30 16:59:30.816  6924-6924  nativeloader            com.zerochat.app                     D  Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+2026-03-30 16:59:30.844  6924-6924  re-initialized>         com.zerochat.app                     W  type=1400 audit(0.0:481): avc:  granted  { execute } for  path="/data/data/com.zerochat.app/code_cache/startup_agents/3fc68f17-agent.so" dev="dm-55" ino=369955 scontext=u:r:untrusted_app:s0:c220,c256,c512,c768 tcontext=u:object_r:app_data_file:s0:c220,c256,c512,c768 tclass=file app=com.zerochat.app
+2026-03-30 16:59:30.856  6924-6924  nativeloader            com.zerochat.app                     D  Load /data/user/0/com.zerochat.app/code_cache/startup_agents/3fc68f17-agent.so using system ns (caller=<unknown>): ok
+2026-03-30 16:59:30.865  6924-6924  om.zerochat.app         com.zerochat.app                     W  hiddenapi: DexFile /data/data/com.zerochat.app/code_cache/.studio/instruments-c9b0d10a.jar is in boot class path but is not in a known location
+2026-03-30 16:59:31.041  6924-6924  om.zerochat.app         com.zerochat.app                     W  Redefining intrinsic method java.lang.Thread java.lang.Thread.currentThread(). This may cause the unexpected use of the original definition of java.lang.Thread java.lang.Thread.currentThread()in methods that have already been compiled.
+2026-03-30 16:59:31.041  6924-6924  om.zerochat.app         com.zerochat.app                     W  Redefining intrinsic method boolean java.lang.Thread.interrupted(). This may cause the unexpected use of the original definition of boolean java.lang.Thread.interrupted()in methods that have already been compiled.
+2026-03-30 16:59:31.047  6924-6924  CompatChangeReporter    com.zerochat.app                     D  Compat change id reported: 242716250; UID 10220; state: ENABLED
+2026-03-30 16:59:31.289  6924-6924  nativeloader            com.zerochat.app                     D  Configuring clns-9 for other apk /data/app/~~GKK84a5nb4B4izvAw11RAQ==/com.zerochat.app-6cTnDjSl79IOXEcEqqu1xA==/base.apk. target_sdk_version=34, uses_libraries=, library_path=/data/app/~~GKK84a5nb4B4izvAw11RAQ==/com.zerochat.app-6cTnDjSl79IOXEcEqqu1xA==/lib/x86_64:/data/app/~~GKK84a5nb4B4izvAw11RAQ==/com.zerochat.app-6cTnDjSl79IOXEcEqqu1xA==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.zerochat.app
+2026-03-30 16:59:31.298  6924-6924  om.zerochat.app         com.zerochat.app                     I  AssetManager2(0x7b064ee5acb8) locale list changing from [] to [en-US]
+2026-03-30 16:59:31.300  6924-6924  om.zerochat.app         com.zerochat.app                     I  AssetManager2(0x7b064ee60758) locale list changing from [] to [en-US]
+2026-03-30 16:59:31.308  6924-6924  GraphicsEnvironment     com.zerochat.app                     V  Currently set values for:
+2026-03-30 16:59:31.308  6924-6924  GraphicsEnvironment     com.zerochat.app                     V    angle_gl_driver_selection_pkgs=[]
+2026-03-30 16:59:31.308  6924-6924  GraphicsEnvironment     com.zerochat.app                     V    angle_gl_driver_selection_values=[]
+2026-03-30 16:59:31.308  6924-6924  GraphicsEnvironment     com.zerochat.app                     V  com.zerochat.app is not listed in per-application setting
+2026-03-30 16:59:31.308  6924-6924  GraphicsEnvironment     com.zerochat.app                     V  ANGLE allowlist from config: com.dreamgames.royalmatch com.dts.freefiremax com.dxx.firenow com.gramgames.mergedragons com.ludo.king com.mojang.minecraftpe com.my.defense com.nintendo.zaka com.os.airforce com.playrix.fishdomdd.gplay io.teslatech.callbreak jp.konami.prospia net.peakgames.toonblast
+2026-03-30 16:59:31.308  6924-6924  GraphicsEnvironment     com.zerochat.app                     V  com.zerochat.app is not listed in ANGLE allowlist or settings, returning default
+2026-03-30 16:59:31.308  6924-6924  GraphicsEnvironment     com.zerochat.app                     V  Neither updatable production driver nor prerelease driver is supported.
+2026-03-30 16:59:31.450  6924-6924  nativeloader            com.zerochat.app                     D  Load /data/app/~~GKK84a5nb4B4izvAw11RAQ==/com.zerochat.app-6cTnDjSl79IOXEcEqqu1xA==/base.apk!/lib/x86_64/libjnidispatch.so using class loader ns clns-9 (caller=/data/app/~~GKK84a5nb4B4izvAw11RAQ==/com.zerochat.app-6cTnDjSl79IOXEcEqqu1xA==/base.apk!classes17.dex): ok
+2026-03-30 16:59:31.510  6924-6924  ZeroChatApplication     com.zerochat.app                     D  onCreate() - starting on thread: main
+2026-03-30 16:59:31.530  6924-6924  ZeroChatApplication     com.zerochat.app                     D  onCreate() complete - main thread free for first frame render
+2026-03-30 16:59:31.535  6924-6939  ZeroChatApplication     com.zerochat.app                     I  Starting I2P Router Service in background...
+2026-03-30 16:59:31.550  6924-6924  I2PRouterService        com.zerochat.app                     D  onCreate() - starting on thread: main
+2026-03-30 16:59:31.558  6924-6924  I2PRouterService        com.zerochat.app                     I  Bootstrap wake lock acquired
+2026-03-30 16:59:31.565  6924-6939  I2PRouterService        com.zerochat.app                     I  NetDB decrypted from Keystore-protected storage
+2026-03-30 16:59:33.568  6924-6940  I2PRouterService        com.zerochat.app                     I  Restart window expired (300s), resetting counter
+2026-03-30 16:59:33.570  6924-6940  I2PRouterService        com.zerochat.app                     I  Copying i2pd assets to /data/user/0/com.zerochat.app/files/i2pd...
+2026-03-30 16:59:33.595  6924-6940  I2PRouterService        com.zerochat.app                     I  Assets copied successfully
+2026-03-30 16:59:33.609  6924-6940  I2PRouterService        com.zerochat.app                     D  i2pd.conf validated: file exists, contains reseed URLs
+2026-03-30 16:59:33.609  6924-6940  I2PRouterService        com.zerochat.app                     D  Loading native libraries...
+2026-03-30 16:59:33.616  6924-6940  nativeloader            com.zerochat.app                     D  Load /data/app/~~GKK84a5nb4B4izvAw11RAQ==/com.zerochat.app-6cTnDjSl79IOXEcEqqu1xA==/base.apk!/lib/x86_64/libi2pd.so using class loader ns clns-9 (caller=/data/app/~~GKK84a5nb4B4izvAw11RAQ==/com.zerochat.app-6cTnDjSl79IOXEcEqqu1xA==/base.apk!classes12.dex): ok
+2026-03-30 16:59:33.617  6924-6940  I2PRouterService        com.zerochat.app                     D  Loaded libraries successfully
+2026-03-30 16:59:33.617  6924-6940  I2PRouterService        com.zerochat.app                     I  Starting i2pd daemon (dataDir=/data/user/0/com.zerochat.app/files/i2pd)...
+2026-03-30 16:59:33.617  6924-6940  I2PRouterService        com.zerochat.app                     D  Config verified at /data/user/0/com.zerochat.app/files/i2pd/i2pd.conf, size=248
+2026-03-30 16:59:37.450  6924-6947  ProfileInstaller        com.zerochat.app                     D  Installing profile for com.zerochat.app
+2026-03-30 16:59:49.702  6924-6941  I2PRouterService        com.zerochat.app                     I  i2pd daemon started successfully
+2026-03-30 16:59:49.702  6924-6941  I2PRouterService        com.zerochat.app                     I  i2pd daemon started. Waiting for SAM bridge...
+2026-03-30 16:59:49.709  6924-6941  I2PRouterService        com.zerochat.app                     I  Bootstrap wake lock released
+2026-03-30 16:59:49.717  6924-6941  I2PRouterService        com.zerochat.app                     I  ✓ SAM bridge is ready on 127.0.0.1:7656
+2026-03-30 16:59:49.717  6924-6941  I2PRouterService        com.zerochat.app                     I  Restart succeeded, resetting circuit-breaker counter
+2026-03-30 16:59:49.739  6924-6941  SamClient               com.zerochat.app                     D  HELLO reply: HELLO REPLY RESULT=OK VERSION=3.1
+2026-03-30 16:59:49.739  6924-6941  SamClient               com.zerochat.app                     D  Checking router tunnel readiness...
+2026-03-30 16:59:49.755  6924-6941  I2PRouterService        com.zerochat.app                     I  Router tunnel-ready after 1 checks (routers=907, floodfills=484, has tunnel activity)
+2026-03-30 16:59:49.755  6924-6941  SamClient               com.zerochat.app                     D  Router tunnel-ready, proceeding to SESSION CREATE
+2026-03-30 17:00:13.832  6924-6941  SamClient               com.zerochat.app                     D  SESSION reply: SESSION STATUS RESULT=OK DESTINATION=7OiD1XEZxh0tf6dl-Wo5mkcT4zTaFtBVmaRJur0siMTs6IPVcRnGHS1~p2X5ajmaRxPjNNoW0FWZpEm6vSyIxOzog9VxGcYdLX-nZflqOZpHE-M02hbQVZmkSbq9LIjE7OiD1XEZxh0tf6dl-Wo5mkcT4zTaFtBVmaRJur0siMTs6IPVcRnGHS1~p2X5ajmaRxPjNNoW0FWZpEm6vSyIxOzog9VxGcYdLX-nZflqOZpHE-M02hbQVZmkSbq9LIjE7OiD1XEZxh0tf6dl-Wo5mkcT4zTaFtBVmaRJur0siMTs6IPVcRnGHS1~p2X5ajmaRxPjNNoW0FWZpEm6vSyIxOzog9VxGcYdLX-nZflqOZpHE-M02hbQVZmkSbq9LIjE7OiD1XEZxh0tf6dl-Wo5mkcT4zTaFtBVmaRJur0siMTs6IPVcRnGHS1~p2X5ajmaRxPjNNoW0FWZpEm6vSyIxPWhNQANqlnsudii3xg5KMxVbeKVs7-Q4AMR-PrQbuH5BQAEAAcAALLunzQM9jWMHiil1oNRbNjNRvl1~ZLys5dc8iOghNN4~Vchz~M3hL5qM3oQFR4cwV8tK5b42RFgE3CbGkbkXfJVm~tLDN0teVosGXAhScF32nMHj4kTtShIkRiJ1Cjc4-4zwNrAkkfLeRtLp2l2XSw0sePzCPw4dgZnoaarAm7Vekh9q0Ipy498xLqRvwACLsv9RHr~IBku3hQbexYq6EwWkHZja9Z8EwMs5Jljty8UWMDy3QkV7OioP9z789cWGBOvgaKHTZ5~0oNyWAu8RMA65TZQDKcIY6a0KDmpD8E9q97ELAC2z6RYdGKZPmDG9JvCuXM8p45zr7HQJNt~-PTF8hE8GirC0~ocmbDS-qVKJOdDanQzQval~2ZKsr-Asw==
+2026-03-30 17:00:13.832  6924-6941  SamClient               com.zerochat.app                     I  ✓ SAM session created: zc-3251392c-0000
+2026-03-30 17:00:13.832  6924-6941  SamClient               com.zerochat.app                     I    Local destination: 7OiD1XEZxh0tf6dl-Wo5mkcT4zTaFtBV...
+2026-03-30 17:00:13.832  6924-6941  I2PRouterService        com.zerochat.app                     I  ✓ Pre-warmed SAM session (destination cached, LeaseSet publishing)
+2026-03-30 17:00:13.834  6924-6945  I2PRouterService        com.zerochat.app                     I  Restart window expired (300s), resetting counter
+2026-03-30 17:00:13.834  6924-6945  I2PRouterService        com.zerochat.app                     I  Copying i2pd assets to /data/user/0/com.zerochat.app/files/i2pd...
+2026-03-30 17:00:13.855  6924-6945  I2PRouterService        com.zerochat.app                     I  Assets copied successfully
+2026-03-30 17:00:13.855  6924-6945  I2PRouterService        com.zerochat.app                     D  i2pd.conf validated: file exists, contains reseed URLs
+2026-03-30 17:00:13.855  6924-6945  I2PRouterService        com.zerochat.app                     D  Loading native libraries...
+2026-03-30 17:00:13.856  6924-6945  I2PRouterService        com.zerochat.app                     D  Loaded libraries successfully
+2026-03-30 17:00:13.856  6924-6945  I2PRouterService        com.zerochat.app                     I  Starting i2pd daemon (dataDir=/data/user/0/com.zerochat.app/files/i2pd)...

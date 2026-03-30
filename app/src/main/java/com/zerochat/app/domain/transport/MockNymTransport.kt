@@ -42,6 +42,13 @@ class MockNymTransport @Inject constructor() : NymTransport {
         return Result.success("mock-rendezvous-address-123")
     }
 
+    override suspend fun connectRendezvousWithAuthSeed(pointId: String, gatewayAuthSeed: ByteArray): Result<String> {
+        // BUG 1 FIX: Mock implementation - same behavior as connectRendezvous
+        delay(500)
+        connected = true
+        return Result.success("mock-rendezvous-address-with-auth-seed")
+    }
+
     override fun disconnectRendezvous(pointId: String) {
         // Mock implementation
         Log.i("MockNymTransport", "Rendezvous client disconnected: $pointId")
@@ -67,7 +74,7 @@ class MockNymTransport @Inject constructor() : NymTransport {
         return false
     }
     
-    override suspend fun pollRendezvous(pointId: String): List<RendezvousResponse>? {
+    override suspend fun pollRendezvous(pointId: String, obfs4State: ByteArray): List<RendezvousResponse>? {
         if (!connected) return null
 
         val messages = rendezvousStore[pointId]
@@ -90,7 +97,7 @@ class MockNymTransport @Inject constructor() : NymTransport {
         return responseList
     }
     
-    override suspend fun publishAtRendezvous(pointId: String, myHandle: ByteArray): Result<Unit> {
+    override suspend fun publishAtRendezvous(pointId: String, myHandle: ByteArray, basePointId: String): Result<Unit> {
         if (!connected) {
             return Result.failure(IllegalStateException("Not connected"))
         }
@@ -130,11 +137,52 @@ class MockNymTransport @Inject constructor() : NymTransport {
     override suspend fun getRendezvousAddress(pointId: String): Result<String> {
         return Result.success(pointId + "@mock-gateway-id")
     }
-    
+
+    // TLI Lifecycle methods (Paper §5.3) - Mock implementations
+    @Throws(kotlin.Exception::class)
+    override fun tliTransition(phase: UByte): UByte {
+        Log.d(TAG, "Mock TLI transition to phase $phase")
+        return phase
+    }
+
+    override fun tliCurrentPhase(): UByte {
+        return 1u // Rendezvous
+    }
+
+    override fun tliCheckChurn(signalType: UByte): Boolean {
+        return false // No churn in mock
+    }
+
+    @Throws(kotlin.Exception::class)
+    override fun tliTerminateSession() {
+        Log.d(TAG, "Mock TLI session terminated")
+    }
+
+    // Cover traffic methods (Paper §5) - Mock implementations
+    override fun coverTrafficStart() {
+        Log.d(TAG, "Mock cover traffic started")
+    }
+
+    override fun coverTrafficStop() {
+        Log.d(TAG, "Mock cover traffic stopped")
+    }
+
+    override fun coverTrafficSetThermalThrottle(active: Boolean) {
+        Log.d(TAG, "Mock cover traffic thermal throttle: $active")
+    }
+
+    override fun coverTrafficCurrentDelayMs(): ULong {
+        return 1000uL // 1 second
+    }
+
     /**
      * Test helper: Simulate peer publishing their handle
      */
     fun simulatePeerPublish(pointId: String, peerHandle: ByteArray) {
         publishedHandles[pointId] = peerHandle.copyOf()
+    }
+
+    companion object {
+        private const val TAG = "MockNymTransport"
     }
 }

@@ -27,8 +27,8 @@ object AppModule {
     
     @Provides
     @Singleton
-    fun provideTransportController(): TransportController {
-        return TransportController()
+    fun provideTransportController(@ApplicationContext context: Context): TransportController {
+        return TransportController(context)
     }
     
     @Provides

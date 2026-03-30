@@ -26,6 +26,11 @@ namespace nym_transport {
     [Throws=SessionError]
     boolean session_verify_confirmation_wrapper(u64 handle, sequence<u8> confirmation, u8 role);
     
+    // Retrieve obfs4_state (64 bytes) derived from SPAKE2+ shared secret
+    // Used by Kotlin layer for per-frame ChaCha20-Poly1305 decryption
+    [Throws=SessionError]
+    sequence<u8> session_get_obfs4_state_wrapper(u64 handle);
+    
     void session_destroy_wrapper(u64 handle);
 };
 
@@ -93,11 +98,27 @@ interface NymTransportClient {
     void send_message(sequence<u8> handle, sequence<u8> payload);
     
     [Throws=TransportError]
-    void publish_at_rendezvous(string point_id, sequence<u8> my_handle);
+    void publish_at_rendezvous(string point_id, sequence<u8> my_handle, string base_point_id);
     
     [Throws=TransportError]
     RendezvousMessage? receive_message(u64 timeout_ms);
     
+    // TLI lifecycle management (Paper §5.3)
+    [Throws=TransportError]
+    u8 tli_transition(u8 phase); // Returns new phase as u8
+
+    u8 tli_current_phase(); // Returns current phase as u8
+
+    boolean tli_check_churn(u8 signal_type); // Returns true if churn detected
+
+    void tli_terminate_session(); // Terminate session and zeroize all material
+
+    // Cover traffic scheduler (Paper §5)
+    void cover_traffic_start(); // Start adaptive cover traffic
+    void cover_traffic_stop(); // Stop cover traffic
+    void cover_traffic_set_thermal_throttle(boolean active); // Set thermal throttle state
+    u64 cover_traffic_current_delay_ms(); // Get current inter-packet delay in ms
+
     // Connect with custom identity for DEBUG MODE ONLY
     [Throws=TransportError]
     string connect_with_custom_identity(sequence<u8> rendezvous_seed, string gateway_id);

@@ -147,6 +147,8 @@ fun ConnectionStatusCard(state: ConnectionState) {
         is ConnectionState.Connected -> "Connected!" to MaterialTheme.colorScheme.tertiary
         is ConnectionState.Failed -> state.reason to MaterialTheme.colorScheme.error
         is ConnectionState.Disconnected -> "Disconnected" to MaterialTheme.colorScheme.onSurfaceVariant
+        is ConnectionState.Fallback -> "⚠ Degraded: ${state.reason}" to MaterialTheme.colorScheme.error
+        is ConnectionState.Zeroized -> "Session terminated — keys destroyed" to MaterialTheme.colorScheme.error
     }
     
     Card(

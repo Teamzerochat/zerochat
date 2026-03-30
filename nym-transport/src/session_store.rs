@@ -21,6 +21,7 @@ use std::time::Instant;
 use once_cell::sync::Lazy;
 use thiserror::Error;
 use zeroize::{Zeroize, ZeroizeOnDrop};
+use crate::mem_pin::PinnedSecret;
 
 /// Session key errors
 #[derive(Error, Debug)]
@@ -63,10 +64,17 @@ impl HandshakeRole {
     }
 }
 
-/// Session entry — auto-zeroizes key on drop
-#[derive(Zeroize, ZeroizeOnDrop)]
+/// Session entry — key is pinned in memory via mlock and auto-zeroized on drop
+#[derive(ZeroizeOnDrop)]
 struct SessionEntry {
-    key: [u8; 32],
+    /// Key is pinned in memory and handles its own zeroization
+    #[zeroize(skip)]
+    key: PinnedSecret<32>,
+    /// 64-byte obfs4 state derived from SPAKE2+ shared secret
+    /// Used for per-frame ChaCha20-Poly1305 encryption/decryption (Paper §6)
+    #[zeroize(drop)]
+    obfs4_state: Box<[u8; 64]>,
+    /// Instant doesn't implement Zeroize, so skip it
     #[zeroize(skip)]
     created_at: Instant,
 }
@@ -98,9 +106,18 @@ pub fn session_store(raw_spake2_output: Vec<u8>) -> u64 {
     hkdf.expand(b"zerochat-session-encryption-v1", &mut key)
         .expect("HKDF expand should not fail for 32 bytes");
     
+    // Derive 64-byte obfs4 state from SPAKE2+ output via HKDF (Paper §6)
+    // Used for per-frame ChaCha20-Poly1305 encryption/decryption
+    // Both peers derive the same value deterministically — no handshake needed
+    let mut obfs4_state_bytes = [0u8; 64];
+    let hkdf2 = Hkdf::<Sha256>::new(None, &raw_spake2_output);
+    hkdf2.expand(b"zerochat-obfs4-state-v1", &mut obfs4_state_bytes)
+        .expect("HKDF expand should not fail for 64 bytes");
+    
     let handle = rand::thread_rng().gen::<u64>();
     let entry = SessionEntry {
-        key,
+        key: PinnedSecret::new(key),
+        obfs4_state: Box::new(obfs4_state_bytes),
         created_at: Instant::now(),
     };
 
@@ -111,7 +128,7 @@ pub fn session_store(raw_spake2_output: Vec<u8>) -> u64 {
     reap_expired(&mut store);
     store.insert(handle, entry);
 
-    log::info!("Session stored with handle {} ({} active)", handle, store.len());
+    log::info!("Session stored with handle {} ({} active), obfs4_state derived", handle, store.len());
     handle
 }
 
@@ -124,7 +141,7 @@ pub fn session_encrypt(handle: u64, plaintext: &[u8]) -> Result<Vec<u8>, Session
 
     let entry = store.get(&handle).ok_or(SessionError::InvalidHandle)?;
 
-    let cipher = XSalsa20Poly1305::new(GenericArray::from_slice(&entry.key));
+    let cipher = XSalsa20Poly1305::new(GenericArray::from_slice(entry.key.as_bytes()));
     let nonce = XSalsa20Poly1305::generate_nonce(&mut OsRng);
 
     let ciphertext = cipher
@@ -155,7 +172,7 @@ pub fn session_decrypt(handle: u64, ciphertext: &[u8]) -> Result<Vec<u8>, Sessio
     let nonce = GenericArray::from_slice(&ciphertext[..24]);
     let ct = &ciphertext[24..];
 
-    let cipher = XSalsa20Poly1305::new(GenericArray::from_slice(&entry.key));
+    let cipher = XSalsa20Poly1305::new(GenericArray::from_slice(entry.key.as_bytes()));
     let plaintext = cipher
         .decrypt(nonce, ct)
         .map_err(|_| SessionError::DecryptionFailed)?;
@@ -173,7 +190,7 @@ pub fn session_generate_confirmation(handle: u64, role: u8) -> Result<Vec<u8>, S
     let entry = store.get(&handle).ok_or(SessionError::InvalidHandle)?;
 
     // Derive confirmation key from session key
-    let hkdf = Hkdf::<Sha256>::new(None, &entry.key);
+    let hkdf = Hkdf::<Sha256>::new(None, entry.key.as_bytes());
     let mut confirm_key = [0u8; 32];
     hkdf.expand(b"zerochat-confirmation-key-v1", &mut confirm_key)
         .expect("HKDF expand should not fail");
@@ -208,6 +225,14 @@ pub fn session_verify_confirmation(
         diff |= a ^ b;
     }
     Ok(diff == 0)
+}
+
+/// Get the 64-byte obfs4 state from a session
+/// Used to initialize TliSessionState with the pre-derived key material
+pub fn session_get_obfs4_state(handle: u64) -> Result<Vec<u8>, SessionError> {
+    let store = SESSION_STORE.lock().unwrap();
+    let entry = store.get(&handle).ok_or(SessionError::InvalidHandle)?;
+    Ok(entry.obfs4_state.to_vec())
 }
 
 /// Destroy a session (explicit zeroize + remove)
@@ -261,10 +286,11 @@ mod tests {
     #[test]
     fn test_destroy_zeroizes() {
         let handle = session_store(vec![7u8; 32]);
-        assert_eq!(session_active_count(), 1);
+        let count_before = session_active_count();
+        assert!(count_before >= 1);
 
         session_destroy(handle);
-        assert_eq!(session_active_count(), 0);
+        assert_eq!(session_active_count(), count_before - 1);
 
         // Encrypt with destroyed handle should fail
         assert!(session_encrypt(handle, b"x").is_err());

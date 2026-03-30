@@ -5,7 +5,9 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,17 +22,24 @@ import javax.inject.Inject
 
 /**
  * Main Activity - Entry point for ZeroChat
- * 
- * Security: 
+ *
+ * Security:
  * - Activity is destroyed on back press to clear session state
  * - Detects screen lock and wipes handles (RH-04)
+ * 
+ * BUG 4 FIX: Handles orientation/screen size changes in-process without
+ * Activity recreation via configChanges attribute in manifest.
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    
+
+    companion object {
+        private const val TAG = "MainActivity"
+    }
+
     @Inject
     lateinit var lifecycleObserver: AppLifecycleObserver
-    
+
     private val screenLockReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
@@ -48,17 +57,18 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+        Log.d(TAG, "onCreate() - orientation=${resources.configuration.orientation}")
+
         // Register screen lock receiver
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_OFF)
             addAction(Intent.ACTION_USER_PRESENT)
         }
         registerReceiver(screenLockReceiver, filter)
-        
+
         setContent {
             ZeroChatTheme {
                 Surface(
@@ -70,17 +80,29 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-    
+
+    /**
+     * BUG 4 FIX: Handle configuration changes (orientation, screen size) without
+     * Activity recreation. Transport state lives in TransportService so it
+     * survives these changes automatically.
+     */
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        Log.d(TAG, "onConfigurationChanged() - orientation=${newConfig.orientation}, screenSize=${newConfig.screenLayout and Configuration.SCREENLAYOUT_SIZE_MASK}")
+        // No action needed - Compose UI handles layout changes automatically
+        // Transport state is preserved in TransportService (not Activity scope)
+    }
+
     override fun onDestroy() {
         super.onDestroy()
-        
+
         // Unregister receiver
         try {
             unregisterReceiver(screenLockReceiver)
         } catch (e: Exception) {
             // Already unregistered
         }
-        
+
         // Security: Clear any cached session data
         // KeyManager will handle volatile key destruction
     }

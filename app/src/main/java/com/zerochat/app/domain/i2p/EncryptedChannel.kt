@@ -1,6 +1,7 @@
 package com.zerochat.app.domain.i2p
 
 import android.util.Log
+import com.zerochat.app.domain.thermal.ThermalMonitor
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
@@ -19,7 +20,8 @@ import kotlin.concurrent.withLock
  */
 class EncryptedChannel(
     private val sessionHandle: ULong,
-    private val stream: I2PStream
+    private val stream: I2PStream,
+    private val thermalMonitor: ThermalMonitor? = null
 ) {
     companion object {
         private const val TAG = "EncryptedChannel"
@@ -40,9 +42,16 @@ class EncryptedChannel(
      * Encryption happens in Rust via FFI — session key never leaves Rust memory.
      *
      * @param plaintext The plaintext message bytes
+     * @throws IllegalStateException if channel is closed or thermally throttled
      */
     fun send(plaintext: ByteArray) {
         if (closed.get()) throw IllegalStateException("Channel closed")
+        
+        // Check thermal throttling (Paper §10, §11.2)
+        if (thermalMonitor?.isThrottled?.value == true) {
+            Log.w(TAG, "Send blocked: thermal throttle active (${thermalMonitor.currentTempC.value}°C)")
+            throw IllegalStateException("Thermal throttle active")
+        }
 
         // FIX #9: Only one coroutine can write a frame at a time
         sendLock.withLock {

@@ -1,11 +1,13 @@
 package com.zerochat.app.domain.transport
 
 import android.util.Log
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import javax.inject.Inject
 import javax.inject.Singleton
+import android.content.Context
 
 /**
  * Transport Controller - Panic-Safe State Machine
@@ -21,7 +23,9 @@ import javax.inject.Singleton
  * No shared state survives panic. No corrupted client reuse.
  */
 @Singleton
-class TransportController @Inject constructor() {
+class TransportController @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
 
     enum class TransportState { IDLE, CONNECTING, CONNECTED, FAILED }
 
@@ -39,6 +43,14 @@ class TransportController @Inject constructor() {
             if (state == TransportState.FAILED || transport == null) {
                 destroyClient()
                 Log.i(TAG, "Creating fresh transport")
+                
+                // Clear stale Nym client data to prevent gateway auth failures
+                val nymDir = context.filesDir.resolve("nym_client")
+                if (nymDir.exists()) {
+                    nymDir.deleteRecursively()
+                    Log.d(TAG, "Cleared stale Nym client state")
+                }
+                
                 transport = RealNymTransport()
                 state = TransportState.IDLE
             }
@@ -87,6 +99,82 @@ class TransportController @Inject constructor() {
             it.contains("receiver is gone") ||
             it.contains("panicked")
         } ?: false
+
+    // TLI Lifecycle methods (Paper §5.3) - direct pass-through to transport
+    @Throws(kotlin.Exception::class)
+    suspend fun tliTransition(phase: UByte): UByte {
+        return withTransport { transport ->
+            if (transport is RealNymTransport) {
+                transport.tliTransition(phase)
+            } else {
+                0u // Mock transport returns Init phase
+            }
+        }
+    }
+
+    suspend fun tliCurrentPhase(): UByte {
+        return withTransport { transport ->
+            if (transport is RealNymTransport) {
+                transport.tliCurrentPhase()
+            } else {
+                0u
+            }
+        }
+    }
+
+    suspend fun tliCheckChurn(signalType: UByte): Boolean {
+        return withTransport { transport ->
+            if (transport is RealNymTransport) {
+                transport.tliCheckChurn(signalType)
+            } else {
+                false
+            }
+        }
+    }
+
+    @Throws(kotlin.Exception::class)
+    suspend fun tliTerminateSession() {
+        withTransport { transport ->
+            if (transport is RealNymTransport) {
+                transport.tliTerminateSession()
+            }
+        }
+    }
+
+    // Cover traffic methods (Paper §5) - direct pass-through
+    suspend fun coverTrafficStart() {
+        withTransport { transport ->
+            if (transport is RealNymTransport) {
+                transport.coverTrafficStart()
+            }
+        }
+    }
+
+    suspend fun coverTrafficStop() {
+        withTransport { transport ->
+            if (transport is RealNymTransport) {
+                transport.coverTrafficStop()
+            }
+        }
+    }
+
+    suspend fun coverTrafficSetThermalThrottle(active: Boolean) {
+        withTransport { transport ->
+            if (transport is RealNymTransport) {
+                transport.coverTrafficSetThermalThrottle(active)
+            }
+        }
+    }
+
+    suspend fun coverTrafficCurrentDelayMs(): ULong {
+        return withTransport { transport ->
+            if (transport is RealNymTransport) {
+                transport.coverTrafficCurrentDelayMs()
+            } else {
+                0uL
+            }
+        }
+    }
 
     companion object {
         private const val TAG = "TransportController"

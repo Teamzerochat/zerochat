@@ -4279,6 +4279,7 @@ dependencies = [
  "hex",
  "hkdf",
  "hmac",
+ "libc",
  "log",
  "nym-client-core",
  "nym-crypto",

@@ -39,6 +39,10 @@ class SamClient @Inject constructor() {
         private const val SESSION_RETRY_TIMEOUT_MS = 60_000L // Total retry window for HELLO
         private const val INITIAL_BACKOFF_MS = 1_000L        // 1s → 2s → 4s exponential
         private const val MAX_BACKOFF_MS = 4_000L
+        
+        // BUG 5 FIX: Random suffix for session IDs to prevent conflicts between app restarts
+        // Generated once at class load time, used for all sessions in this app instance
+        private val SESSION_RANDOM_SUFFIX = UUID.randomUUID().toString().replace("-", "").take(8)
     }
 
     // FIX #5 / #7: Mutex guards session creation, access, and closure
@@ -57,6 +61,7 @@ class SamClient @Inject constructor() {
     /**
      * Create a new SAM streaming session.
      * Returns the local I2P destination (Base64 string).
+     * BUG 5 FIX: Uses random session ID suffix and explicitly closes existing sessions.
      */
     suspend fun createSession(): String = sessionMutex.withLock {
         // FIX #12: If a stale session exists, clean it up first
@@ -69,8 +74,10 @@ class SamClient @Inject constructor() {
 
             // Retry with exponential backoff up to 60s
             while (System.currentTimeMillis() < deadline) {
-                // Fresh random session ID per attempt — never reuse
-                val id = "zc-${UUID.randomUUID().toString().replace("-", "").take(12)}"
+                // BUG 5 FIX: Session ID with random suffix to prevent conflicts between app restarts
+                // Format: zc-<random8>-<attempt4> e.g., zc-a1b2c3d4-0001
+                val attemptNum = (SESSION_RETRY_TIMEOUT_MS - (deadline - System.currentTimeMillis())).toInt() / 1000
+                val id = "zc-${SESSION_RANDOM_SUFFIX}-${attemptNum.toString().padStart(4, '0')}"
                 var controlSocket: Socket? = null
                 try {
                     controlSocket = Socket(SAM_HOST, SAM_PORT).apply {
@@ -88,6 +95,20 @@ class SamClient @Inject constructor() {
                         throw IOException("SAM HELLO failed: $helloReply")
                     }
 
+                    // BUG 1 FIX: After successful HELLO, check i2pd router is tunnel-ready
+                    // before attempting SESSION CREATE. HELLO only confirms SAM protocol
+                    // version, not that router tunnels are ready to allocate sessions.
+                    Log.d(TAG, "Checking router tunnel readiness...")
+                    val routerReady = I2PRouterService.waitForRouterTunnelReady(timeoutMs = 30_000L)
+                    if (!routerReady) {
+                        Log.w(TAG, "Router not tunnel-ready yet, will retry...")
+                        controlSocket.close()
+                        delay(backoffMs)
+                        backoffMs = (backoffMs * 2).coerceAtMost(MAX_BACKOFF_MS)
+                        continue
+                    }
+                    Log.d(TAG, "Router tunnel-ready, proceeding to SESSION CREATE")
+
                     // Step 2: SESSION CREATE
                     writeCommand(output, "SESSION CREATE STYLE=STREAM ID=$id DESTINATION=TRANSIENT SIGNATURE_TYPE=7")
                     val sessionReply = readLine(input)
@@ -97,6 +118,8 @@ class SamClient @Inject constructor() {
                         // Stale session with this ID — close socket and retry immediately with new ID
                         Log.w(TAG, "SESSION DUPLICATED_ID for $id, retrying with new ID")
                         controlSocket.close()
+                        delay(backoffMs)
+                        backoffMs = (backoffMs * 2).coerceAtMost(MAX_BACKOFF_MS)
                         continue
                     }
 
@@ -277,6 +300,14 @@ class SamClient @Inject constructor() {
         sessionMutex.withLock {
             closeInternal()
         }
+    }
+
+    /**
+     * Non-suspend close for use from synchronized blocks (e.g. I2PRouterService reset).
+     * Only closes the socket; does not acquire the coroutine mutex.
+     */
+    fun closeBlocking() {
+        closeInternal()
     }
 
     /**

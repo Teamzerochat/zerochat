@@ -6,7 +6,9 @@ import android.os.Bundle
 import android.util.Log
 import com.zerochat.app.domain.routing.RoutingHandleManager
 import com.zerochat.app.domain.crypto.KeyManager
+import com.zerochat.app.domain.i2p.I2PRouterService
 import kotlinx.coroutines.*
+import kotlinx.coroutines.delay
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -49,6 +51,16 @@ class AppLifecycleObserver @Inject constructor(
             // Cancel background wipe if scheduled
             backgroundJob?.cancel()
             backgroundJob = null
+
+            // Paper §1: Start i2pd eagerly on foreground entry
+            // Overlaps tunnel build (~15-25s) with user interaction time
+            if (!I2PRouterService.isRunning) {
+                Log.i(TAG, "Starting i2pd router eagerly (foreground optimization)")
+                CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
+                    delay(1500L)
+                    I2PRouterService.start(activity.applicationContext)
+                }
+            }
         }
     }
     

@@ -96,6 +96,12 @@ dependencies {
     implementation("net.zetetic:sqlcipher-android:4.6.1")
     implementation("androidx.sqlite:sqlite-ktx:2.4.0")
     
+    // Google Tink for ChaCha20-Poly1305 AEAD cipher (Paper §6 obfs4)
+    implementation("com.google.crypto.tink:tink-android:1.10.0")
+    
+    // Bouncy Castle for ChaCha20-Poly1305 crypto support
+    implementation("org.bouncycastle:bcprov-jdk15on:1.70")
+    
     // Room Database
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
