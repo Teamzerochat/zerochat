@@ -1,0 +1,338 @@
+Manifest-Version: 1.0
+Built-By: Signflinger
+Created-By: Android Gradle 7.3.1
+
+Name: AndroidManifest.xml
+SHA1-Digest: ELBOXfll1PHmyIQ8lrYUTl51rUk=
+
+Name: META-INF/androidx.annotation_annotation-experimental.version
+SHA1-Digest: L999BPA3IFXJ13ykPZo8CHmJBfM=
+
+Name: META-INF/androidx.arch.core_core-runtime.version
+SHA1-Digest: +XsPgR8lkGq3jxqliRDbV1fGTFg=
+
+Name: META-INF/androidx.core_core.version
+SHA1-Digest: +eqhud7TGV7TFPPaFIdagDYOMo8=
+
+Name: META-INF/androidx.interpolator_interpolator.version
+SHA1-Digest: xTi2bHEQyjoCjM/kItDx+iAKmTU=
+
+Name: META-INF/androidx.lifecycle_lifecycle-runtime.version
+SHA1-Digest: 7QUQvKI+zQh6fJbucoOLF+K101U=
+
+Name: META-INF/androidx.swiperefreshlayout_swiperefreshlayout.version
+SHA1-Digest: BeF7ZGqBckDCBhhvlPj0xwl01dw=
+
+Name: META-INF/androidx.versionedparcelable_versionedparcelable.versio
+ n
+SHA1-Digest: OxxKFJcpzAROGjnfMbNijNv1+JU=
+
+Name: META-INF/com/android/build/gradle/app-metadata.properties
+SHA1-Digest: bISDOuv7q7+7h0Uq3MzuyMoQ/F0=
+
+Name: PropertyList-1.0.dtd
+SHA1-Digest: AS4SnL+kE9BMzCsmJuq5UZITVTY=
+
+Name: assets/addressbook/addresses.csv
+SHA1-Digest: 8ZUjsC1S+mHZAab7YaY+/RNmGoc=
+
+Name: assets/certificates/family/gostcoin.crt
+SHA1-Digest: KucAv/HEg6qIkV/P970S+VQF5+M=
+
+Name: assets/certificates/family/i2p-dev.crt
+SHA1-Digest: w2wXOsaLwvqmQnTTVX17TMwv5ek=
+
+Name: assets/certificates/family/i2pd-dev.crt
+SHA1-Digest: MLHhyFq9vffxBg3TeAt7yNvpnog=
+
+Name: assets/certificates/family/mca2-i2p.crt
+SHA1-Digest: Eyh8tQiVkPShpilu1CP2hTQo2ng=
+
+Name: assets/certificates/family/stormycloud.crt
+SHA1-Digest: BCPABoEQ8g/icqO6PL4hKlea2oQ=
+
+Name: assets/certificates/family/volatile.crt
+SHA1-Digest: Mx+SyRwaab31tzdkqi2TAKOIXhA=
+
+Name: assets/certificates/reseed/acetone_at_mail.i2p.crt
+SHA1-Digest: 7Cof6Wy+4H4c3CVyv4fgKoGQ8W4=
+
+Name: assets/certificates/reseed/admin_at_stormycloud.org.crt
+SHA1-Digest: PPnbnOAyk5yYEAoHM8SE5TcivqI=
+
+Name: assets/certificates/reseed/creativecowpat_at_mail.i2p.crt
+SHA1-Digest: s9/3G6BDZdXz3Qxa/o18VjYXJTM=
+
+Name: assets/certificates/reseed/diyarciftci_at_protonmail.com.crt
+SHA1-Digest: suqtdtySahFk1uAur2lPJZiw3no=
+
+Name: assets/certificates/reseed/echelon3_at_mail.i2p.crt
+SHA1-Digest: Rcww8jByh4dkQNHdQMvt+kM0eAE=
+
+Name: assets/certificates/reseed/hankhill19580_at_gmail.com.crt
+SHA1-Digest: fItvqUogWDiaPwRUFD/ZQ2ii1F4=
+
+Name: assets/certificates/reseed/i2p-reseed_at_mk16.de.crt
+SHA1-Digest: sBA+PJos/o6qgD8Lh3h4CCOe0C4=
+
+Name: assets/certificates/reseed/igor_at_novg.net.crt
+SHA1-Digest: iOYow2qy08MRga98R+8y7iNt50o=
+
+Name: assets/certificates/reseed/lazygravy_at_mail.i2p.crt
+SHA1-Digest: XqNfPaewmVTd+2hGN004nLD5yT0=
+
+Name: assets/certificates/reseed/orignal_at_mail.i2p.crt
+SHA1-Digest: PT5qXmQaU+BlqU48rgbRsGNn0V0=
+
+Name: assets/certificates/reseed/r4sas-reseed_at_mail.i2p.crt
+SHA1-Digest: CTmYee3VfxjwgIYiDUX9WVe/2Mo=
+
+Name: assets/certificates/reseed/rambler_at_mail.i2p.crt
+SHA1-Digest: P5Ob6271BN4/Yuye43RGcHIVl+Q=
+
+Name: assets/certificates/reseed/reseed_at_diva.exchange.crt
+SHA1-Digest: weC/IFrrDjtz61kH4mdIrEsy2Mo=
+
+Name: assets/certificates/reseed/sahil_at_mail.i2p.crt
+SHA1-Digest: XKcvEKwDq3TCkWTxRPcVDlSCtrQ=
+
+Name: assets/i2pd.conf
+SHA1-Digest: lGYxjojzm47FiBlHh3DCvojYHtE=
+
+Name: assets/tunnels.conf
+SHA1-Digest: i4sy5AXzY02/F/Uju5U4yCXm9lk=
+
+Name: assets/tunnels.d/IRC-Ilita.conf
+SHA1-Digest: BbqgO2cGNWM+hgc2DmT2NBrJVGo=
+
+Name: assets/tunnels.d/IRC-Irc2P.conf
+SHA1-Digest: n3R0F52QK7glHtNgw/kDupN8cV4=
+
+Name: assets/tunnels.d/README
+SHA1-Digest: KYDAPd4djpYsefKgkysjcXQQVH4=
+
+Name: classes.dex
+SHA1-Digest: tMHL1TaETeJU3+mjxalpeuztjew=
+
+Name: kotlin/annotation/annotation.kotlin_builtins
+SHA1-Digest: BNKjaAG8N9m1TLFvNXuaHR9y8Eo=
+
+Name: kotlin/collections/collections.kotlin_builtins
+SHA1-Digest: OhB+GKvj+kfdxJRhT0ndJbHJ4L8=
+
+Name: kotlin/coroutines/coroutines.kotlin_builtins
+SHA1-Digest: +vIhfyors/P2TaFVQ0vfQnZK1ik=
+
+Name: kotlin/internal/internal.kotlin_builtins
+SHA1-Digest: /yncCbV+w+iPw792olK5cQXToFc=
+
+Name: kotlin/kotlin.kotlin_builtins
+SHA1-Digest: 4/sd3h55XO80VV3w2mflIS1YXJg=
+
+Name: kotlin/ranges/ranges.kotlin_builtins
+SHA1-Digest: cZsLFkzGQfMKVV+cwGttW95Sji4=
+
+Name: kotlin/reflect/reflect.kotlin_builtins
+SHA1-Digest: AmDmKB115rqWej499qVJhFgsvkE=
+
+Name: lib/arm64-v8a/libi2pd.so
+SHA1-Digest: ydEgjXf6ojjSSmA09d5n6VwNK4U=
+
+Name: lib/armeabi-v7a/libi2pd.so
+SHA1-Digest: 9pmPyZ+rTeArsk4FGaNF42DsEwQ=
+
+Name: lib/x86/libi2pd.so
+SHA1-Digest: DboorERcmDlUc+EnAO0vO7kIvsA=
+
+Name: lib/x86_64/libi2pd.so
+SHA1-Digest: GvVyZIpnP97ORtsNuW0zN/G522o=
+
+Name: properties.dtd
+SHA1-Digest: EC6Rvxes9HXo78Q0nmDOLNWhJIM=
+
+Name: res/-Y.xml
+SHA1-Digest: 1bh/WaW+F9YHgP1eIBkdLRad/fg=
+
+Name: res/05.png
+SHA1-Digest: sJ2ECN+jR9ZkrI8MPwN+fFE9qgc=
+
+Name: res/09.9.png
+SHA1-Digest: D2PhKM51tYZo8a79riJ3XiUD2nc=
+
+Name: res/0U.xml
+SHA1-Digest: SPLFhvvqBs92/vSYQyT1prEFUqA=
+
+Name: res/0r.xml
+SHA1-Digest: EzwqJMmi/wbRZewv6fTILcUK4Tw=
+
+Name: res/1p.png
+SHA1-Digest: XXBY8xY/lj8CXX02wOspQdtxPWw=
+
+Name: res/2P.xml
+SHA1-Digest: pmWwKrg4XWSiWbaBpe5Ksd/4QUE=
+
+Name: res/3D.xml
+SHA1-Digest: BlbCRg0U6bn9FpwlbT4z7QPdLJE=
+
+Name: res/3l.xml
+SHA1-Digest: ARXgzeSyu9Yv2osi1uq+Ck1Kdvc=
+
+Name: res/3m.xml
+SHA1-Digest: ny28AElg1mWFkG1FVTbhLdVbfuc=
+
+Name: res/4W.xml
+SHA1-Digest: obefdhc9LiDiZUwk9v8stoLrpWo=
+
+Name: res/4u.xml
+SHA1-Digest: N0dj+1vFh2U5fh4vQ3uECIViv/g=
+
+Name: res/8V.9.png
+SHA1-Digest: URz3Lz/tIjMAtXfNHimWcDQLTtQ=
+
+Name: res/8r.xml
+SHA1-Digest: I0kDhgF3Sexa6ttnJ1z+D4d0ovs=
+
+Name: res/93.9.png
+SHA1-Digest: iJFesSsAAmE1zFB9XbiCZW1cKKU=
+
+Name: res/BB.xml
+SHA1-Digest: 1W4Bllm2ufCT9MlskKmYnsDg+rE=
+
+Name: res/C7.xml
+SHA1-Digest: Yanc+Qot1gR2qygq1RNJkVosGEc=
+
+Name: res/Cv.xml
+SHA1-Digest: ngqalEDQCXgDsBNAR6Pq563FoQI=
+
+Name: res/D9.png
+SHA1-Digest: unFhwN+LJlu6c2FhWn5Us5rgQ3E=
+
+Name: res/DS.xml
+SHA1-Digest: rjyezXbNH1Y2IcF+kNtYprvaLGc=
+
+Name: res/Dw.png
+SHA1-Digest: ACtCkbdwHjTUYB6EQBjULVIVzcQ=
+
+Name: res/FZ.xml
+SHA1-Digest: UVwEcpWGfqGtjuUP3uXDgLnrUl0=
+
+Name: res/Fd.png
+SHA1-Digest: k6Xrmcf4tPK2P8zW1jXPvEA4ZN4=
+
+Name: res/K4.png
+SHA1-Digest: +c1E12FpgUUK0mHzykqnLmdrjBc=
+
+Name: res/Kn.png
+SHA1-Digest: t92SFhZc+hSjkaXE6WONeM5J69M=
+
+Name: res/L1.xml
+SHA1-Digest: BlbCRg0U6bn9FpwlbT4z7QPdLJE=
+
+Name: res/LD.png
+SHA1-Digest: lHP2KU/WCXjWVnoatuFo6tnTPPs=
+
+Name: res/NR.xml
+SHA1-Digest: I8Omnt4s0JCVX6yswVzUrrpNfo4=
+
+Name: res/O3.9.png
+SHA1-Digest: qf8Bo3OrZFOkS8OQT2FTwy3VSA8=
+
+Name: res/Ot.png
+SHA1-Digest: qtoCsdEoyaDYmAvH44tfVLv6hoY=
+
+Name: res/Pq.9.png
+SHA1-Digest: sUXBSDmIwrVhXMAYtsmpMAdZsVM=
+
+Name: res/Qv.png
+SHA1-Digest: z0oai5b1MK3J/UNjdCA5ECdf2qg=
+
+Name: res/R5.xml
+SHA1-Digest: hmmj81LUmUjFJKiQf3RtXF6Wo2Q=
+
+Name: res/SH.xml
+SHA1-Digest: B9vWBkRTk0uC7Qrf5C6jylXCgXY=
+
+Name: res/SS.xml
+SHA1-Digest: 3cylyPXF7Lu5/qW0AAUTW7U2cis=
+
+Name: res/T2.9.png
+SHA1-Digest: NP77wvGcwseigxPz8Z8jideVqXk=
+
+Name: res/UT.xml
+SHA1-Digest: V5slWY0g4AJbcSAgj87KrumwUyU=
+
+Name: res/Xs.9.png
+SHA1-Digest: 4j+L3Jzr2U70TU9dUenWhtYe/lU=
+
+Name: res/Z1.xml
+SHA1-Digest: 62fTnDRBK2m/8vxnXeyAE4FQCBg=
+
+Name: res/_0.xml
+SHA1-Digest: 2TnSe37lGSzUrj8GXY8nqLQ7ifQ=
+
+Name: res/_c.png
+SHA1-Digest: lBlkEjMCAcL/6Wrr5xiG2EzKeNQ=
+
+Name: res/_k.png
+SHA1-Digest: 6agU7UBzPlSDdLFTAZNFHarbL8A=
+
+Name: res/aA.xml
+SHA1-Digest: JDgAxtlZxGPByt7+BsdDvq2QDuI=
+
+Name: res/cq.png
+SHA1-Digest: QHY87ECmYqZV0FTIN8J3ydfV2cU=
+
+Name: res/dB.xml
+SHA1-Digest: 1gGIUjV+BfxaVCM/GwlKR3Lf0CM=
+
+Name: res/dH.9.png
+SHA1-Digest: dnObiFrk1DvtR5VGgJWQwE6oNeo=
+
+Name: res/eK.9.png
+SHA1-Digest: 58BeVrWmam0XTYtOcBJSh3YmiJQ=
+
+Name: res/el.png
+SHA1-Digest: ptkifkse81odN56m4l4bsxz0mYc=
+
+Name: res/gI.png
+SHA1-Digest: SgFt49B50xbNZQKIWhumAVixPFg=
+
+Name: res/hj.9.png
+SHA1-Digest: Wl4jBkhtPS9E+JkWaS0GOyoMbuw=
+
+Name: res/iL.xml
+SHA1-Digest: C867Wv3JiXSzx5a+MGvjWlFF1kw=
+
+Name: res/iP.png
+SHA1-Digest: rwBYoo/oOy4Zkndx0EDs290jHWY=
+
+Name: res/jK.9.png
+SHA1-Digest: ralFi/xjLzZzimSmlAGCFAUgfbE=
+
+Name: res/jg.png
+SHA1-Digest: hUjPhWEf6ApJg7HzIO4rH+d3mtc=
+
+Name: res/n1.xml
+SHA1-Digest: h7DBOilSK3tbKfHeQzWwmZZggdA=
+
+Name: res/nE.png
+SHA1-Digest: MYTIN7SFHXuBuONFeVhUI8iPrFs=
+
+Name: res/oV.png
+SHA1-Digest: HsjqIevx74PCdqo3A6B2YZ6FpZ4=
+
+Name: res/ol.png
+SHA1-Digest: YMrfFK4L/tdsXyqVRAwKp9rNrNI=
+
+Name: res/q6.xml
+SHA1-Digest: NsPZOfLH43Zsenjc5Z8o/SdjKSc=
+
+Name: res/tr.9.png
+SHA1-Digest: 9MYmMKRnfwttaoRGc1WDg0jzgyY=
+
+Name: res/u6.xml
+SHA1-Digest: V24KkrkT5FNiCnPKvWSCEjb4Ph8=
+
+Name: resources.arsc
+SHA1-Digest: wWxL9+cP4FrlTECqD1RZqefI7+Q=
+

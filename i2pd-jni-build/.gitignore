@@ -1,0 +1,17 @@
+gen
+tests
+bin
+libs
+log*
+obj
+.cxx
+.gradle
+.idea
+.externalNativeBuild
+ant.properties
+local.properties
+android.iml
+build
+*.iml
+*.local
+*.jks

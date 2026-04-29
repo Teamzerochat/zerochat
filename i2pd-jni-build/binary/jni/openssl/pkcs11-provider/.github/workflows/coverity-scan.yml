@@ -1,0 +1,140 @@
+---
+name: Coverity Scan
+
+on:
+  pull_request_target:
+    branches: ["main"]
+    types:
+      - synchronize
+      - labeled
+  schedule:
+    - cron: '41 3 * * 0'
+
+jobs:
+  scheduled:
+    if: ${{ github.event_name == 'schedule' }}
+    name: Recurrent Coverity Scan
+    runs-on: ubuntu-22.04
+    container: fedora:latest
+    steps:
+      - name: Install Dependencies
+        run: |
+            dnf -y install git gcc meson pkgconf-pkg-config \
+                openssl-devel openssl \
+                nss-softokn nss-tools nss-softokn-devel
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Setup
+        run: |
+          meson setup builddir
+        env:
+          CC: gcc
+      - name: Check for changes
+        run: |
+            echo "RUN_COV=0" >> $GITHUB_ENV;
+            git config --global --add safe.directory \
+                /__w/pkcs11-provider/pkcs11-provider
+            DIFF=`git log --since=1week | wc -l`
+            if [ x${DIFF} != "x0" ]; then
+              echo "RUN_COV=1" >> $GITHUB_ENV;
+            fi
+      - name: Coverity Scan
+        if: env.RUN_COV == 1
+        uses: vapier/coverity-scan-action@v1
+        with:
+          project: "PKCS%2311+Provider"
+          email: ${{ secrets.COVERITY_SCAN_EMAIL }}
+          token: ${{ secrets.COVERITY_SCAN_TOKEN }}
+
+  on-labeled-pr:
+    if: ${{ contains(github.event.action, 'labeled') && contains(github.event.*.labels.*.name, 'covscan') }}
+    name: Coverity Scan on PR
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    container: fedora:latest
+    steps:
+      - name: Install Dependencies
+        run: |
+            dnf -y install git gcc meson pkgconf-pkg-config \
+                openssl-devel openssl \
+                nss-softokn nss-tools nss-softokn-devel \
+                gh
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{github.event.pull_request.head.sha}}
+      - name: Setup
+        run: |
+          meson setup builddir
+        env:
+          CC: gcc
+      - name: Coverity Scan
+        uses: vapier/coverity-scan-action@v1
+        with:
+          project: "PKCS%2311+Provider"
+          email: ${{ secrets.COVERITY_SCAN_EMAIL }}
+          token: ${{ secrets.COVERITY_SCAN_TOKEN }}
+      - name: Remove Label
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.number }}
+        run: gh pr edit "$NUMBER" --remove-label "covscan"
+
+  on-no-covscan-labeled-pr:
+    if: ${{ contains(github.event.action, 'labeled') && contains(github.event.*.labels.*.name, 'covscan-ok') }}
+    name: Coverity Scan on PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Coverity Scan Marked Successful
+        run: echo "Dummy action to report all ok and mark covscan as handled"
+
+  on-synchronize-no-source-changes:
+    if: ${{ contains(github.event.action, 'synchronize') && ! contains(github.event.*.labels.*.name, 'covscan-ok') }}
+    name: Coverity Scan on PR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check changed files
+        id: changed-sources
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            src/**
+      - name: Coverity Scan not needed
+        if: steps.changed-sources.outputs.any_changed == 'false'
+        run: |
+          echo "No Source files changed, no covscan needed"
+      - name: Coverity Scan is needed
+        if: steps.changed-sources.outputs.any_changed == 'true'
+        run: |
+          echo "Source files changed, covscan is needed"
+
+  on-synchronize-covscan-ok:
+    if: ${{ contains(github.event.action, 'synchronize') && contains(github.event.*.labels.*.name, 'covscan-ok') }}
+    name: Coverity Scan on PR
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check changed files
+        id: changed-sources
+        uses: tj-actions/changed-files@v44
+        with:
+          base_sha: ${{ github.event.before }}
+          files: |
+            src/**
+        continue-on-error: true
+      - name: Coverity Scan not needed
+        if: ${{ steps.changed-sources.outcome == 'success' &&  steps.changed-sources.outputs.any_changed == 'false' }}
+        run: echo "Dummy action to report all ok and mark covscan as handled"
+      - name: Coverity Scan is needed
+        if: ${{ steps.changed-sources.outcome == 'failure' || steps.changed-sources.outputs.any_changed == 'true' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.number }}
+        run: |
+          gh pr edit "$NUMBER" --remove-label "covscan"
+          false

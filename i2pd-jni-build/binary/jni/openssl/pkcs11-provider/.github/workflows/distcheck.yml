@@ -1,0 +1,68 @@
+---
+name: Distribution checks
+
+on:
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  distcheck:
+    name: Test make distcheck and RPM Build
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [fedora, debian, centos]
+        include:
+          - name: fedora
+            container: fedora:latest
+          - name: debian
+            container: debian:sid
+          - name: centos
+            container: quay.io/centos/centos:stream9
+    container: ${{ matrix.container }}
+    steps:
+      - name: Install Dependencies
+        run: |
+            if [ "${{ matrix.name }}" = centos ]; then
+              dnf_opts="--enablerepo=crb"
+            fi
+            if [ -f /etc/redhat-release ]; then
+              dnf -y install $dnf_opts \
+                git gcc meson expect python3 python3-six which \
+                pkgconf-pkg-config openssl-devel openssl xz \
+                nss-softokn nss-tools nss-softokn-devel \
+                softhsm opensc p11-kit-devel p11-kit-server \
+                rpm-build nss-devel
+            elif [ -f /etc/debian_version ]; then
+              apt-get -q update
+              apt-get -yq install git gcc meson expect \
+                pkg-config libssl-dev openssl \
+                xz-utils libnss3 libnss3-tools libnss3-dev \
+                softhsm2 opensc p11-kit libp11-kit-dev p11-kit-modules
+            fi
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup
+        run: |
+          git config --global --add safe.directory \
+              /__w/pkcs11-provider/pkcs11-provider
+          git submodule update --init
+          meson setup builddir
+
+      - name: Distcheck
+        run: |
+          git config --global --add safe.directory \
+              /__w/pkcs11-provider/pkcs11-provider
+          git ls-files meson.build
+          meson dist --no-tests -C builddir
+
+      - name: RPM Build
+        if: ${{ matrix.name == 'fedora' }}
+        run: |
+          mkdir -p rpmbuild/SOURCES
+          cp builddir/meson-dist/pkcs11-provider*tar.xz rpmbuild/SOURCES/
+          rpmbuild --define "_topdir $PWD/rpmbuild" -ba \
+              packaging/pkcs11-provider.spec
