@@ -1,0 +1,146 @@
+# Security Deep Dive
+
+## Security Philosophy
+- **Zero local entropy**: Routing and timing decisions avoid using device-specific randomness to reduce fingerprinting risk.
+- **Volatile keys**: The Key Encryption Key (KEK) and Session Keys are never persisted to disk and exist only in volatile RAM.
+- **Anti-correlation**: Transport selection (Nym vs. I2P) is fixed per message to avoid cross-transport correlation.
+- **CPU Symmetry**: Real messages and cover traffic take identical deserialization and processing paths, which aims to equalize CPU cost between real and cover traffic.
+
+## Data Flow Overview
+
+A typical session follows this flow:
+
+1. Users agree on a shared secret via an out-of-band channel.
+2. Both clients derive initial handshake parameters from the secret.
+3. A SPAKE2+ handshake establishes a shared session key.
+4. Transport channels (Nym/I2P) are initialized and selected per message.
+5. Messages are encrypted and framed before transmission.
+6. Cover traffic is interleaved with real messages.
+7. Received messages are verified, decrypted, and delivered locally.
+8. Session teardown wipes all volatile key material.
+
+> No message data is persisted outside the active session unless explicitly stored in the local encrypted database.
+> This flow ensures that sensitive data is created, used, and destroyed within a single session, minimizing long-term exposure.
+
+## Threat Model
+
+### Adversaries Considered
+- **Network Eavesdroppers / ISPs**: Mitigated by Nym/I2P routing, obfs4 framing, and constant-time processing padding.
+- **DPI (Deep Packet Inspection)**: Resisted using log-normal size modeling, pseudo-text byte generation, and deterministic cover traffic noise.
+- **MITM (Man-in-the-Middle) Attacks**: Mitigated by Password-Authenticated Key Exchange (SPAKE2+) requiring an out-of-band shared secret.
+
+### Out of Scope
+- **RAM Extraction**: Memory dumps on an unlocked device can expose the volatile KEK and Session Keys.
+- **Platform Integrity**: The Android Keystore is explicitly NOT a trust anchor in this architecture.
+- **Hardware-Level Attacks**: Keys reside in standard RAM and are vulnerable to hardware side-channel attacks while the application is unlocked.
+
+## Attacker View
+
+### A passive network observer can:
+- See connection timing and traffic bursts
+- Observe transport transitions (Nym → I2P)
+- Infer session activity patterns under certain conditions
+- Correlate traffic over long durations, especially after transport convergence
+
+### A passive network observer cannot:
+- Read message contents
+- Derive session keys from observed traffic
+- Link sessions without additional external context
+
+### A compromised device attacker can:
+- Access session keys in memory
+- Read decrypted messages
+- Bypass all network-layer protections
+
+---
+
+## Trust Model
+- Trust is established through an out-of-band shared secret.
+- **SPAKE2+ Handshake**: Provides mutual authentication without transmitting the plaintext password. Both parties derive the same session key if they possess the shared secret.
+- **Duress System**: Trust is instantly revoked if a specific duress passphrase is used, triggering key wiping and memory zeroing.
+
+## Trust Boundaries
+
+The primary trust boundary exists at:
+
+- The out-of-band shared secret exchange
+- The local device environment
+
+Everything beyond these boundaries is treated as untrusted, including:
+- Network transport layers (Nym/I2P)
+- Intermediate routing infrastructure
+- External applications on the device
+
+> If the shared secret is exposed or the device is compromised, the security guarantees collapse.
+
+---
+
+## Connection Security
+- **Dual-Transport State Machine**: 
+  - Phase 0: NYM_ONLY (I2P building in background).
+  - Phase 1: TRANSITION (Probabilistic routing between Nym and I2P).
+  - Phase 2: I2P_ONLY (Nym transitions to cover traffic only).
+- **Rendezvous Logic**: Uses a two-slot strategy with deterministic gateway authentication derived from the shared secret and epoch.
+- **Role Election**: Handshake roles (INITIATOR/RESPONDER) are deterministically derived using lexicographic byte-wise comparison of random nonces.
+
+---
+
+## Message Security
+- **Encryption**: Uses AES-256-GCM (via libsodium `crypto_SecretBox_easy`) with keys derived via HKDF from the SPAKE2+ shared secret.
+- **Framing**: Network traffic is obfuscated using an `Obfs4FrameWrapper`.
+- **Replay Protection**: Enforced using an 8-byte nonce tracked in a `ConcurrentHashMap` with a sliding window, coupled with dynamic sequence numbers (`expectedSeq`).
+- **Constant-Time Execution**: Applying a deterministic processing window equalizes fast/slow transport timing before socket writes.
+
+---
+
+## Metadata Exposure
+- **Minimized**: Exact I2P build completion time is smeared using a readiness offset gate based on outbound message sequences rather than standard device clocks.
+- **Cover Traffic**: Cover payloads mimic the entropy profile of UTF-8 chat text, inserting spaces deterministically to simulate word boundaries.
+- **Leaked metadata**: The base delay and jitter for Nym cover traffic grow exponentially up to a maximum terminal decay (60s), after which Nym cover traffic is entirely shut off, leaving I2P as the sole active transport.
+
+---
+
+## Session Lifecycle
+- Sessions are strictly sequence-based.
+- Transport decisions activate based on outbound sequence boundaries to prevent timing correlation.
+- **Teardown**: The system triggers secure key zeroization (`clearKEK()` and `clearSessionKeys()`) overwriting memory arrays with zeros before nulling. A 5000ms cool-down is strictly enforced between teardowns to prevent gateway collisions.
+
+---
+
+## Storage & Local Security
+- Local database is encrypted with a randomly generated 256-bit database key.
+- The database key is wrapped using libsodium's SecretBox and the volatile KEK.
+- The KEK is derived from the user's passphrase using Argon2id (64MB memory limit, 3 iterations).
+- Local storage remains opaque unless the KEK is successfully derived.
+
+---
+
+## Network Layer Observations
+- **Hybrid Routing**: Operates across Nym and I2P natively using a deterministic probabilistic distribution function.
+- **Length Striping**: Reconstructs the application-layer payload by stripping the 2-byte big-endian length prefix imposed by the underlying Nym transport layer.
+- **Out-of-Order Buffering**: The rendezvous polling system dynamically buffers unexpected message types (e.g., `TYPE_CHAT` received before `TYPE_HANDLE`) to prevent packet loss during the handshake sequence.
+
+---
+
+## Limitations
+
+> [!WARNING]
+> - **Pre-Handshake Masking**: A temporary `obfs4_state` derived via a deterministic HKDF-like construction is used before SPAKE2+ completes, meaning traffic could be de-obfuscated if the epoch and session token are known.
+> - **Transport Terminal Decay**: Cover traffic on Nym shuts off completely after reaching a 60-second delay threshold, which may expose the binary presence of an active I2P session to network observers.
+> - **No Keystore Backing**: The local encryption model entirely trusts Argon2id memory-hardness and explicitly avoids leveraging hardware-backed Android Keystore elements.
+
+---
+
+## Security Summary
+
+- **Guarantees**:
+  - Session keys are derived per session and not reused across sessions.
+  - Mutual authentication via SPAKE2+ without plaintext password transmission.
+  - Zero local entropy routing reduces correlation risk caused by device-specific randomness.
+  - CPU symmetry between real and cover traffic processing.
+  - Duress PIN reliably wipes key material.
+
+- **Non-Guarantees**:
+  - Does NOT protect against an attacker extracting the KEK from live volatile RAM.
+  - Does NOT protect against timing correlation once the Nym cover traffic fully decays.
+  - Does NOT leverage hardware-backed key storage natively built into the Android platform.
