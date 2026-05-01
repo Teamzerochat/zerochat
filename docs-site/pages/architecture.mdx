@@ -1,0 +1,107 @@
+# Architecture
+
+This document provides a high-level overview of the ZeroChat system architecture and the data flow between its core components.
+
+## Architecture Diagram
+
+The system is separated into strict trust boundaries. The local client device is trusted (green), while all intermediate routing and networks are considered untrusted (red).
+
+```mermaid
+graph TD
+    subgraph Legend["Legend"]
+        direction LR
+        L1["🟢 Trusted"] ~~~ L2["🔴 Untrusted"] ~~~ L3["─ Data  ··· Key Ex  ⟷ R/W"]
+    end
+
+    subgraph ClientA["🟢 Client A — Trusted Device"]
+        UI_A["🖥️ UI Layer"]
+        CM_A["📡 Connection Manager"]
+        HS_A["🤝 Handshake Layer<br/>SPAKE2+"]
+        SK_A["🔑 Session Key Store<br/>Volatile Memory Only"]
+        ENC_A["🔒 Encryption Layer<br/>AES-256-GCM"]
+        MQ_A["📨 Message Queue<br/>Reliable Delivery"]
+        CT_A["🌫️ Cover Traffic Engine<br/>Poisson Rate + Padding"]
+        LS_A["💾 Local Encrypted Storage<br/>Argon2id KEK + SQLCipher"]
+    end
+
+    subgraph Network["🔴 Untrusted Network"]
+        RV["📬 Rendezvous Point<br/>Deterministic Mailbox<br/>via Shared Secret"]
+        NYM["🟣 Nym Mixnet<br/>3-Hop Sphinx Routing<br/>Packet Shuffling + Delay"]
+        I2P["🔵 I2P Network<br/>Garlic Routing<br/>Hidden Service Transport"]
+    end
+
+    subgraph ClientB["🟢 Client B — Trusted Device"]
+        UI_B["🖥️ UI Layer"]
+        CM_B["📡 Connection Manager"]
+        HS_B["🤝 Handshake Layer<br/>SPAKE2+"]
+        SK_B["🔑 Session Key Store<br/>Volatile Memory Only"]
+        ENC_B["🔒 Encryption Layer<br/>AES-256-GCM"]
+        MQ_B["📨 Message Queue<br/>Reliable Delivery"]
+        CT_B["🌫️ Cover Traffic Engine<br/>Poisson Rate + Padding"]
+        LS_B["💾 Local Encrypted Storage<br/>Argon2id KEK + SQLCipher"]
+    end
+
+    UI_A --> CM_A
+    CM_A --> HS_A
+    HS_A --> SK_A
+    SK_A --> ENC_A
+    ENC_A --> MQ_A
+    MQ_A --> CT_A
+    CM_A <--> LS_A
+
+    CT_A -->|"Transport Path 1"| NYM
+    CT_A -->|"Transport Path 2"| I2P
+    HS_A -. "Key Exchange" .-> RV
+
+    RV -. "Key Exchange" .-> HS_B
+    NYM -->|"Transport Path 1"| CT_B
+    I2P -->|"Transport Path 2"| CT_B
+
+    CT_B --> MQ_B
+    MQ_B --> ENC_B
+    ENC_B --> SK_B
+    SK_B --> HS_B
+    HS_B --> CM_B
+    CM_B --> UI_B
+    CM_B <--> LS_B
+
+    style Legend fill:#0d1117,stroke:#6e7681,stroke-width:1px,color:#8b949e
+    style L1 fill:#0d1117,stroke:#2ea043,color:#2ea043
+    style L2 fill:#0d1117,stroke:#f85149,color:#f85149
+    style L3 fill:#0d1117,stroke:#6e7681,color:#8b949e
+
+    style ClientA fill:#0d1117,stroke:#2ea043,stroke-width:2px,color:#c9d1d9
+    style ClientB fill:#0d1117,stroke:#2ea043,stroke-width:2px,color:#c9d1d9
+    style Network fill:#161b22,stroke:#f85149,stroke-width:2px,stroke-dasharray:5 5,color:#c9d1d9
+
+    style UI_A fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style UI_B fill:#1f6feb,stroke:#58a6ff,color:#fff
+    style CM_A fill:#238636,stroke:#2ea043,color:#fff
+    style CM_B fill:#238636,stroke:#2ea043,color:#fff
+    style HS_A fill:#8957e5,stroke:#a371f7,color:#fff
+    style HS_B fill:#8957e5,stroke:#a371f7,color:#fff
+    style SK_A fill:#f0883e,stroke:#d29922,color:#fff
+    style SK_B fill:#f0883e,stroke:#d29922,color:#fff
+    style ENC_A fill:#da3633,stroke:#f85149,color:#fff
+    style ENC_B fill:#da3633,stroke:#f85149,color:#fff
+    style MQ_A fill:#1a7f37,stroke:#2ea043,color:#fff
+    style MQ_B fill:#1a7f37,stroke:#2ea043,color:#fff
+    style CT_A fill:#0d4429,stroke:#2ea043,color:#aff5b4
+    style CT_B fill:#0d4429,stroke:#2ea043,color:#aff5b4
+    style LS_A fill:#1a1e24,stroke:#6e7681,color:#c9d1d9
+    style LS_B fill:#1a1e24,stroke:#6e7681,color:#c9d1d9
+
+    style RV fill:#f0883e,stroke:#d29922,color:#fff
+    style NYM fill:#6e40c9,stroke:#8957e5,color:#fff
+    style I2P fill:#1158c7,stroke:#1f6feb,color:#fff
+```
+
+## Data Flow Diagrams
+
+The detailed flow of data is broken down into three main phases.
+
+![Phase 1 Data Flow](/dfd-phase1.svg)
+
+![Phase 2 Data Flow](/dfd-phase2.svg)
+
+![Phase 3 Data Flow](/dfd-phase3.svg)
