@@ -58,6 +58,7 @@ fun GroupChatScreen(
     val sasWords by viewModel.sasWords.collectAsState()
     val myMemberIndex by viewModel.myMemberIndex.collectAsState()
     val groupSize by viewModel.groupSize.collectAsState()
+    val displayNameMap = remember { viewModel.getDisplayNameMap() }
 
     val listState = rememberLazyListState()
 
@@ -122,9 +123,11 @@ fun GroupChatScreen(
             }
 
             items(messages) { message ->
+                val senderName = displayNameMap[message.senderIndex] ?: "Member ${message.senderIndex + 1}"
                 GroupMessageBubble(
                     message = message,
-                    isOwnMessage = message.senderIndex == myMemberIndex
+                    isOwnMessage = message.senderIndex == myMemberIndex,
+                    senderName = senderName
                 )
             }
         }
@@ -283,7 +286,8 @@ private val memberColors = listOf(
 @Composable
 private fun GroupMessageBubble(
     message: GroupChatMessage,
-    isOwnMessage: Boolean
+    isOwnMessage: Boolean,
+    senderName: String
 ) {
     val memberColor = if (message.senderIndex >= 0) {
         memberColors[message.senderIndex % memberColors.size]
@@ -300,7 +304,7 @@ private fun GroupMessageBubble(
         // Sender label (for received messages)
         if (!isOwnMessage && message.senderIndex >= 0) {
             Text(
-                text = "Member ${message.senderIndex + 1}",
+                text = senderName,
                 fontSize = 11.sp,
                 fontWeight = FontWeight.Medium,
                 color = memberColor,

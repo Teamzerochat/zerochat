@@ -29,7 +29,9 @@ import java.security.SecureRandom
 class GroupDiscoveryManager(
     private val controller: TransportController,
     private val slotMatrix: GroupSlotMatrix,
-    private val groupSize: Int
+    private var groupSize: Int,
+    private val displayName: String = "Anonymous",
+    private val isCreator: Boolean = true
 ) {
     companion object {
         private const val TAG = "GroupDiscoveryManager"
@@ -44,6 +46,9 @@ class GroupDiscoveryManager(
     private var myPublicKey: ByteArray? = null
     private var claimedSlotIndex: Int = -1
     private var claimedPointId: String = ""
+
+    // Whether the group size has been resolved (always true for creator, set when joiner gets a creator announcement)
+    private var groupSizeResolved: Boolean = isCreator
 
     // Discovered peer announcements
     private val discoveredPeers = mutableMapOf<String, PeerAnnouncement>() // nonceHex → announcement
@@ -107,7 +112,9 @@ class GroupDiscoveryManager(
             slotIndex = claimedSlotIndex,
             nonce = myNonce!!,
             publicKey = ephemeralPublicKey,
-            isSelf = true
+            isSelf = true,
+            displayName = displayName,
+            isCreator = isCreator
         )
         discoveredPeers[myAnnouncement.nonceHex] = myAnnouncement
         _peerCount.value = 1
@@ -215,6 +222,18 @@ class GroupDiscoveryManager(
     fun getClaimedSlotIndex(): Int = claimedSlotIndex
 
     /**
+     * Get the resolved group size (may have been learned from creator).
+     */
+    fun getResolvedGroupSize(): Int = groupSize
+
+    /**
+     * Get a map of memberIndex → displayName for all discovered peers.
+     */
+    fun getDisplayNameMap(): Map<Int, String> {
+        return sortedMembers?.associate { it.memberIndex to it.displayName } ?: emptyMap()
+    }
+
+    /**
      * Tear down all discovery resources.
      */
     fun teardown() {
@@ -269,14 +288,17 @@ class GroupDiscoveryManager(
     /**
      * Broadcast swarm announcement to all 50 virtual slots via Sphinx packets.
      *
-     * Announcement format:
-     *   [2: Slot Index] [16: Random Nonce] [Variable: Ephemeral DH Public Key]
+     * Announcement format (v2):
+     *   [1: Version=0x02] [2: Slot Index] [16: Random Nonce]
+     *   [1: Flags (bit0=isCreator)] [1: Group Size]
+     *   [2: Display Name Length] [N: Display Name UTF-8]
+     *   [Variable: Ephemeral DH Public Key]
      */
     private suspend fun broadcastAnnouncement() {
         val announcement = buildAnnouncementPayload()
         val allSlotIds = slotMatrix.getAllSlotPointIds()
 
-        Log.i(TAG, "Broadcasting announcement to ${allSlotIds.size} slots")
+        Log.i(TAG, "Broadcasting announcement to ${allSlotIds.size} slots (name='$displayName', creator=$isCreator, size=$groupSize)")
 
         var successCount = 0
         for ((index, slotPointId) in allSlotIds.withIndex()) {
@@ -303,39 +325,85 @@ class GroupDiscoveryManager(
     }
 
     /**
-     * Build the announcement payload.
+     * Build the v2 announcement payload with displayName, isCreator, and groupSize.
      */
     private fun buildAnnouncementPayload(): ByteArray {
         val pubKey = myPublicKey ?: throw IllegalStateException("No ephemeral key")
         val nonce = myNonce ?: throw IllegalStateException("No nonce generated")
+        val nameBytes = displayName.toByteArray(Charsets.UTF_8)
+        val flags: Byte = if (isCreator) 0x01 else 0x00
 
-        val buffer = ByteBuffer.allocate(2 + ANNOUNCEMENT_NONCE_SIZE + pubKey.size)
+        // v2 format: [1:version][2:slot][16:nonce][1:flags][1:groupSize][2:nameLen][N:name][pubKey]
+        val totalSize = 1 + 2 + ANNOUNCEMENT_NONCE_SIZE + 1 + 1 + 2 + nameBytes.size + pubKey.size
+        val buffer = ByteBuffer.allocate(totalSize)
+        buffer.put(0x02.toByte()) // Version 2
         buffer.putShort(claimedSlotIndex.toShort())
         buffer.put(nonce)
+        buffer.put(flags)
+        buffer.put(groupSize.toByte())
+        buffer.putShort(nameBytes.size.toShort())
+        buffer.put(nameBytes)
         buffer.put(pubKey)
         return buffer.array()
     }
 
     /**
      * Parse an announcement payload received from a peer.
+     * Supports both v1 (legacy) and v2 (with displayName/creator/size) formats.
      */
     private fun parseAnnouncementPayload(data: ByteArray): PeerAnnouncement? {
         if (data.size < 2 + ANNOUNCEMENT_NONCE_SIZE + 1) return null
 
         return try {
             val buffer = ByteBuffer.wrap(data)
-            val slotIndex = buffer.short.toInt()
-            val nonce = ByteArray(ANNOUNCEMENT_NONCE_SIZE)
-            buffer.get(nonce)
-            val publicKey = ByteArray(buffer.remaining())
-            buffer.get(publicKey)
+            val firstByte = buffer.get(0)
 
-            PeerAnnouncement(
-                slotIndex = slotIndex,
-                nonce = nonce,
-                publicKey = publicKey,
-                isSelf = false
-            )
+            if (firstByte == 0x02.toByte()) {
+                // V2 format
+                buffer.get() // consume version byte
+                val slotIndex = buffer.short.toInt()
+                val nonce = ByteArray(ANNOUNCEMENT_NONCE_SIZE)
+                buffer.get(nonce)
+                val flags = buffer.get()
+                val peerIsCreator = (flags.toInt() and 0x01) != 0
+                val peerGroupSize = buffer.get().toInt() and 0xFF
+                val nameLen = buffer.short.toInt() and 0xFFFF
+                val nameBytes = ByteArray(nameLen)
+                buffer.get(nameBytes)
+                val peerDisplayName = String(nameBytes, Charsets.UTF_8)
+                val publicKey = ByteArray(buffer.remaining())
+                buffer.get(publicKey)
+
+                PeerAnnouncement(
+                    slotIndex = slotIndex,
+                    nonce = nonce,
+                    publicKey = publicKey,
+                    isSelf = false,
+                    displayName = peerDisplayName,
+                    isCreator = peerIsCreator
+                ).also {
+                    // If we're a joiner and this is a creator, adopt their group size
+                    if (!this.isCreator && peerIsCreator && !groupSizeResolved) {
+                        groupSize = peerGroupSize
+                        groupSizeResolved = true
+                        Log.i(TAG, "Joiner learned group size from creator: $groupSize")
+                    }
+                }
+            } else {
+                // V1 legacy format: [2:slot][16:nonce][pubKey]
+                val slotIndex = buffer.short.toInt()
+                val nonce = ByteArray(ANNOUNCEMENT_NONCE_SIZE)
+                buffer.get(nonce)
+                val publicKey = ByteArray(buffer.remaining())
+                buffer.get(publicKey)
+
+                PeerAnnouncement(
+                    slotIndex = slotIndex,
+                    nonce = nonce,
+                    publicKey = publicKey,
+                    isSelf = false
+                )
+            }
         } catch (e: Exception) {
             Log.w(TAG, "Failed to parse announcement", e)
             null
@@ -348,9 +416,15 @@ class GroupDiscoveryManager(
     private suspend fun pollForPeers(): Boolean {
         val startTime = System.currentTimeMillis()
 
-        while (discoveredPeers.size < groupSize) {
+        // For joiners, groupSize starts at 0 and gets resolved when a creator's announcement arrives.
+        // We keep polling until groupSize is resolved AND we have enough peers.
+        while (!groupSizeResolved || discoveredPeers.size < groupSize) {
             if (System.currentTimeMillis() - startTime > DISCOVERY_TIMEOUT_MS) {
-                Log.e(TAG, "Discovery timeout: found ${discoveredPeers.size}/$groupSize peers")
+                if (!groupSizeResolved) {
+                    Log.e(TAG, "Discovery timeout: never received a creator announcement to learn group size")
+                } else {
+                    Log.e(TAG, "Discovery timeout: found ${discoveredPeers.size}/$groupSize peers")
+                }
                 return false
             }
 
@@ -360,8 +434,9 @@ class GroupDiscoveryManager(
                 if (hex !in discoveredPeers) {
                     discoveredPeers[hex] = announcement
                     _peerCount.value = discoveredPeers.size
-                    Log.i(TAG, "Discovered peer ${discoveredPeers.size}/$groupSize " +
-                            "(slot ${announcement.slotIndex}, nonce ${hex.take(8)}...)")
+                    val sizeDisplay = if (groupSizeResolved) "$groupSize" else "?"
+                    Log.i(TAG, "Discovered peer ${discoveredPeers.size}/$sizeDisplay " +
+                            "(slot ${announcement.slotIndex}, name='${announcement.displayName}', nonce ${hex.take(8)}...)")
                 }
             }
 
@@ -416,7 +491,9 @@ data class PeerAnnouncement(
     val nonce: ByteArray,
     val publicKey: ByteArray,
     val isSelf: Boolean,
-    var memberIndex: Int = -1
+    var memberIndex: Int = -1,
+    val displayName: String = "Anonymous",
+    val isCreator: Boolean = false
 ) {
     /** Hex representation of the nonce (used as map key). */
     val nonceHex: String = nonce.joinToString("") { "%02x".format(it) }

@@ -35,6 +35,12 @@ class GroupViewModel @Inject constructor(
     private val _sharedSecret = MutableStateFlow("")
     val sharedSecret: StateFlow<String> = _sharedSecret.asStateFlow()
 
+    private val _displayName = MutableStateFlow("")
+    val displayName: StateFlow<String> = _displayName.asStateFlow()
+
+    private val _isCreator = MutableStateFlow(true)
+    val isCreator: StateFlow<Boolean> = _isCreator.asStateFlow()
+
     private val _groupSize = MutableStateFlow(3) // Default group size
     val groupSize: StateFlow<Int> = _groupSize.asStateFlow()
 
@@ -96,6 +102,16 @@ class GroupViewModel @Inject constructor(
         _sharedSecret.value = secret
     }
 
+    /** Update the display name input field. */
+    fun updateDisplayName(name: String) {
+        _displayName.value = name
+    }
+
+    /** Toggle creator/joiner mode. */
+    fun setIsCreator(creator: Boolean) {
+        _isCreator.value = creator
+    }
+
     /** Update the group size selection. */
     fun updateGroupSize(size: Int) {
         _groupSize.value = size.coerceIn(2, 10)
@@ -112,12 +128,26 @@ class GroupViewModel @Inject constructor(
     fun startGroupSession() {
         val secret = _sharedSecret.value
         val size = _groupSize.value
+        val name = _displayName.value.trim().takeIf { it.isNotEmpty() } ?: "Anonymous"
+        val creator = _isCreator.value
 
         if (secret.length < 6) return
-        if (size !in 2..10) return
+        if (creator && size !in 2..10) return
 
-        groupManager.startSession(secret, size)
+        // For joiners, we pass size=0 and GroupManager will learn it from the creator
+        val targetSize = if (creator) size else 0
+        groupManager.startSession(secret, targetSize, name, creator)
     }
+
+    /**
+     * Get the display name map (memberIndex -> name) for the chat UI.
+     */
+    fun getDisplayNameMap(): Map<Int, String> = groupManager.getDisplayNameMap()
+
+    /**
+     * Get my display name.
+     */
+    fun getMyDisplayName(): String = groupManager.getMyDisplayName()
 
     /**
      * Send a chat message to the group.

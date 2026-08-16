@@ -56,6 +56,8 @@ class GroupManager @Inject constructor(
     private var groupSize: Int = 0
     private var myMemberIndex: Int = -1
     private var sasWords: List<String> = emptyList()
+    private var displayNameMap: Map<Int, String> = emptyMap()
+    private var myDisplayName: String = ""
 
     /**
      * Start a new group session.
@@ -64,9 +66,11 @@ class GroupManager @Inject constructor(
      * State transitions are emitted through the [state] flow.
      *
      * @param sharedSecret The 6-digit code entered by all group members
-     * @param memberCount The expected number of group members (K ≤ 10)
+     * @param memberCount The expected number of group members (K ≤ 10), or 0 for joiners
+     * @param displayName The user’s chosen display name
+     * @param isCreator Whether this user is creating (true) or joining (false) the group
      */
-    fun startSession(sharedSecret: String, memberCount: Int) {
+    fun startSession(sharedSecret: String, memberCount: Int, displayName: String = "Anonymous", isCreator: Boolean = true) {
         if (_state.value != GroupSessionState.Idle &&
             _state.value !is GroupSessionState.Terminated &&
             _state.value !is GroupSessionState.SecurityViolation) {
@@ -75,16 +79,19 @@ class GroupManager @Inject constructor(
         }
 
         require(sharedSecret.length >= 6) { "Shared secret must be at least 6 characters" }
-        require(memberCount in 2..10) { "Group size must be between 2 and 10" }
+        if (isCreator) {
+            require(memberCount in 2..10) { "Group size must be between 2 and 10" }
+        }
 
         groupSize = memberCount
+        myDisplayName = displayName
 
         // Create a new coroutine scope for this session
         sessionScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
         sessionJob = sessionScope!!.launch {
             try {
-                executeSessionLifecycle(sharedSecret, memberCount)
+                executeSessionLifecycle(sharedSecret, memberCount, displayName, isCreator)
             } catch (e: CancellationException) {
                 Log.i(TAG, "Session cancelled")
                 _state.value = GroupSessionState.Terminated("Session cancelled")
@@ -133,6 +140,16 @@ class GroupManager @Inject constructor(
     fun getGroupSize(): Int = groupSize
 
     /**
+     * Get the display name map (memberIndex → displayName).
+     */
+    fun getDisplayNameMap(): Map<Int, String> = displayNameMap
+
+    /**
+     * Get this user's display name.
+     */
+    fun getMyDisplayName(): String = myDisplayName
+
+    /**
      * Terminate the current group session.
      */
     fun terminateSession() {
@@ -155,8 +172,13 @@ class GroupManager @Inject constructor(
     /**
      * Execute the full group session lifecycle (Phases 1-7).
      */
-    private suspend fun executeSessionLifecycle(sharedSecret: String, memberCount: Int) {
-        val epoch = System.currentTimeMillis() / (300 * 1000) // 5-minute epochs
+    private suspend fun executeSessionLifecycle(
+        sharedSecret: String,
+        memberCount: Int,
+        displayName: String = "Anonymous",
+        isCreator: Boolean = true
+    ) {
+        val epoch = System.currentTimeMillis() / (24L * 60L * 60L * 1000L) // 24-hour epochs
 
         // --- Phase 1-2: Slot Matrix Initialization ---
         _state.value = GroupSessionState.Probing
@@ -164,7 +186,13 @@ class GroupManager @Inject constructor(
 
         slotMatrix = GroupSlotMatrix(sharedSecret, epoch)
         cryptoManager = GroupCryptoManager()
-        discoveryManager = GroupDiscoveryManager(controller, slotMatrix!!, memberCount)
+        discoveryManager = GroupDiscoveryManager(
+            controller = controller,
+            slotMatrix = slotMatrix!!,
+            groupSize = memberCount,
+            displayName = displayName,
+            isCreator = isCreator
+        )
 
         // --- Phase 1: Generate ephemeral keys ---
         val myPublicKey = cryptoManager!!.generateEphemeralKeys()
@@ -184,6 +212,8 @@ class GroupManager @Inject constructor(
         }
 
         myMemberIndex = discoveryManager!!.getMyMemberIndex()
+        groupSize = discoveryManager!!.getResolvedGroupSize() // Update in case joiner learned it
+        displayNameMap = discoveryManager!!.getDisplayNameMap()
         _state.value = GroupSessionState.Announcing(discoveredCount = sortedMembers.size)
 
         // --- Phase 5-6: Sealed G-PAKE Key Agreement ---
@@ -242,7 +272,7 @@ class GroupManager @Inject constructor(
         }
 
         _state.value = GroupSessionState.Active
-        Log.i(TAG, "Phase 7: Group chat ACTIVE (${memberCount} members, index=$myMemberIndex)")
+        Log.i(TAG, "Phase 7: Group chat ACTIVE (${groupSize} members, index=$myMemberIndex, name='$displayName')")
     }
 
     /**

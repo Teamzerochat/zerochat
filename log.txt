@@ -1,0 +1,342 @@
+2026-08-16 21:41:45.423  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Disconnecting ALL rendezvous clients
+2026-08-16 21:41:45.423  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Rendezvous state cleared
+2026-08-16 21:41:45.423  6492-6516  RealNymTransport        com.zerochat.app                     I  All rendezvous clients disconnected
+2026-08-16 21:41:45.424  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Disconnecting from NYM...
+2026-08-16 21:41:45.676  6492-6516  RealNymTransport        com.zerochat.app                     I  Attempting to connect to NYM mixnet...
+2026-08-16 21:41:45.678  6492-6516  RealNymTransport        com.zerochat.app                     I  Created NymTransportClient instance
+2026-08-16 21:41:45.679  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connecting to NYM public mainnet...
+2026-08-16 21:41:45.679  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetching gateways from SDK-compatible API (gateways_for_init)
+2026-08-16 21:41:46.794  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 602 gateways
+2026-08-16 21:41:46.795  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 602 valid gateways after filtering
+2026-08-16 21:41:46.795  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: SDK reports 602 valid gateways
+2026-08-16 21:41:46.797  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetched 529 valid WSS gateways for deterministic selection (from 602 total)
+2026-08-16 21:41:46.797  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Main Gateway attempt 1/3: B5JEJ2ehvyPYv7PGcfXmB1P923i7C6waxJuiZ8rGjoKR (wss_port: 9001)
+2026-08-16 21:41:47.889  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 602 gateways
+2026-08-16 21:41:47.890  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 592 valid gateways after filtering
+2026-08-16 21:41:48.399  6492-6516  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=B5JEJ2ehvyPYv7PGcfXmB1P923i7C6waxJuiZ8rGjoKR gateway_address=ws://nym-exit.latvia.turquoiselab.io:9000/
+2026-08-16 21:41:49.173  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting nym client
+2026-08-16 21:41:49.174  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Building nym-api client from provided URLs (with domain fronting support): 3 URLs
+2026-08-16 21:41:49.884  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting statistics control...
+2026-08-16 21:41:49.884  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Obtaining initial network topology
+2026-08-16 21:41:50.944  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting topology refresher...
+2026-08-16 21:41:50.945  6492-6516  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=B5JEJ2ehvyPYv7PGcfXmB1P923i7C6waxJuiZ8rGjoKR gateway_address=ws://nym-exit.latvia.turquoiselab.io:9000/
+2026-08-16 21:41:51.708  6492-6516  NymTransport            com.zerochat.app                     I  nym_gateway_client::bandwidth: remaining bandwidth: 0.00 B. in 'upgrade mode': false
+2026-08-16 21:41:51.709  6492-6516  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: Claiming more bandwidth with existing credentials. Stop the process now if you don't want that to happen.
+2026-08-16 21:41:51.709  6492-6516  NymTransport            com.zerochat.app                     W  nym_gateway_client::client: Not enough bandwidth. Trying to get more bandwidth, this might take a while
+2026-08-16 21:41:51.709  6492-6516  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: The client is running in disabled credentials mode - attempting to claim bandwidth without a credential
+2026-08-16 21:41:51.900  6492-6516  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: managed to claim testnet bandwidth
+2026-08-16 21:41:51.900  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting received messages buffer controller...
+2026-08-16 21:41:51.900  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting mix traffic controller...
+2026-08-16 21:41:51.900  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting real traffic stream...
+2026-08-16 21:41:51.901  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting loop cover traffic stream...
+2026-08-16 21:41:51.901  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connected! Address: 3p6DzW5CRPdEEi738GVsgxiLvB6mhaCNUcz3F8NMwa2y.DqC3GWvcPUPNsAsGderL6DHhFXVR2WqzfcBo4Tik7ZtJ@B5JEJ2ehvyPYv7PGcfXmB1P923i7C6waxJuiZ8rGjoKR
+2026-08-16 21:41:51.901  6492-6652  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Churn oracle started (2 Hz sampling)
+2026-08-16 21:41:51.901  6492-6516  RealNymTransport        com.zerochat.app                     I  Successfully connected! NYM Address: 3p6DzW5CRPdEEi738GVsgxiLvB6mhaCNUcz3F8NMwa2y.DqC3GWvcPUPNsAsGderL6DHhFXVR2WqzfcBo4Tik7ZtJ@B5JEJ2ehvyPYv7PGcfXmB1P923i7C6waxJuiZ8rGjoKR
+2026-08-16 21:41:52.040  6492-6516  RealNymTransport        com.zerochat.app                     I  Connecting to rendezvous point: 324553b3349bfd7d922046d5ec6146288f2ec7ae3a038be40dbe03bc790aa0db
+2026-08-16 21:41:52.040  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connecting to rendezvous point: 324553b3349bfd7d922046d5ec6146288f2ec7ae3a038be40dbe03bc790aa0db (Deterministic Gateway)
+2026-08-16 21:41:52.040  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetching gateways from SDK-compatible API (gateways_for_init)
+2026-08-16 21:41:53.116  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 602 gateways
+2026-08-16 21:41:53.117  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 602 valid gateways after filtering
+2026-08-16 21:41:53.117  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: SDK reports 602 valid gateways
+2026-08-16 21:41:53.119  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetched 529 valid WSS gateways for deterministic selection (from 602 total)
+2026-08-16 21:41:53.120  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Cached 529 gateways (fresh fetch)
+2026-08-16 21:41:53.120  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Identity derived from base_id: 324553b3349bfd7d922046d5ec6146288f2ec7ae3a038be40dbe03bc790aa0db (slot input: 324553b3349bfd7d922046d5ec6146288f2ec7ae3a038be40dbe03bc790aa0db)
+2026-08-16 21:41:53.120  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Rendezvous seed (Identity): 0216bc86caf7e678f32ef47f8a17d8c158e9311999e8f2462725959fbcd5a4df
+2026-08-16 21:41:53.120  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Selected Deterministic Gateway: C9d9qoQXefAf7osLjNxas82tq3J6BeDbFvGewAz6rEPZ (Index: 334/529)
+2026-08-16 21:41:53.120  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Derived public key (Identity): f8ceef9f06020f7adf0620f0ed16ebcdb10e4789b75acbd6acdbea9e1c7e91b8
+2026-08-16 21:41:53.120  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Deriving Encryption KeyPair (x25519)...
+2026-08-16 21:41:53.120  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Deterministic seeds zeroized
+2026-08-16 21:41:54.250  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 602 gateways
+2026-08-16 21:41:54.251  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 592 valid gateways after filtering
+2026-08-16 21:41:55.117  6492-6516  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=C9d9qoQXefAf7osLjNxas82tq3J6BeDbFvGewAz6rEPZ gateway_address=ws://nym-exit.ro-15.lunardao.net:9000/
+2026-08-16 21:41:56.286  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting nym client
+2026-08-16 21:41:56.287  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Building nym-api client from provided URLs (with domain fronting support): 3 URLs
+2026-08-16 21:41:56.935  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting statistics control...
+2026-08-16 21:41:56.935  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Obtaining initial network topology
+2026-08-16 21:41:58.017  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting topology refresher...
+2026-08-16 21:41:58.018  6492-6516  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=C9d9qoQXefAf7osLjNxas82tq3J6BeDbFvGewAz6rEPZ gateway_address=ws://nym-exit.ro-15.lunardao.net:9000/
+2026-08-16 21:41:59.129  6492-6516  NymTransport            com.zerochat.app                     I  nym_gateway_client::bandwidth: remaining bandwidth: 0.00 B. in 'upgrade mode': false
+2026-08-16 21:41:59.129  6492-6516  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: Claiming more bandwidth with existing credentials. Stop the process now if you don't want that to happen.
+2026-08-16 21:41:59.129  6492-6516  NymTransport            com.zerochat.app                     W  nym_gateway_client::client: Not enough bandwidth. Trying to get more bandwidth, this might take a while
+2026-08-16 21:41:59.130  6492-6516  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: The client is running in disabled credentials mode - attempting to claim bandwidth without a credential
+2026-08-16 21:41:59.412  6492-6516  NymTransport            com.zerochat.app                     I  nym_gateway_client::client: managed to claim testnet bandwidth
+2026-08-16 21:41:59.412  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting received messages buffer controller...
+2026-08-16 21:41:59.412  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting mix traffic controller...
+2026-08-16 21:41:59.413  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting real traffic stream...
+2026-08-16 21:41:59.415  6492-6516  NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting loop cover traffic stream...
+2026-08-16 21:41:59.918  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connected Deterministic Mailbox Client! Address: HkF8DBQDJPnV4g32hyKnCdLo5CBXwXnh4GQW1QXY2WTh.6eqMyge8Wsh2ojGMmNThLs9fJ6z5bE2Rh3Bp6vT4ePhA@C9d9qoQXefAf7osLjNxas82tq3J6BeDbFvGewAz6rEPZ
+2026-08-16 21:41:59.919  6492-6516  RealNymTransport        com.zerochat.app                     I  Rendezvous connected: HkF8DBQDJPnV4g32hyKnCdLo5CBXwXnh4GQW1QXY2WTh.6eqMyge8Wsh2ojGMmNThLs9fJ6z5bE2Rh3Bp6vT4ePhA@C9d9qoQXefAf7osLjNxas82tq3J6BeDbFvGewAz6rEPZ
+2026-08-16 21:41:59.932  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.934  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.952  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.954  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.984  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.023  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.046  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.048  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.061  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.098  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.143  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.144  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.173  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.176  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.177  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.204  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.206  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.207  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.208  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.211  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.212  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.261  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.264  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.267  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.279  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.287  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.336  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.337  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.339  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.341  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.351  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.377  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.396  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.414  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.423  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.462  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.464  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.475  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.530  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.537  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.560  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.571  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.600  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.634  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.635  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.636  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.638  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.640  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.642  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.654  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:01.157  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:03.159  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:03.662  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:05.663  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:06.165  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:08.169  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:08.670  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:10.674  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:11.176  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:13.178  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:13.681  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:15.685  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:16.187  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:18.190  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:18.693  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:20.696  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:21.198  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:23.200  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:23.702  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:25.705  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:26.206  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:28.210  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:28.718  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:30.723  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:31.224  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:33.226  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:33.730  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:35.734  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:36.235  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:38.239  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:38.741  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:40.744  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:41.246  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:43.250  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:43.752  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:45.755  6492-6516  NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:46.258  6492-6516  NymTransport            com.zerochat.app  
+
+
+emulator :- 
+2026-08-16 21:41:45.568 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Disconnecting ALL rendezvous clients
+2026-08-16 21:41:45.568 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Rendezvous state cleared
+2026-08-16 21:41:45.569 23994-24094 RealNymTransport        com.zerochat.app                     I  All rendezvous clients disconnected
+2026-08-16 21:41:45.571 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Disconnecting from NYM...
+2026-08-16 21:41:45.824 23994-24094 RealNymTransport        com.zerochat.app                     I  Attempting to connect to NYM mixnet...
+2026-08-16 21:41:45.830 23994-24094 RealNymTransport        com.zerochat.app                     I  Created NymTransportClient instance
+2026-08-16 21:41:45.831 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connecting to NYM public mainnet...
+2026-08-16 21:41:45.831 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetching gateways from SDK-compatible API (gateways_for_init)
+2026-08-16 21:41:46.991 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 602 gateways
+2026-08-16 21:41:46.992 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 602 valid gateways after filtering
+2026-08-16 21:41:46.992 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: SDK reports 602 valid gateways
+2026-08-16 21:41:46.994 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetched 529 valid WSS gateways for deterministic selection (from 602 total)
+2026-08-16 21:41:46.994 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Main Gateway attempt 1/3: GTBuCjgVBjoPoZyX66fei46ZSV9bBePE3FCofDcJqQ2t (wss_port: 9001)
+2026-08-16 21:41:48.131 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 602 gateways
+2026-08-16 21:41:48.132 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 592 valid gateways after filtering
+2026-08-16 21:41:48.867 23994-24094 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=GTBuCjgVBjoPoZyX66fei46ZSV9bBePE3FCofDcJqQ2t gateway_address=ws://gw-de-04.nym.aethergate.org:9000/
+2026-08-16 21:41:49.749 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting nym client
+2026-08-16 21:41:49.749 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Building nym-api client from provided URLs (with domain fronting support): 3 URLs
+2026-08-16 21:41:50.384 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting statistics control...
+2026-08-16 21:41:50.384 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Obtaining initial network topology
+2026-08-16 21:41:51.415 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting topology refresher...
+2026-08-16 21:41:51.416 23994-24094 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=GTBuCjgVBjoPoZyX66fei46ZSV9bBePE3FCofDcJqQ2t gateway_address=ws://gw-de-04.nym.aethergate.org:9000/
+2026-08-16 21:41:52.276 23994-24094 NymTransport            com.zerochat.app                     I  nym_gateway_client::bandwidth: remaining bandwidth: 0.00 B. in 'upgrade mode': false
+2026-08-16 21:41:52.276 23994-24094 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: Claiming more bandwidth with existing credentials. Stop the process now if you don't want that to happen.
+2026-08-16 21:41:52.276 23994-24094 NymTransport            com.zerochat.app                     W  nym_gateway_client::client: Not enough bandwidth. Trying to get more bandwidth, this might take a while
+2026-08-16 21:41:52.276 23994-24094 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: The client is running in disabled credentials mode - attempting to claim bandwidth without a credential
+2026-08-16 21:41:52.488 23994-24094 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: managed to claim testnet bandwidth
+2026-08-16 21:41:52.488 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting received messages buffer controller...
+2026-08-16 21:41:52.488 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting mix traffic controller...
+2026-08-16 21:41:52.488 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting real traffic stream...
+2026-08-16 21:41:52.488 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting loop cover traffic stream...
+2026-08-16 21:41:52.488 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connected! Address: 4b8ZAXAF3Qpb6C92o3CkyCYRa8zhcRBNMC53MVX7qJ8E.8R7HfrPeztxYReVmwtTbdtCRLvE4BmuWJPRrCEtEdepv@GTBuCjgVBjoPoZyX66fei46ZSV9bBePE3FCofDcJqQ2t
+2026-08-16 21:41:52.489 23994-25961 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Churn oracle started (2 Hz sampling)
+2026-08-16 21:41:52.492 23994-24094 RealNymTransport        com.zerochat.app                     I  Successfully connected! NYM Address: 4b8ZAXAF3Qpb6C92o3CkyCYRa8zhcRBNMC53MVX7qJ8E.8R7HfrPeztxYReVmwtTbdtCRLvE4BmuWJPRrCEtEdepv@GTBuCjgVBjoPoZyX66fei46ZSV9bBePE3FCofDcJqQ2t
+2026-08-16 21:41:52.639 23994-24094 RealNymTransport        com.zerochat.app                     I  Connecting to rendezvous point: 4cbc90f9e0f92cbf77bcabe902827c839081aaa8d893f8fe51542b04f25196d0
+2026-08-16 21:41:52.640 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connecting to rendezvous point: 4cbc90f9e0f92cbf77bcabe902827c839081aaa8d893f8fe51542b04f25196d0 (Deterministic Gateway)
+2026-08-16 21:41:52.641 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetching gateways from SDK-compatible API (gateways_for_init)
+2026-08-16 21:41:53.788 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 602 gateways
+2026-08-16 21:41:53.789 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 602 valid gateways after filtering
+2026-08-16 21:41:53.789 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: SDK reports 602 valid gateways
+2026-08-16 21:41:53.791 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Fetched 529 valid WSS gateways for deterministic selection (from 602 total)
+2026-08-16 21:41:53.791 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Cached 529 gateways (fresh fetch)
+2026-08-16 21:41:53.791 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Identity derived from base_id: 4cbc90f9e0f92cbf77bcabe902827c839081aaa8d893f8fe51542b04f25196d0 (slot input: 4cbc90f9e0f92cbf77bcabe902827c839081aaa8d893f8fe51542b04f25196d0)
+2026-08-16 21:41:53.791 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Rendezvous seed (Identity): 4bd9149d49b9dea0618260e7c2593b3f92eddee6dcec29bebbf2b60928615ff5
+2026-08-16 21:41:53.791 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Selected Deterministic Gateway: 7jd9rMZUoph3xcqbPeSsmefW1XuCw26zSAYMXCScvDfe (Index: 205/529)
+2026-08-16 21:41:53.791 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Derived public key (Identity): e208890dece89633bc7e1507198bc143f3afe66cee555696c66101d9808163f5
+2026-08-16 21:41:53.791 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Deriving Encryption KeyPair (x25519)...
+2026-08-16 21:41:53.791 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Deterministic seeds zeroized
+2026-08-16 21:41:54.926 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: nym api reports 602 gateways
+2026-08-16 21:41:54.927 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::init::helpers: Found 592 valid gateways after filtering
+2026-08-16 21:41:55.504 23994-24094 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=7jd9rMZUoph3xcqbPeSsmefW1XuCw26zSAYMXCScvDfe gateway_address=ws://gw-nl-01.nym.aethergate.org:9000/
+2026-08-16 21:41:56.378 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting nym client
+2026-08-16 21:41:56.379 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Building nym-api client from provided URLs (with domain fronting support): 3 URLs
+2026-08-16 21:41:57.044 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting statistics control...
+2026-08-16 21:41:57.044 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Obtaining initial network topology
+2026-08-16 21:41:58.126 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting topology refresher...
+2026-08-16 21:41:58.126 23994-24094 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: perform_initial_authentication; gateway=7jd9rMZUoph3xcqbPeSsmefW1XuCw26zSAYMXCScvDfe gateway_address=ws://gw-nl-01.nym.aethergate.org:9000/
+2026-08-16 21:41:58.888 23994-24094 NymTransport            com.zerochat.app                     I  nym_gateway_client::bandwidth: remaining bandwidth: 0.00 B. in 'upgrade mode': false
+2026-08-16 21:41:58.888 23994-24094 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: Claiming more bandwidth with existing credentials. Stop the process now if you don't want that to happen.
+2026-08-16 21:41:58.888 23994-24094 NymTransport            com.zerochat.app                     W  nym_gateway_client::client: Not enough bandwidth. Trying to get more bandwidth, this might take a while
+2026-08-16 21:41:58.888 23994-24094 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: The client is running in disabled credentials mode - attempting to claim bandwidth without a credential
+2026-08-16 21:41:59.076 23994-24094 NymTransport            com.zerochat.app                     I  nym_gateway_client::client: managed to claim testnet bandwidth
+2026-08-16 21:41:59.076 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting received messages buffer controller...
+2026-08-16 21:41:59.076 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting mix traffic controller...
+2026-08-16 21:41:59.076 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting real traffic stream...
+2026-08-16 21:41:59.076 23994-24094 NymTransport            com.zerochat.app                     I  nym_client_core::client::base_client: Starting loop cover traffic stream...
+2026-08-16 21:41:59.579 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Connected Deterministic Mailbox Client! Address: GDLgvqVz8HEoPdYKcP7Z6J1AoMWFZYWpbNkvyYrLgxMA.4TGDTWyBDXYFu6HXgSE5Z83iSFWZ6LHMgXwst85V5Wko@7jd9rMZUoph3xcqbPeSsmefW1XuCw26zSAYMXCScvDfe
+2026-08-16 21:41:59.581 23994-24094 RealNymTransport        com.zerochat.app                     I  Rendezvous connected: GDLgvqVz8HEoPdYKcP7Z6J1AoMWFZYWpbNkvyYrLgxMA.4TGDTWyBDXYFu6HXgSE5Z83iSFWZ6LHMgXwst85V5Wko@7jd9rMZUoph3xcqbPeSsmefW1XuCw26zSAYMXCScvDfe
+2026-08-16 21:41:59.601 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.646 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.651 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.654 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.679 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.682 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.684 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.687 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.730 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.733 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.736 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.742 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.747 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.785 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.789 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.793 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.797 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.799 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.802 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.852 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.894 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.913 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.962 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.970 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.983 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:41:59.996 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.007 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.011 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.016 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.020 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.056 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.059 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.075 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.077 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.097 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.114 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.170 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.215 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.266 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.320 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.333 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.347 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.381 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.395 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.421 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.425 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.465 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.468 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.472 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Sending message (62 bytes, padded to 1452)
+2026-08-16 21:42:00.474 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:00.974 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:02.977 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:03.478 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:05.483 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:05.989 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:07.995 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:08.496 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:10.500 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:11.001 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:13.008 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:13.508 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:15.521 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:16.022 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:18.025 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:18.526 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:20.531 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:21.032 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:23.038 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:23.541 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:25.545 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:26.046 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:28.055 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:28.568 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:30.580 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:31.082 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:33.085 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:33.587 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:35.591 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:36.092 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:38.094 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:38.599 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:40.605 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:41.106 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:43.118 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:43.704 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:45.708 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:46.212 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:48.220 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:48.724 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:50.729 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:51.231 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:53.236 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:53.738 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:55.743 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:56.244 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:42:58.247 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:42:58.750 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:43:00.759 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:43:01.268 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:43:03.275 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:43:03.776 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:43:05.781 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:43:06.283 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:43:08.290 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:43:08.792 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:43:10.798 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:43:11.299 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:43:13.305 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:43:13.807 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:43:15.816 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:43:16.322 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:43:18.327 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:43:18.828 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+2026-08-16 21:43:20.836 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Waiting for messages (timeout: 500ms)...
+2026-08-16 21:43:21.337 23994-24094 NymTransport            com.zerochat.app                     I  uniffi_nym_transport: Receive timeout
+       

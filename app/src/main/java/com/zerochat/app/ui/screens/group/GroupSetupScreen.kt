@@ -9,6 +9,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -54,6 +55,8 @@ fun GroupSetupScreen(
     val sessionState by viewModel.sessionState.collectAsState()
     val sharedSecret by viewModel.sharedSecret.collectAsState()
     val groupSize by viewModel.groupSize.collectAsState()
+    val displayName by viewModel.displayName.collectAsState()
+    val isCreator by viewModel.isCreator.collectAsState()
     val peerCount by viewModel.peerCount.collectAsState()
     val sasWords by viewModel.sasWords.collectAsState()
     var secretVisible by remember { mutableStateOf(false) }
@@ -126,12 +129,16 @@ fun GroupSetupScreen(
                         GroupSetupForm(
                             sharedSecret = sharedSecret,
                             groupSize = groupSize,
+                            displayName = displayName,
+                            isCreator = isCreator,
                             secretVisible = secretVisible,
                             isConnecting = isConnecting,
                             errorMessage = (sessionState as? GroupSessionState.Failed)?.reason
                                 ?: (sessionState as? GroupSessionState.Terminated)?.reason,
                             onSecretChange = viewModel::updateSharedSecret,
                             onGroupSizeChange = viewModel::updateGroupSize,
+                            onDisplayNameChange = viewModel::updateDisplayName,
+                            onIsCreatorChange = viewModel::setIsCreator,
                             onToggleVisibility = { secretVisible = !secretVisible },
                             onConnect = viewModel::startGroupSession
                         )
@@ -177,11 +184,15 @@ fun GroupSetupScreen(
 private fun GroupSetupForm(
     sharedSecret: String,
     groupSize: Int,
+    displayName: String,
+    isCreator: Boolean,
     secretVisible: Boolean,
     isConnecting: Boolean,
     errorMessage: String?,
     onSecretChange: (String) -> Unit,
     onGroupSizeChange: (Int) -> Unit,
+    onDisplayNameChange: (String) -> Unit,
+    onIsCreatorChange: (Boolean) -> Unit,
     onToggleVisibility: () -> Unit,
     onConnect: () -> Unit
 ) {
@@ -208,21 +219,70 @@ private fun GroupSetupForm(
     Spacer(modifier = Modifier.height(24.dp))
 
     Text(
-        text = "Create Group Session",
+        text = if (isCreator) "Create Group Session" else "Join Group Session",
         fontSize = 22.sp,
         fontWeight = FontWeight.Bold,
         color = OnBackground
     )
 
     Text(
-        text = "All members enter the same 6-digit code\nand group size to join.",
+        text = if (isCreator) "Set your name, enter a shared code,\nand choose the group size."
+               else "Set your name and enter the same\ncode the creator used.",
         fontSize = 14.sp,
         color = OnSurfaceVariant,
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(top = 8.dp)
     )
 
-    Spacer(modifier = Modifier.height(32.dp))
+    Spacer(modifier = Modifier.height(24.dp))
+    
+    // Create / Join Tabs
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(SurfaceContainerHigh)
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        // Create Tab
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(6.dp))
+                .background(if (isCreator) Primary else Color.Transparent)
+                .clickable { onIsCreatorChange(true) }
+                .padding(vertical = 10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Create Group",
+                color = if (isCreator) OnPrimary else OnSurfaceVariant,
+                fontWeight = if (isCreator) FontWeight.Bold else FontWeight.Medium,
+                fontSize = 14.sp
+            )
+        }
+        
+        // Join Tab
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(6.dp))
+                .background(if (!isCreator) Primary else Color.Transparent)
+                .clickable { onIsCreatorChange(false) }
+                .padding(vertical = 10.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Join Group",
+                color = if (!isCreator) OnPrimary else OnSurfaceVariant,
+                fontWeight = if (!isCreator) FontWeight.Bold else FontWeight.Medium,
+                fontSize = 14.sp
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.height(24.dp))
 
     // Error message
     AnimatedVisibility(
@@ -257,6 +317,26 @@ private fun GroupSetupForm(
         }
     }
 
+    // Display Name input
+    OutlinedTextField(
+        value = displayName,
+        onValueChange = onDisplayNameChange,
+        label = { Text("Display Name", color = OnSurfaceVariant) },
+        placeholder = { Text("e.g. Alice", color = Outline) },
+        singleLine = true,
+        modifier = Modifier.fillMaxWidth(),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = Primary,
+            unfocusedBorderColor = OutlineVariant,
+            focusedTextColor = OnBackground,
+            unfocusedTextColor = OnBackground,
+            cursorColor = Primary
+        ),
+        shape = RoundedCornerShape(12.dp)
+    )
+
+    Spacer(modifier = Modifier.height(16.dp))
+
     // Shared secret input
     OutlinedTextField(
         value = sharedSecret,
@@ -289,44 +369,47 @@ private fun GroupSetupForm(
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    // Group size selector
-    Text(
-        text = "Group Size: $groupSize members",
-        fontSize = 14.sp,
-        fontWeight = FontWeight.Medium,
-        color = OnBackground,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = 8.dp)
-    )
+    // Group size selector (only for creators)
+    AnimatedVisibility(visible = isCreator) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Text(
+                text = "Group Size: $groupSize members",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = OnBackground,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp)
+            )
 
-    Slider(
-        value = groupSize.toFloat(),
-        onValueChange = { onGroupSizeChange(it.toInt()) },
-        valueRange = 2f..10f,
-        steps = 7,
-        modifier = Modifier.fillMaxWidth(),
-        colors = SliderDefaults.colors(
-            thumbColor = Primary,
-            activeTrackColor = Primary,
-            inactiveTrackColor = SurfaceVariant
-        )
-    )
+            Slider(
+                value = groupSize.toFloat(),
+                onValueChange = { onGroupSizeChange(it.toInt()) },
+                valueRange = 2f..10f,
+                steps = 7,
+                modifier = Modifier.fillMaxWidth(),
+                colors = SliderDefaults.colors(
+                    thumbColor = Primary,
+                    activeTrackColor = Primary,
+                    inactiveTrackColor = SurfaceVariant
+                )
+            )
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text("2", color = Outline, fontSize = 12.sp)
-        Text("10", color = Outline, fontSize = 12.sp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text("2", color = Outline, fontSize = 12.sp)
+                Text("10", color = Outline, fontSize = 12.sp)
+            }
+            Spacer(modifier = Modifier.height(32.dp))
+        }
     }
-
-    Spacer(modifier = Modifier.height(32.dp))
 
     // Connect button
     Button(
         onClick = onConnect,
-        enabled = sharedSecret.length >= 6 && !isConnecting,
+        enabled = sharedSecret.length >= 6 && displayName.isNotBlank() && !isConnecting,
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp),
@@ -340,7 +423,11 @@ private fun GroupSetupForm(
     ) {
         Icon(Icons.Outlined.Groups, contentDescription = null, modifier = Modifier.size(20.dp))
         Spacer(modifier = Modifier.width(8.dp))
-        Text("Create Group", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Text(
+            text = if (isCreator) "Create Group" else "Join Group", 
+            fontWeight = FontWeight.Bold, 
+            fontSize = 16.sp
+        )
     }
 }
 
