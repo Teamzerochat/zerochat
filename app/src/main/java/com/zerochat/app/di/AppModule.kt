@@ -5,6 +5,7 @@ import com.zerochat.app.domain.crypto.KeyManager
 import com.zerochat.app.domain.i2p.SamClient
 import com.zerochat.app.domain.rendezvous.RendezvousManager
 import com.zerochat.app.domain.transport.TransportController
+import com.zerochat.app.domain.group.GroupManager
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -35,6 +36,12 @@ object AppModule {
     @Singleton
     fun provideRendezvousManager(controller: TransportController): RendezvousManager {
         return RendezvousManager(controller)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGroupManager(controller: TransportController): GroupManager {
+        return GroupManager(controller)
     }
     
     @Provides

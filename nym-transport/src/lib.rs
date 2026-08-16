@@ -23,6 +23,7 @@ use tokio::sync::Mutex;
 use hkdf::Hkdf;
 use sha2::Sha256;
 use rand::rngs::OsRng;
+use once_cell::sync::Lazy;
 
 // SPAKE2+ module for password-authenticated key exchange
 mod spake2;
@@ -47,6 +48,27 @@ pub use tli::{TliLifecycle, TliPhase, ChurnSignal};
 // obfs4-style frame obfuscation — makes Sphinx frames look like uniform random
 mod obfs4_shim;
 pub use obfs4_shim::session_opener_jitter;
+
+// Secure in-memory ring buffer — zeroizes on drop, exposed via UniFFI free fns
+mod secure_log;
+pub use secure_log::{secure_log_write, secure_log_clear, secure_log_len};
+
+// ZCAP — ZeroChat Async Protocol (offline store-and-forward over Nym)
+pub mod zcap;
+// UniFFI-compatible wrapper layer (maps Result<(A,B)> → dictionary structs)
+mod zcap_ffi;
+// Derivation functions (primitive types, bindable directly)
+pub use zcap::derivation::{zcap_epoch_offset, zcap_current_epoch, zcap_mailbox_id, zcap_gateway_index, zcap_missed_epochs};
+// SURB manager (primitive types, bindable directly)
+pub use zcap::surb::{generate_surbs, acknowledge_surb, surb_pending_count, surb_clear_all};
+// All wrapper-backed ZCAP functions and result structs
+pub use zcap_ffi::{
+    ZcapKemResult, ZcapEncryptResult, ZcapDecryptResult, ZcapSendResult, ZcapFetchResult,
+    zcap_kem_initiate, zcap_kem_respond,
+    ratchet_encrypt, ratchet_decrypt,
+    pad_to_sphinx_size, unpad_sphinx_payload,
+    zcap_send, zcap_fetch_messages,
+};
 
 // Using UDL-driven bindings (see build.rs)
 uniffi::include_scaffolding!("nym_transport");
@@ -146,6 +168,10 @@ pub fn session_get_obfs4_state_wrapper(handle: u64) -> Result<Vec<u8>, SessionEr
     session_store::session_get_obfs4_state(handle)
 }
 
+pub fn session_get_zcap_shared_secret_wrapper(handle: u64) -> Result<Vec<u8>, SessionError> {
+    session_store::session_get_zcap_shared_secret(handle)
+}
+
 pub fn session_destroy_wrapper(handle: u64) {
     session_store::session_destroy(handle)
 }
@@ -182,6 +208,266 @@ struct ClientState {
     /// Cached gateway list with fetch timestamp (60s TTL)
     /// Dies with transport instance — no static/global cache
     cached_gateways: Option<(Vec<Entry>, std::time::Instant)>,
+}
+
+static ZCAP_TRANSPORT_REGISTRY: Lazy<std::sync::Mutex<HashMap<u64, Arc<Mutex<ClientState>>>>> =
+    Lazy::new(|| std::sync::Mutex::new(HashMap::new()));
+
+fn zcap_register_transport_state(state: Arc<Mutex<ClientState>>) -> u64 {
+    let handle = rand::random::<u64>();
+    let mut registry = ZCAP_TRANSPORT_REGISTRY.lock().unwrap();
+    registry.insert(handle, state);
+    log::info!("ZCAP transport registered: handle={}", handle);
+    handle
+}
+
+pub fn zcap_unregister_transport_handle(handle: u64) {
+    let mut registry = ZCAP_TRANSPORT_REGISTRY.lock().unwrap();
+    if registry.remove(&handle).is_some() {
+        log::info!("ZCAP transport unregistered: handle={}", handle);
+    } else {
+        log::warn!("ZCAP transport handle not found during unregister: {}", handle);
+    }
+}
+
+pub(crate) fn zcap_transport_handle_exists(handle: u64) -> bool {
+    ZCAP_TRANSPORT_REGISTRY.lock().unwrap().contains_key(&handle)
+}
+
+#[cfg(test)]
+pub(crate) fn zcap_register_test_transport() -> u64 {
+    zcap_register_transport_state(Arc::new(Mutex::new(ClientState::default())))
+}
+
+async fn zcap_derive_rendezvous_address(
+    state: &Arc<Mutex<ClientState>>,
+    point_id: &str,
+) -> Result<String, TransportError> {
+    let gateways = NymTransportClient::get_or_fetch_gateways(state).await?;
+    if gateways.is_empty() {
+        return Err(TransportError::ConnectionFailed {
+            reason: "No gateways to derive ZCAP mailbox address".into(),
+        });
+    }
+
+    let mut hasher = Sha256::new();
+    use sha2::Digest;
+    hasher.update(point_id.as_bytes());
+    let result = hasher.finalize();
+    let hash_int = u64::from_be_bytes(result[0..8].try_into().unwrap());
+    let index = (hash_int as usize) % gateways.len();
+    let selected_gateway = &gateways[index];
+
+    let base_id = if let Some(idx) = point_id.rfind('_') {
+        &point_id[..idx]
+    } else {
+        point_id
+    };
+
+    let salt = b"zerochat-rendezvous-v1";
+    let hkdf = Hkdf::<Sha256>::new(Some(salt), base_id.as_bytes());
+
+    let mut identity_seed = [0u8; 32];
+    hkdf.expand(b"rendezvous-identity", &mut identity_seed)
+        .map_err(|e| TransportError::RuntimeError { reason: format!("{:?}", e) })?;
+
+    use ed25519_dalek::SigningKey;
+    let signing_key = SigningKey::from_bytes(&identity_seed);
+    let verifying_key = signing_key.verifying_key();
+    let identity_public_key = nym_crypto::asymmetric::identity::PublicKey::from_bytes(verifying_key.as_bytes())
+        .map_err(|e| TransportError::RuntimeError { reason: format!("{:?}", e) })?;
+
+    let mut encryption_seed = [0u8; 32];
+    hkdf.expand(b"rendezvous-encryption", &mut encryption_seed)
+        .map_err(|e| TransportError::RuntimeError { reason: format!("{:?}", e) })?;
+    let x25519_secret = x25519_dalek::StaticSecret::from(encryption_seed);
+    let x25519_public = x25519_dalek::PublicKey::from(&x25519_secret);
+    let encryption_public_key = nym_crypto::asymmetric::encryption::PublicKey::from_bytes(x25519_public.as_bytes())
+        .map_err(|e| TransportError::RuntimeError { reason: format!("{:?}", e) })?;
+
+    use zeroize::Zeroize;
+    identity_seed.zeroize();
+    encryption_seed.zeroize();
+
+    Ok(format!(
+        "{}.{}@{}",
+        identity_public_key.to_base58_string(),
+        encryption_public_key.to_base58_string(),
+        selected_gateway.identity
+    ))
+}
+
+pub(crate) async fn zcap_send_packet_to_mailbox(
+    transport_handle: u64,
+    mailbox_id: &[u8],
+    packet: Vec<u8>,
+) -> Result<(), String> {
+    let state = {
+        let registry = ZCAP_TRANSPORT_REGISTRY.lock().unwrap();
+        registry
+            .get(&transport_handle)
+            .cloned()
+            .ok_or_else(|| format!("unregistered ZCAP transport handle: {transport_handle}"))?
+    };
+
+    let point_id = hex::encode(mailbox_id);
+    let recipient_address = zcap_derive_rendezvous_address(&state, &point_id)
+        .await
+        .map_err(|e| e.to_string())?;
+    let recipient = Recipient::try_from_base58_string(&recipient_address)
+        .map_err(|e| format!("invalid ZCAP mailbox address: {e}"))?;
+
+    let client_arc = {
+        let st = state.lock().await;
+        st.client
+            .as_ref()
+            .cloned()
+            .ok_or_else(|| "registered ZCAP transport has no connected main client".to_string())?
+    };
+
+    let mut client = client_arc.lock().await;
+    client
+        .send_plain_message(recipient, &packet)
+        .await
+        .map_err(|e| format!("ZCAP mailbox send failed: {e}"))?;
+
+    Ok(())
+}
+
+pub(crate) async fn zcap_poll_mailbox(
+    transport_handle: u64,
+    mailbox_id: &[u8],
+) -> Result<Vec<Vec<u8>>, String> {
+    let state = {
+        let registry = ZCAP_TRANSPORT_REGISTRY.lock().unwrap();
+        registry
+            .get(&transport_handle)
+            .cloned()
+            .ok_or_else(|| format!("unregistered ZCAP transport handle: {transport_handle}"))?
+    };
+
+    let point_id = hex::encode(mailbox_id);
+    zcap_connect_mailbox_if_needed(state.clone(), &point_id)
+        .await
+        .map_err(|e| e.to_string())?;
+
+    let client_arc = {
+        let st = state.lock().await;
+        st.rendezvous_clients
+            .get(&point_id)
+            .cloned()
+            .ok_or_else(|| format!("ZCAP mailbox not connected: {point_id}"))?
+    };
+
+    let mut client = client_arc.lock().await;
+    let messages = tokio::time::timeout(Duration::from_millis(100), client.wait_for_messages())
+        .await
+        .map_err(|_| "ZCAP mailbox poll timed out".to_string())?
+        .unwrap_or_default();
+
+    Ok(messages.into_iter().map(|msg| msg.message).collect())
+}
+
+async fn zcap_connect_mailbox_if_needed(
+    state: Arc<Mutex<ClientState>>,
+    point_id: &str,
+) -> Result<String, TransportError> {
+    {
+        let st = state.lock().await;
+        if let Some(address) = st.rendezvous_addresses.get(point_id) {
+            return Ok(address.clone());
+        }
+    }
+
+    let point_id_owned = point_id.to_string();
+    let gateways = NymTransportClient::get_or_fetch_gateways(&state).await?;
+    if gateways.is_empty() {
+        return Err(TransportError::ConnectionFailed {
+            reason: "No gateways available for ZCAP mailbox".into(),
+        });
+    }
+
+    let mut hasher = Sha256::new();
+    use sha2::Digest;
+    hasher.update(point_id_owned.as_bytes());
+    let result = hasher.finalize();
+    let hash_int = u64::from_be_bytes(result[0..8].try_into().unwrap());
+    let selected_gateway = &gateways[(hash_int as usize) % gateways.len()];
+
+    let salt = b"zerochat-rendezvous-v1";
+    let hkdf = Hkdf::<Sha256>::new(Some(salt), point_id_owned.as_bytes());
+
+    let mut identity_seed = [0u8; 32];
+    let mut encryption_seed = [0u8; 32];
+    let mut ack_seed = [0u8; 32];
+
+    hkdf.expand(b"rendezvous-identity", &mut identity_seed)
+        .map_err(|e| TransportError::RuntimeError { reason: format!("Failed to expand identity seed: {:?}", e) })?;
+    hkdf.expand(b"rendezvous-encryption", &mut encryption_seed)
+        .map_err(|e| TransportError::RuntimeError { reason: format!("Failed to expand encryption seed: {:?}", e) })?;
+    hkdf.expand(b"ack-key", &mut ack_seed)
+        .map_err(|e| TransportError::RuntimeError { reason: format!("Failed to expand ack seed: {:?}", e) })?;
+
+    use ed25519_dalek::SigningKey;
+    let signing_key = SigningKey::from_bytes(&identity_seed);
+    let verifying_key = signing_key.verifying_key();
+
+    let identity_keypair = nym_crypto::asymmetric::identity::KeyPair::from_bytes(
+        &signing_key.to_bytes(),
+        verifying_key.as_bytes(),
+    )
+    .map_err(|e| TransportError::RuntimeError { reason: format!("Identity keypair error: {}", e) })?;
+
+    let x25519_secret = x25519_dalek::StaticSecret::from(encryption_seed);
+    let x25519_public = x25519_dalek::PublicKey::from(&x25519_secret);
+    let x25519_secret_bytes = x25519_secret.to_bytes();
+    let encryption_keypair = nym_crypto::asymmetric::encryption::KeyPair::from_bytes(
+        &x25519_secret_bytes,
+        x25519_public.as_bytes(),
+    )
+    .map_err(|e| TransportError::RuntimeError { reason: format!("Encryption keypair error: {:?}", e) })?;
+
+    let ack_key = AckKey::try_from_bytes(&ack_seed[..16])
+        .map_err(|e| TransportError::RuntimeError { reason: format!("AckKey error: {:?}", e) })?;
+
+    let client_keys = ClientKeys::from_keys(identity_keypair, encryption_keypair, ack_key);
+
+    use zeroize::Zeroize;
+    identity_seed.zeroize();
+    encryption_seed.zeroize();
+    ack_seed.zeroize();
+
+    let storage = Ephemeral::default();
+    storage
+        .key_store()
+        .store_keys(&client_keys)
+        .await
+        .map_err(|e| TransportError::RuntimeError { reason: format!("Failed to store ZCAP mailbox keys: {}", e) })?;
+
+    let disconnected = MixnetClientBuilder::new_with_storage(storage)
+        .request_gateway(selected_gateway.identity.clone())
+        .build()
+        .map_err(|e| TransportError::RuntimeError { reason: format!("ZCAP mailbox build failed: {}", e) })?;
+
+    let client = tokio::time::timeout(Duration::from_secs(10), disconnected.connect_to_mixnet())
+        .await
+        .map_err(|_| TransportError::ConnectionFailed { reason: "ZCAP mailbox connect timeout".into() })?
+        .map_err(|e| TransportError::ConnectionFailed { reason: format!("ZCAP mailbox connect failed: {}", e) })?;
+
+    tokio::time::sleep(Duration::from_millis(250)).await;
+
+    let address = client.nym_address().to_string();
+    if address.is_empty() {
+        return Err(TransportError::ConnectionFailed {
+            reason: "ZCAP mailbox health check failed".into(),
+        });
+    }
+
+    let mut st = state.lock().await;
+    st.rendezvous_clients.insert(point_id_owned.clone(), Arc::new(Mutex::new(client)));
+    st.rendezvous_addresses.insert(point_id_owned, address.clone());
+
+    Ok(address)
 }
 
 impl Default for ClientState {
@@ -230,6 +516,17 @@ struct Entry {
 }
 
 impl NymTransportClient {
+
+    /// Register this client's shared transport state for ZCAP offline send/fetch.
+    /// Kotlin owns the returned handle and must unregister it during disconnect.
+    pub fn zcap_register_transport(&self) -> u64 {
+        zcap_register_transport_state(self.state.clone())
+    }
+
+    /// Unregister a previously registered ZCAP transport handle.
+    pub fn zcap_unregister_transport(&self, handle: u64) {
+        zcap_unregister_transport_handle(handle)
+    }
 
     /// Get gateways from cache (60s TTL) or fetch fresh.
     /// Cache is instance-level — dies with transport instance.

@@ -34,6 +34,20 @@ class TransportController @Inject constructor(
     private var transport: RealNymTransport? = null
 
     /**
+     * Start a brand-new native TLI lifecycle.
+     *
+     * Zeroized is terminal in the Rust TLI state machine, so a completed or
+     * failed session cannot be reused for another Init -> Rendezvous attempt.
+     */
+    suspend fun resetForNewSession() {
+        mutex.withLock {
+            Log.i(TAG, "Resetting transport for new TLI session")
+            destroyClient()
+            state = TransportState.IDLE
+        }
+    }
+
+    /**
      * Execute a block with a guaranteed-healthy transport instance.
      * If the previous instance panicked, it is fully destroyed and a fresh one is created.
      * All lifecycle operations are mutex-protected — no concurrent connect/disconnect overlap.
@@ -138,6 +152,9 @@ class TransportController @Inject constructor(
             if (transport is RealNymTransport) {
                 transport.tliTerminateSession()
             }
+        }
+        mutex.withLock {
+            state = TransportState.FAILED
         }
     }
 

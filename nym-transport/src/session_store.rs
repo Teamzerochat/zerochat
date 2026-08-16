@@ -74,6 +74,9 @@ struct SessionEntry {
     /// Used for per-frame ChaCha20-Poly1305 encryption/decryption (Paper §6)
     #[zeroize(drop)]
     obfs4_state: Box<[u8; 64]>,
+    /// 32-byte ZCAP shared secret derived with a protocol-specific HKDF label.
+    #[zeroize(drop)]
+    zcap_shared_secret: Box<[u8; 32]>,
     /// Instant doesn't implement Zeroize, so skip it
     #[zeroize(skip)]
     created_at: Instant,
@@ -99,7 +102,7 @@ fn reap_expired(store: &mut HashMap<u64, SessionEntry>) {
 }
 
 /// Store a session key and return a handle ID
-pub fn session_store(raw_spake2_output: Vec<u8>) -> u64 {
+pub fn session_store(mut raw_spake2_output: Vec<u8>) -> u64 {
     // Derive encryption key from SPAKE2+ output via HKDF
     let hkdf = Hkdf::<Sha256>::new(None, &raw_spake2_output);
     let mut key = [0u8; 32];
@@ -113,22 +116,30 @@ pub fn session_store(raw_spake2_output: Vec<u8>) -> u64 {
     let hkdf2 = Hkdf::<Sha256>::new(None, &raw_spake2_output);
     hkdf2.expand(b"zerochat-obfs4-state-v1", &mut obfs4_state_bytes)
         .expect("HKDF expand should not fail for 64 bytes");
+
+    // Derive the ZCAP shared secret from the same SPAKE2+ root, but never
+    // reuse obfs4 material across protocol domains.
+    let mut zcap_shared_secret_bytes = [0u8; 32];
+    let hkdf3 = Hkdf::<Sha256>::new(None, &raw_spake2_output);
+    hkdf3.expand(b"zcap-shared-secret-v1", &mut zcap_shared_secret_bytes)
+        .expect("HKDF expand should not fail for 32 bytes");
     
     let handle = rand::thread_rng().gen::<u64>();
     let entry = SessionEntry {
         key: PinnedSecret::new(key),
         obfs4_state: Box::new(obfs4_state_bytes),
+        zcap_shared_secret: Box::new(zcap_shared_secret_bytes),
         created_at: Instant::now(),
     };
 
-    // Zeroize the intermediate HKDF input buffer on the stack
-    // (the Vec will be dropped by caller, but our copy is clean)
+    // Zeroize the intermediate HKDF input buffer before returning.
+    raw_spake2_output.zeroize();
 
     let mut store = SESSION_STORE.lock().unwrap();
     reap_expired(&mut store);
     store.insert(handle, entry);
 
-    log::info!("Session stored with handle {} ({} active), obfs4_state derived", handle, store.len());
+    log::info!("Session stored with handle {} ({} active), session derivatives ready", handle, store.len());
     handle
 }
 
@@ -235,6 +246,15 @@ pub fn session_get_obfs4_state(handle: u64) -> Result<Vec<u8>, SessionError> {
     Ok(entry.obfs4_state.to_vec())
 }
 
+/// Get the 32-byte ZCAP shared secret from a session.
+/// This value is domain-separated from obfs4_state and is the only valid
+/// k_shared input for ZCAP mailbox and ratchet derivation.
+pub fn session_get_zcap_shared_secret(handle: u64) -> Result<Vec<u8>, SessionError> {
+    let store = SESSION_STORE.lock().unwrap();
+    let entry = store.get(&handle).ok_or(SessionError::InvalidHandle)?;
+    Ok(entry.zcap_shared_secret.to_vec())
+}
+
 /// Destroy a session (explicit zeroize + remove)
 pub fn session_destroy(handle: u64) {
     let mut store = SESSION_STORE.lock().unwrap();
@@ -301,5 +321,16 @@ mod tests {
         let handle = session_store(vec![5u8; 32]);
         let result = session_generate_confirmation(handle, 99);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_zcap_secret_is_domain_separated() {
+        let handle = session_store(vec![9u8; 32]);
+        let obfs4 = session_get_obfs4_state(handle).unwrap();
+        let zcap = session_get_zcap_shared_secret(handle).unwrap();
+
+        assert_eq!(obfs4.len(), 64);
+        assert_eq!(zcap.len(), 32);
+        assert_ne!(&obfs4[..32], zcap.as_slice());
     }
 }

@@ -86,6 +86,7 @@ class ConnectViewModel @Inject constructor(
             // Connect to NYM first (on IO thread to avoid blocking UI)
             _connectionState.value = ConnectionState.ConnectingToNym
             val connectResult = withContext(Dispatchers.IO) {
+                controller.resetForNewSession()
                 controller.withTransport { it.connect("") }
             }
             if (connectResult.isFailure) {

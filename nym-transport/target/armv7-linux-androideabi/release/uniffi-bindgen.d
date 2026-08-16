@@ -1,1 +1,0 @@
-C:\Users\harsh\OneDrive\Documents\projects\zerochat\nym-transport\target\armv7-linux-androideabi\release\uniffi-bindgen: C:\Users\harsh\OneDrive\Documents\projects\zerochat\nym-transport\build.rs C:\Users\harsh\OneDrive\Documents\projects\zerochat\nym-transport\src/nym_transport.udl C:\Users\harsh\OneDrive\Documents\projects\zerochat\nym-transport\uniffi-bindgen.rs

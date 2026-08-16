@@ -4272,6 +4272,7 @@ dependencies = [
 name = "nym-transport"
 version = "0.1.0"
 dependencies = [
+ "aes-gcm",
  "android_logger",
  "bs58",
  "crypto_secretbox",

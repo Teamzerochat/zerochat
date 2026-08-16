@@ -11,8 +11,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.zerochat.app.ui.viewmodels.ConnectViewModel
 import com.zerochat.app.domain.connection.ConnectionState
+import com.zerochat.app.ui.util.DocsLaunchButton
+import com.zerochat.app.ui.util.DocsLinks
+import com.zerochat.app.ui.viewmodels.ConnectViewModel
 
 /**
  * Connect Screen - Enter ONLY shared secret
@@ -171,6 +173,18 @@ fun ConnectScreen(
                            "4. Connection happens automatically",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        DocsLaunchButton(url = DocsLinks.ARCHITECTURE) { onClick ->
+            TextButton(onClick = onClick) {
+                Text(
+                    text = "Read Connection Architecture Guide",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }

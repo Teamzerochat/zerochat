@@ -27,11 +27,95 @@ namespace nym_transport {
     boolean session_verify_confirmation_wrapper(u64 handle, sequence<u8> confirmation, u8 role);
     
     // Retrieve obfs4_state (64 bytes) derived from SPAKE2+ shared secret
-    // Used by Kotlin layer for per-frame ChaCha20-Poly1305 decryption
     [Throws=SessionError]
     sequence<u8> session_get_obfs4_state_wrapper(u64 handle);
+
+    // Retrieve ZCAP k_shared (32 bytes), domain-separated from obfs4_state
+    [Throws=SessionError]
+    sequence<u8> session_get_zcap_shared_secret_wrapper(u64 handle);
     
     void session_destroy_wrapper(u64 handle);
+
+    // Secure in-memory ring-buffer (zeroizes on drop / clear)
+    void secure_log_write(string entry);
+    void secure_log_clear();
+    u32 secure_log_len();
+
+    // ── ZCAP: Epoch & mailbox derivation ────────────────────────────────────
+    u64 zcap_epoch_offset(sequence<u8> k_shared);
+    u64 zcap_current_epoch(sequence<u8> k_shared, u64 utc_now_secs);
+    sequence<u8> zcap_mailbox_id(sequence<u8> k_shared, u64 epoch, u8 replica);
+    u32? zcap_gateway_index(sequence<u8> k_shared, u64 epoch, u8 replica, u32 gateway_count);
+    sequence<u64> zcap_missed_epochs(sequence<u8> k_shared, u64 utc_now_secs);
+
+    // ── ZCAP: Double Ratchet KEM ─────────────────────────────────────────────
+    ZcapKemResult zcap_kem_initiate(sequence<u8> responder_public_key);
+    ZcapKemResult zcap_kem_respond(sequence<u8> initiator_ephemeral_public, sequence<u8> my_static_secret);
+
+    // ── ZCAP: Ratchet encrypt / decrypt ─────────────────────────────────────
+    ZcapEncryptResult ratchet_encrypt(sequence<u8> serialized_state, sequence<u8> plaintext);
+    ZcapDecryptResult ratchet_decrypt(sequence<u8> serialized_state, sequence<u8> ciphertext);
+
+    // ── ZCAP: Sphinx padding ─────────────────────────────────────────────────
+    sequence<u8> pad_to_sphinx_size(sequence<u8> payload);
+    sequence<u8> unpad_sphinx_payload(sequence<u8> packet);
+
+    // ── ZCAP: SURB manager ───────────────────────────────────────────────────
+    sequence<sequence<u8>> generate_surbs(u32 count);
+    boolean acknowledge_surb(sequence<u8> surb_id);
+    u32 surb_pending_count();
+    void surb_clear_all();
+
+    // ── ZCAP: Swarm dispatch ─────────────────────────────────────────────────
+    ZcapSendResult zcap_send(
+        u64 transport_handle,
+        sequence<u8> serialized_state,
+        sequence<u8> plaintext,
+        sequence<sequence<u8>> replicas,
+        sequence<string> gateway_identities
+    );
+
+    // ── ZCAP: Lewes offline fetch ────────────────────────────────────────────
+    ZcapFetchResult zcap_fetch_messages(
+        u64 transport_handle,
+        sequence<u8> serialized_state,
+        sequence<u8> k_shared,
+        u64 utc_now_secs,
+        sequence<string> gateway_identities
+    );
+}; // end namespace
+
+// ── ZCAP result dictionaries ─────────────────────────────────────────────────
+
+/// Result of a KEM initiation or response. Contains the public key bytes
+/// and the initial serialized ratchet state blob.
+dictionary ZcapKemResult {
+    sequence<u8> public_key_bytes;
+    sequence<u8> serialized_state;
+};
+
+/// Result of a ratchet encryption call.
+dictionary ZcapEncryptResult {
+    sequence<u8> ciphertext;
+    sequence<u8> updated_state;
+};
+
+/// Result of a ratchet decryption call.
+dictionary ZcapDecryptResult {
+    sequence<u8> plaintext;
+    sequence<u8> updated_state;
+};
+
+/// Result of a ZCAP swarm send.
+dictionary ZcapSendResult {
+    sequence<u8> updated_state;
+    u32 succeeded_replicas;
+};
+
+/// Result of a ZCAP offline fetch.
+dictionary ZcapFetchResult {
+    sequence<sequence<u8>> decrypted_messages;
+    sequence<u8> updated_state;
 };
 
 [Error]
@@ -136,4 +220,8 @@ interface NymTransportClient {
 
     // Explicitly disconnect all rendezvous clients
     void disconnect_all_rendezvous();
+
+    // Register/unregister this connected client for ZCAP offline operations.
+    u64 zcap_register_transport();
+    void zcap_unregister_transport(u64 handle);
 };

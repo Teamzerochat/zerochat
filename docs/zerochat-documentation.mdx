@@ -1,0 +1,206 @@
+# ZeroChat Documentation
+
+## What is ZeroChat?
+
+ZeroChat is a private, peer-to-peer chat app.
+
+It sends encrypted messages directly between devices. Your conversations never pass through a central chat server.
+
+Think of it as a private line between two devices, not a company inbox.
+
+---
+
+## How it Works
+
+- Both users agree on a 6-digit shared secret.
+- Share it using any out-of-band method, such as in person, by call, or through another app.
+- Your contact enters the shared secret on their device.
+- ZeroChat uses temporary signaling to connect both devices.
+- Both devices verify the session.
+- A secure, encrypted chat session is established.
+- Messages travel peer-to-peer when the network supports it.
+
+> [!NOTE]
+> Signaling is only used to establish the connection. It does not store, relay, or read your messages.
+
+> [!WARNING]
+> The strength of the connection setup depends on how safely the shared secret is chosen and shared.
+
+---
+
+## Why it is Private
+
+- **No message storage**  
+  ZeroChat does not store conversations on any central server.
+
+- **No central server dependency**  
+  After connection setup, messages are delivered peer-to-peer whenever possible.
+
+- **Minimal metadata exposure**  
+  Routing handles, peer addresses, and session details stay hidden from the interface.
+
+---
+
+## Why trust ZeroChat?
+
+ZeroChat reduces exposure by limiting what exists outside your device.
+
+- Messages are encrypted before they leave your device.
+- Conversations never exist in a central database.
+- Connection details expire with the session.
+- Routing state is scoped to the active session only.
+- Sensitive network details are not exposed in the UI.
+
+> [!NOTE]
+> ZeroChat keeps only what is required for an active session. Data not needed for delivery is not collected or retained.
+
+---
+
+## What You Should Know
+
+ZeroChat improves privacy. It does not remove every risk.
+
+> [!WARNING]
+> ZeroChat protects messages in transit. It cannot protect data once your device, screen, clipboard, or backups are compromised.
+
+Keep in mind:
+
+- Both peers may need to be online at the same time.
+- Large transfers can reveal traffic volume patterns.
+- Device security is part of the overall security model.
+- Unsafe sharing can still leak information.
+
+---
+
+## Who is this for
+
+- People who want private one-to-one conversations
+- Users who do not want cloud-stored chats
+- Journalists, researchers, and activists
+- Developers studying private messaging systems
+- Privacy-focused teams and communities
+
+---
+
+## Technical Overview
+
+ZeroChat uses a layered messaging architecture.
+
+- **Android app**  
+  Handles onboarding, unlock, connection, and chat.
+
+- **Jetpack Compose UI**  
+  Powers setup, lock, connect, and chat screens.
+
+- **ViewModels**  
+  Manage screen state and user actions.
+
+- **Connection manager**  
+  Coordinates discovery, verification, transport setup, and session state.
+
+- **Rendezvous layer**  
+  Lets peers meet through temporary, secret-derived meeting points.
+
+- **Handshake layer**  
+  Establishes the shared encrypted session.
+
+- **Transport layer**  
+  Sends messages over privacy-preserving network paths.
+
+- **Message queue**  
+  Orders outbound messages, applies padding, and manages delivery behavior.
+
+- **Local security layer**  
+  Keeps keys and routing state scoped to the active session.
+
+---
+
+## Architecture
+
+- **Client:** Android application
+- **UI:** Jetpack Compose
+- **State:** ViewModels and Kotlin flows
+- **Crypto:** Session verification and encryption
+- **Discovery:** Secret-derived rendezvous
+- **Transport:** Nym and I2P integration
+- **Messaging:** Queued, padded, encrypted envelopes
+- **Storage:** Local encrypted vault data
+- **Lifecycle:** Session cleanup and key zeroization
+
+> [!NOTE]
+> Stack: Android, Kotlin, Jetpack Compose, Hilt, Room/SQLCipher, Nym, I2P, and Rust/UniFFI.
+
+---
+
+## For Developers
+
+GitHub repository:
+
+[https://github.com/TeamZerochat/zerochat](https://github.com/TeamZerochat/zerochat)
+
+Clone the project:
+
+```bash
+git clone https://github.com/TeamZerochat/zerochat.git
+cd zerochat
+```
+
+Build a debug APK:
+
+```bash
+./gradlew :app:assembleDebug
+```
+
+Run tests:
+
+```bash
+./gradlew test
+```
+
+Open in Android Studio:
+
+```bash
+studio .
+```
+
+> [!NOTE]
+> Full transport tests require native networking components and a properly configured local environment.
+
+---
+
+## Security Model (Important)
+
+Protected:
+
+- Message contents in transit
+- Session keys during normal operation
+- Temporary routing handles
+- Peer discovery details during normal operation
+- Local vault data while locked
+
+Not protected:
+
+- A compromised device
+- Screenshots or screen recording
+- Clipboard leaks
+- Notification leaks
+- Physical coercion
+- Full traffic-volume analysis
+- Metadata created outside ZeroChat
+
+> [!WARNING]
+> ZeroChat protects message content and reduces metadata exposure. It does not provide absolute anonymity.
+
+---
+
+## Future Improvements
+
+- Secure private file transfer
+- Better traffic shaping for large payloads
+- Improved scalability on high-latency networks
+- More resilient reconnect behavior
+- Stronger metadata minimization
+- Public security review
+- Reproducible builds
+- Cross-platform clients
+- More complete developer documentation

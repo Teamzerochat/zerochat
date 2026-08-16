@@ -1,1 +1,0 @@
-cargo:rustc-env=MIME_TYPES_GENERATED_PATH=C:\Users\harsh\OneDrive\Documents\projects\zerochat\nym-transport\target\release\build\mime_guess-d810ce28a75d70c0\out\mime_types_generated.rs

@@ -42,6 +42,7 @@ spake2 = "0.4"
 # Security hardening
 zeroize = { version = "1", features = ["derive"] }
 crypto_secretbox = "0.1"
+aes-gcm = "0.10"
 hmac = "0.12"
 libc = "0.2"
 

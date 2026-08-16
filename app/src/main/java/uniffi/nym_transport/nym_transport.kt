@@ -429,6 +429,26 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_tli_transition(`ptr`: Pointer,`phase`: Byte,_uniffi_out_err: RustCallStatus, 
     ): Byte
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_zcap_register_transport(`ptr`: Pointer,_uniffi_out_err: RustCallStatus, 
+    ): Long
+    fun uniffi_uniffi_nym_transport_fn_method_nymtransportclient_zcap_unregister_transport(`ptr`: Pointer,`handle`: Long,_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_uniffi_nym_transport_fn_func_acknowledge_surb(`surbId`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Byte
+    fun uniffi_uniffi_nym_transport_fn_func_generate_surbs(`count`: Int,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_pad_to_sphinx_size(`payload`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_ratchet_decrypt(`serializedState`: RustBuffer.ByValue,`ciphertext`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_ratchet_encrypt(`serializedState`: RustBuffer.ByValue,`plaintext`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_secure_log_clear(_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_uniffi_nym_transport_fn_func_secure_log_len(_uniffi_out_err: RustCallStatus, 
+    ): Int
+    fun uniffi_uniffi_nym_transport_fn_func_secure_log_write(`entry`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Unit
     fun uniffi_uniffi_nym_transport_fn_func_session_decrypt_wrapper(`handle`: Long,`ciphertext`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_uniffi_nym_transport_fn_func_session_destroy_wrapper(`handle`: Long,_uniffi_out_err: RustCallStatus, 
@@ -438,6 +458,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_uniffi_nym_transport_fn_func_session_generate_confirmation_wrapper(`handle`: Long,`role`: Byte,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_uniffi_nym_transport_fn_func_session_get_obfs4_state_wrapper(`handle`: Long,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_session_get_zcap_shared_secret_wrapper(`handle`: Long,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_uniffi_nym_transport_fn_func_session_verify_confirmation_wrapper(`handle`: Long,`confirmation`: RustBuffer.ByValue,`role`: Byte,_uniffi_out_err: RustCallStatus, 
     ): Byte
@@ -450,6 +472,30 @@ internal interface _UniFFILib : Library {
     fun uniffi_uniffi_nym_transport_fn_func_spake2_start_initiator_wrapper(`password`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun uniffi_uniffi_nym_transport_fn_func_spake2_start_responder_wrapper(`password`: RustBuffer.ByValue,`inboundMsg`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_surb_clear_all(_uniffi_out_err: RustCallStatus, 
+    ): Unit
+    fun uniffi_uniffi_nym_transport_fn_func_surb_pending_count(_uniffi_out_err: RustCallStatus, 
+    ): Int
+    fun uniffi_uniffi_nym_transport_fn_func_unpad_sphinx_payload(`packet`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_zcap_current_epoch(`kShared`: RustBuffer.ByValue,`utcNowSecs`: Long,_uniffi_out_err: RustCallStatus, 
+    ): Long
+    fun uniffi_uniffi_nym_transport_fn_func_zcap_epoch_offset(`kShared`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): Long
+    fun uniffi_uniffi_nym_transport_fn_func_zcap_fetch_messages(`transportHandle`: Long,`serializedState`: RustBuffer.ByValue,`kShared`: RustBuffer.ByValue,`utcNowSecs`: Long,`gatewayIdentities`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_zcap_gateway_index(`kShared`: RustBuffer.ByValue,`epoch`: Long,`replica`: Byte,`gatewayCount`: Int,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_zcap_kem_initiate(`responderPublicKey`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_zcap_kem_respond(`initiatorEphemeralPublic`: RustBuffer.ByValue,`myStaticSecret`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_zcap_mailbox_id(`kShared`: RustBuffer.ByValue,`epoch`: Long,`replica`: Byte,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_zcap_missed_epochs(`kShared`: RustBuffer.ByValue,`utcNowSecs`: Long,_uniffi_out_err: RustCallStatus, 
+    ): RustBuffer.ByValue
+    fun uniffi_uniffi_nym_transport_fn_func_zcap_send(`transportHandle`: Long,`serializedState`: RustBuffer.ByValue,`plaintext`: RustBuffer.ByValue,`replicas`: RustBuffer.ByValue,`gatewayIdentities`: RustBuffer.ByValue,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
     fun ffi_uniffi_nym_transport_rustbuffer_alloc(`size`: Int,_uniffi_out_err: RustCallStatus, 
     ): RustBuffer.ByValue
@@ -565,6 +611,22 @@ internal interface _UniFFILib : Library {
     ): Unit
     fun ffi_uniffi_nym_transport_rust_future_complete_void(`handle`: Pointer,_uniffi_out_err: RustCallStatus, 
     ): Unit
+    fun uniffi_uniffi_nym_transport_checksum_func_acknowledge_surb(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_generate_surbs(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_pad_to_sphinx_size(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_ratchet_decrypt(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_ratchet_encrypt(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_secure_log_clear(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_secure_log_len(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_secure_log_write(
+    ): Short
     fun uniffi_uniffi_nym_transport_checksum_func_session_decrypt_wrapper(
     ): Short
     fun uniffi_uniffi_nym_transport_checksum_func_session_destroy_wrapper(
@@ -574,6 +636,8 @@ internal interface _UniFFILib : Library {
     fun uniffi_uniffi_nym_transport_checksum_func_session_generate_confirmation_wrapper(
     ): Short
     fun uniffi_uniffi_nym_transport_checksum_func_session_get_obfs4_state_wrapper(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_session_get_zcap_shared_secret_wrapper(
     ): Short
     fun uniffi_uniffi_nym_transport_checksum_func_session_verify_confirmation_wrapper(
     ): Short
@@ -586,6 +650,30 @@ internal interface _UniFFILib : Library {
     fun uniffi_uniffi_nym_transport_checksum_func_spake2_start_initiator_wrapper(
     ): Short
     fun uniffi_uniffi_nym_transport_checksum_func_spake2_start_responder_wrapper(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_surb_clear_all(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_surb_pending_count(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_unpad_sphinx_payload(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_zcap_current_epoch(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_zcap_epoch_offset(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_zcap_fetch_messages(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_zcap_gateway_index(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_zcap_kem_initiate(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_zcap_kem_respond(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_zcap_mailbox_id(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_zcap_missed_epochs(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_func_zcap_send(
     ): Short
     fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_connect(
     ): Short
@@ -629,6 +717,10 @@ internal interface _UniFFILib : Library {
     ): Short
     fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_tli_transition(
     ): Short
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_zcap_register_transport(
+    ): Short
+    fun uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_zcap_unregister_transport(
+    ): Short
     fun uniffi_uniffi_nym_transport_checksum_constructor_nymtransportclient_new(
     ): Short
     fun ffi_uniffi_nym_transport_uniffi_contract_version(
@@ -648,6 +740,30 @@ private fun uniffiCheckContractApiVersion(lib: _UniFFILib) {
 
 @Suppress("UNUSED_PARAMETER")
 private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_acknowledge_surb() != 47372.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_generate_surbs() != 27837.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_pad_to_sphinx_size() != 20459.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_ratchet_decrypt() != 64064.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_ratchet_encrypt() != 40968.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_secure_log_clear() != 50298.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_secure_log_len() != 38137.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_secure_log_write() != 16547.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_uniffi_nym_transport_checksum_func_session_decrypt_wrapper() != 47776.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -661,6 +777,9 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_uniffi_nym_transport_checksum_func_session_get_obfs4_state_wrapper() != 46257.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_session_get_zcap_shared_secret_wrapper() != 34944.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_uniffi_nym_transport_checksum_func_session_verify_confirmation_wrapper() != 1354.toShort()) {
@@ -679,6 +798,42 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_uniffi_nym_transport_checksum_func_spake2_start_responder_wrapper() != 25414.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_surb_clear_all() != 65068.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_surb_pending_count() != 1992.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_unpad_sphinx_payload() != 838.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_zcap_current_epoch() != 63818.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_zcap_epoch_offset() != 5377.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_zcap_fetch_messages() != 42024.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_zcap_gateway_index() != 8927.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_zcap_kem_initiate() != 36672.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_zcap_kem_respond() != 7614.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_zcap_mailbox_id() != 41975.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_zcap_missed_epochs() != 14168.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_func_zcap_send() != 60712.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
     if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_connect() != 45052.toShort()) {
@@ -744,6 +899,12 @@ private fun uniffiCheckApiChecksums(lib: _UniFFILib) {
     if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_tli_transition() != 59607.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_zcap_register_transport() != 36864.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
+    if (lib.uniffi_uniffi_nym_transport_checksum_method_nymtransportclient_zcap_unregister_transport() != 44219.toShort()) {
+        throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
+    }
     if (lib.uniffi_uniffi_nym_transport_checksum_constructor_nymtransportclient_new() != 45307.toShort()) {
         throw RuntimeException("UniFFI API checksum mismatch: try cleaning and rebuilding your project")
     }
@@ -771,6 +932,26 @@ public object FfiConverterUByte: FfiConverter<UByte, Byte> {
 
     override fun write(value: UByte, buf: ByteBuffer) {
         buf.put(value.toByte())
+    }
+}
+
+public object FfiConverterUInt: FfiConverter<UInt, Int> {
+    override fun lift(value: Int): UInt {
+        return value.toUInt()
+    }
+
+    override fun read(buf: ByteBuffer): UInt {
+        return lift(buf.getInt())
+    }
+
+    override fun lower(value: UInt): Int {
+        return value.toInt()
+    }
+
+    override fun allocationSize(value: UInt) = 4
+
+    override fun write(value: UInt, buf: ByteBuffer) {
+        buf.putInt(value.toInt())
     }
 }
 
@@ -1054,6 +1235,8 @@ public interface NymTransportClientInterface {
     fun `tliCurrentPhase`(): UByte
     fun `tliTerminateSession`()@Throws(TransportException::class)
     fun `tliTransition`(`phase`: UByte): UByte
+    fun `zcapRegisterTransport`(): ULong
+    fun `zcapUnregisterTransport`(`handle`: ULong)
     companion object
 }
 
@@ -1312,6 +1495,27 @@ class NymTransportClient(
             FfiConverterUByte.lift(it)
         }
     
+    override fun `zcapRegisterTransport`(): ULong =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_zcap_register_transport(it,
+        
+        _status)
+}
+        }.let {
+            FfiConverterULong.lift(it)
+        }
+    
+    override fun `zcapUnregisterTransport`(`handle`: ULong) =
+        callWithPointer {
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_method_nymtransportclient_zcap_unregister_transport(it,
+        FfiConverterULong.lower(`handle`),
+        _status)
+}
+        }
+    
+    
     
 
     
@@ -1458,6 +1662,156 @@ public object FfiConverterTypeSpake2ResponderResult: FfiConverterRustBuffer<Spak
     override fun write(value: Spake2ResponderResult, buf: ByteBuffer) {
             FfiConverterSequenceUByte.write(value.`outboundMsg`, buf)
             FfiConverterULong.write(value.`sessionHandle`, buf)
+    }
+}
+
+
+
+
+data class ZcapDecryptResult (
+    var `plaintext`: List<UByte>, 
+    var `updatedState`: List<UByte>
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeZcapDecryptResult: FfiConverterRustBuffer<ZcapDecryptResult> {
+    override fun read(buf: ByteBuffer): ZcapDecryptResult {
+        return ZcapDecryptResult(
+            FfiConverterSequenceUByte.read(buf),
+            FfiConverterSequenceUByte.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ZcapDecryptResult) = (
+            FfiConverterSequenceUByte.allocationSize(value.`plaintext`) +
+            FfiConverterSequenceUByte.allocationSize(value.`updatedState`)
+    )
+
+    override fun write(value: ZcapDecryptResult, buf: ByteBuffer) {
+            FfiConverterSequenceUByte.write(value.`plaintext`, buf)
+            FfiConverterSequenceUByte.write(value.`updatedState`, buf)
+    }
+}
+
+
+
+
+data class ZcapEncryptResult (
+    var `ciphertext`: List<UByte>, 
+    var `updatedState`: List<UByte>
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeZcapEncryptResult: FfiConverterRustBuffer<ZcapEncryptResult> {
+    override fun read(buf: ByteBuffer): ZcapEncryptResult {
+        return ZcapEncryptResult(
+            FfiConverterSequenceUByte.read(buf),
+            FfiConverterSequenceUByte.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ZcapEncryptResult) = (
+            FfiConverterSequenceUByte.allocationSize(value.`ciphertext`) +
+            FfiConverterSequenceUByte.allocationSize(value.`updatedState`)
+    )
+
+    override fun write(value: ZcapEncryptResult, buf: ByteBuffer) {
+            FfiConverterSequenceUByte.write(value.`ciphertext`, buf)
+            FfiConverterSequenceUByte.write(value.`updatedState`, buf)
+    }
+}
+
+
+
+
+data class ZcapFetchResult (
+    var `decryptedMessages`: List<List<UByte>>, 
+    var `updatedState`: List<UByte>
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeZcapFetchResult: FfiConverterRustBuffer<ZcapFetchResult> {
+    override fun read(buf: ByteBuffer): ZcapFetchResult {
+        return ZcapFetchResult(
+            FfiConverterSequenceSequenceUByte.read(buf),
+            FfiConverterSequenceUByte.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ZcapFetchResult) = (
+            FfiConverterSequenceSequenceUByte.allocationSize(value.`decryptedMessages`) +
+            FfiConverterSequenceUByte.allocationSize(value.`updatedState`)
+    )
+
+    override fun write(value: ZcapFetchResult, buf: ByteBuffer) {
+            FfiConverterSequenceSequenceUByte.write(value.`decryptedMessages`, buf)
+            FfiConverterSequenceUByte.write(value.`updatedState`, buf)
+    }
+}
+
+
+
+
+data class ZcapKemResult (
+    var `publicKeyBytes`: List<UByte>, 
+    var `serializedState`: List<UByte>
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeZcapKemResult: FfiConverterRustBuffer<ZcapKemResult> {
+    override fun read(buf: ByteBuffer): ZcapKemResult {
+        return ZcapKemResult(
+            FfiConverterSequenceUByte.read(buf),
+            FfiConverterSequenceUByte.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ZcapKemResult) = (
+            FfiConverterSequenceUByte.allocationSize(value.`publicKeyBytes`) +
+            FfiConverterSequenceUByte.allocationSize(value.`serializedState`)
+    )
+
+    override fun write(value: ZcapKemResult, buf: ByteBuffer) {
+            FfiConverterSequenceUByte.write(value.`publicKeyBytes`, buf)
+            FfiConverterSequenceUByte.write(value.`serializedState`, buf)
+    }
+}
+
+
+
+
+data class ZcapSendResult (
+    var `updatedState`: List<UByte>, 
+    var `succeededReplicas`: UInt
+) {
+    
+    companion object
+}
+
+public object FfiConverterTypeZcapSendResult: FfiConverterRustBuffer<ZcapSendResult> {
+    override fun read(buf: ByteBuffer): ZcapSendResult {
+        return ZcapSendResult(
+            FfiConverterSequenceUByte.read(buf),
+            FfiConverterUInt.read(buf),
+        )
+    }
+
+    override fun allocationSize(value: ZcapSendResult) = (
+            FfiConverterSequenceUByte.allocationSize(value.`updatedState`) +
+            FfiConverterUInt.allocationSize(value.`succeededReplicas`)
+    )
+
+    override fun write(value: ZcapSendResult, buf: ByteBuffer) {
+            FfiConverterSequenceUByte.write(value.`updatedState`, buf)
+            FfiConverterUInt.write(value.`succeededReplicas`, buf)
     }
 }
 
@@ -1638,6 +1992,35 @@ public object FfiConverterTypeTransportError : FfiConverterRustBuffer<TransportE
 
 
 
+public object FfiConverterOptionalUInt: FfiConverterRustBuffer<UInt?> {
+    override fun read(buf: ByteBuffer): UInt? {
+        if (buf.get().toInt() == 0) {
+            return null
+        }
+        return FfiConverterUInt.read(buf)
+    }
+
+    override fun allocationSize(value: UInt?): Int {
+        if (value == null) {
+            return 1
+        } else {
+            return 1 + FfiConverterUInt.allocationSize(value)
+        }
+    }
+
+    override fun write(value: UInt?, buf: ByteBuffer) {
+        if (value == null) {
+            buf.put(0)
+        } else {
+            buf.put(1)
+            FfiConverterUInt.write(value, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterOptionalTypeRendezvousMessage: FfiConverterRustBuffer<RendezvousMessage?> {
     override fun read(buf: ByteBuffer): RendezvousMessage? {
         if (buf.get().toInt() == 0) {
@@ -1692,6 +2075,56 @@ public object FfiConverterSequenceUByte: FfiConverterRustBuffer<List<UByte>> {
 
 
 
+public object FfiConverterSequenceULong: FfiConverterRustBuffer<List<ULong>> {
+    override fun read(buf: ByteBuffer): List<ULong> {
+        val len = buf.getInt()
+        return List<ULong>(len) {
+            FfiConverterULong.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<ULong>): Int {
+        val sizeForLength = 4
+        val sizeForItems = value.map { FfiConverterULong.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<ULong>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.forEach {
+            FfiConverterULong.write(it, buf)
+        }
+    }
+}
+
+
+
+
+public object FfiConverterSequenceString: FfiConverterRustBuffer<List<String>> {
+    override fun read(buf: ByteBuffer): List<String> {
+        val len = buf.getInt()
+        return List<String>(len) {
+            FfiConverterString.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<String>): Int {
+        val sizeForLength = 4
+        val sizeForItems = value.map { FfiConverterString.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<String>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.forEach {
+            FfiConverterString.write(it, buf)
+        }
+    }
+}
+
+
+
+
 public object FfiConverterSequenceTypeRendezvousMessage: FfiConverterRustBuffer<List<RendezvousMessage>> {
     override fun read(buf: ByteBuffer): List<RendezvousMessage> {
         val len = buf.getInt()
@@ -1713,6 +2146,95 @@ public object FfiConverterSequenceTypeRendezvousMessage: FfiConverterRustBuffer<
         }
     }
 }
+
+
+
+
+public object FfiConverterSequenceSequenceUByte: FfiConverterRustBuffer<List<List<UByte>>> {
+    override fun read(buf: ByteBuffer): List<List<UByte>> {
+        val len = buf.getInt()
+        return List<List<UByte>>(len) {
+            FfiConverterSequenceUByte.read(buf)
+        }
+    }
+
+    override fun allocationSize(value: List<List<UByte>>): Int {
+        val sizeForLength = 4
+        val sizeForItems = value.map { FfiConverterSequenceUByte.allocationSize(it) }.sum()
+        return sizeForLength + sizeForItems
+    }
+
+    override fun write(value: List<List<UByte>>, buf: ByteBuffer) {
+        buf.putInt(value.size)
+        value.forEach {
+            FfiConverterSequenceUByte.write(it, buf)
+        }
+    }
+}
+
+fun `acknowledgeSurb`(`surbId`: List<UByte>): Boolean {
+    return FfiConverterBoolean.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_acknowledge_surb(FfiConverterSequenceUByte.lower(`surbId`),_status)
+})
+}
+
+
+fun `generateSurbs`(`count`: UInt): List<List<UByte>> {
+    return FfiConverterSequenceSequenceUByte.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_generate_surbs(FfiConverterUInt.lower(`count`),_status)
+})
+}
+
+
+fun `padToSphinxSize`(`payload`: List<UByte>): List<UByte> {
+    return FfiConverterSequenceUByte.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_pad_to_sphinx_size(FfiConverterSequenceUByte.lower(`payload`),_status)
+})
+}
+
+
+fun `ratchetDecrypt`(`serializedState`: List<UByte>, `ciphertext`: List<UByte>): ZcapDecryptResult {
+    return FfiConverterTypeZcapDecryptResult.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_ratchet_decrypt(FfiConverterSequenceUByte.lower(`serializedState`),FfiConverterSequenceUByte.lower(`ciphertext`),_status)
+})
+}
+
+
+fun `ratchetEncrypt`(`serializedState`: List<UByte>, `plaintext`: List<UByte>): ZcapEncryptResult {
+    return FfiConverterTypeZcapEncryptResult.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_ratchet_encrypt(FfiConverterSequenceUByte.lower(`serializedState`),FfiConverterSequenceUByte.lower(`plaintext`),_status)
+})
+}
+
+
+fun `secureLogClear`() =
+    
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_secure_log_clear(_status)
+}
+
+
+
+fun `secureLogLen`(): UInt {
+    return FfiConverterUInt.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_secure_log_len(_status)
+})
+}
+
+
+fun `secureLogWrite`(`entry`: String) =
+    
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_secure_log_write(FfiConverterString.lower(`entry`),_status)
+}
+
+
 @Throws(SessionException::class)
 
 fun `sessionDecryptWrapper`(`handle`: ULong, `ciphertext`: List<UByte>): List<UByte> {
@@ -1754,6 +2276,15 @@ fun `sessionGetObfs4StateWrapper`(`handle`: ULong): List<UByte> {
     return FfiConverterSequenceUByte.lift(
     rustCallWithError(SessionException) { _status ->
     _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_session_get_obfs4_state_wrapper(FfiConverterULong.lower(`handle`),_status)
+})
+}
+
+@Throws(SessionException::class)
+
+fun `sessionGetZcapSharedSecretWrapper`(`handle`: ULong): List<UByte> {
+    return FfiConverterSequenceUByte.lift(
+    rustCallWithError(SessionException) { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_session_get_zcap_shared_secret_wrapper(FfiConverterULong.lower(`handle`),_status)
 })
 }
 
@@ -1806,6 +2337,102 @@ fun `spake2StartResponderWrapper`(`password`: List<UByte>, `inboundMsg`: List<UB
     return FfiConverterTypeSpake2ResponderResult.lift(
     rustCallWithError(Spake2Exception) { _status ->
     _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_spake2_start_responder_wrapper(FfiConverterSequenceUByte.lower(`password`),FfiConverterSequenceUByte.lower(`inboundMsg`),_status)
+})
+}
+
+
+fun `surbClearAll`() =
+    
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_surb_clear_all(_status)
+}
+
+
+
+fun `surbPendingCount`(): UInt {
+    return FfiConverterUInt.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_surb_pending_count(_status)
+})
+}
+
+
+fun `unpadSphinxPayload`(`packet`: List<UByte>): List<UByte> {
+    return FfiConverterSequenceUByte.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_unpad_sphinx_payload(FfiConverterSequenceUByte.lower(`packet`),_status)
+})
+}
+
+
+fun `zcapCurrentEpoch`(`kShared`: List<UByte>, `utcNowSecs`: ULong): ULong {
+    return FfiConverterULong.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_zcap_current_epoch(FfiConverterSequenceUByte.lower(`kShared`),FfiConverterULong.lower(`utcNowSecs`),_status)
+})
+}
+
+
+fun `zcapEpochOffset`(`kShared`: List<UByte>): ULong {
+    return FfiConverterULong.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_zcap_epoch_offset(FfiConverterSequenceUByte.lower(`kShared`),_status)
+})
+}
+
+
+fun `zcapFetchMessages`(`transportHandle`: ULong, `serializedState`: List<UByte>, `kShared`: List<UByte>, `utcNowSecs`: ULong, `gatewayIdentities`: List<String>): ZcapFetchResult {
+    return FfiConverterTypeZcapFetchResult.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_zcap_fetch_messages(FfiConverterULong.lower(`transportHandle`),FfiConverterSequenceUByte.lower(`serializedState`),FfiConverterSequenceUByte.lower(`kShared`),FfiConverterULong.lower(`utcNowSecs`),FfiConverterSequenceString.lower(`gatewayIdentities`),_status)
+})
+}
+
+
+fun `zcapGatewayIndex`(`kShared`: List<UByte>, `epoch`: ULong, `replica`: UByte, `gatewayCount`: UInt): UInt? {
+    return FfiConverterOptionalUInt.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_zcap_gateway_index(FfiConverterSequenceUByte.lower(`kShared`),FfiConverterULong.lower(`epoch`),FfiConverterUByte.lower(`replica`),FfiConverterUInt.lower(`gatewayCount`),_status)
+})
+}
+
+
+fun `zcapKemInitiate`(`responderPublicKey`: List<UByte>): ZcapKemResult {
+    return FfiConverterTypeZcapKemResult.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_zcap_kem_initiate(FfiConverterSequenceUByte.lower(`responderPublicKey`),_status)
+})
+}
+
+
+fun `zcapKemRespond`(`initiatorEphemeralPublic`: List<UByte>, `myStaticSecret`: List<UByte>): ZcapKemResult {
+    return FfiConverterTypeZcapKemResult.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_zcap_kem_respond(FfiConverterSequenceUByte.lower(`initiatorEphemeralPublic`),FfiConverterSequenceUByte.lower(`myStaticSecret`),_status)
+})
+}
+
+
+fun `zcapMailboxId`(`kShared`: List<UByte>, `epoch`: ULong, `replica`: UByte): List<UByte> {
+    return FfiConverterSequenceUByte.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_zcap_mailbox_id(FfiConverterSequenceUByte.lower(`kShared`),FfiConverterULong.lower(`epoch`),FfiConverterUByte.lower(`replica`),_status)
+})
+}
+
+
+fun `zcapMissedEpochs`(`kShared`: List<UByte>, `utcNowSecs`: ULong): List<ULong> {
+    return FfiConverterSequenceULong.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_zcap_missed_epochs(FfiConverterSequenceUByte.lower(`kShared`),FfiConverterULong.lower(`utcNowSecs`),_status)
+})
+}
+
+
+fun `zcapSend`(`transportHandle`: ULong, `serializedState`: List<UByte>, `plaintext`: List<UByte>, `replicas`: List<List<UByte>>, `gatewayIdentities`: List<String>): ZcapSendResult {
+    return FfiConverterTypeZcapSendResult.lift(
+    rustCall() { _status ->
+    _UniFFILib.INSTANCE.uniffi_uniffi_nym_transport_fn_func_zcap_send(FfiConverterULong.lower(`transportHandle`),FfiConverterSequenceUByte.lower(`serializedState`),FfiConverterSequenceUByte.lower(`plaintext`),FfiConverterSequenceSequenceUByte.lower(`replicas`),FfiConverterSequenceString.lower(`gatewayIdentities`),_status)
 })
 }
 

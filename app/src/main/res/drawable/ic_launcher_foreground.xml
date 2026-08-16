@@ -4,8 +4,35 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Lock icon for ZeroChat -->
+
     <path
-        android:fillColor="#58A6FF"
-        android:pathData="M54,24c-8.284,0 -15,6.716 -15,15v9H36c-3.314,0 -6,2.686 -6,6v24c0,3.314 2.686,6 6,6h36c3.314,0 6,-2.686 6,-6V54c0,-3.314 -2.686,-6 -6,-6h-3V39c0,-8.284 -6.716,-15 -15,-15zM54,30c4.971,0 9,4.029 9,9v9H45V39c0,-4.971 4.029,-9 9,-9zM54,60a6,6 0,1 1,0 12,6 6,0 0,1 0,-12z"/>
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#40E0A3"
+        android:strokeWidth="3"
+        android:pathData="M54,24a30,30 0,1 0,0,60a30,30 0,1 0,0,-60" />
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#D6DCE8"
+        android:strokeAlpha="0.22"
+        android:strokeWidth="0.8"
+        android:pathData="M54,24a30,30 0,1 0,0,60a30,30 0,1 0,0,-60" />
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#40E0A3"
+        android:strokeWidth="3.4"
+        android:strokeLineCap="round"
+        android:pathData="M45,48v-7c0,-5 4,-9 9,-9s9,4 9,9v7" />
+
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#40E0A3"
+        android:strokeWidth="3.4"
+        android:strokeLineJoin="round"
+        android:pathData="M42,48h24a2.5,2.5 0,0 1,2.5 2.5v17a2.5,2.5 0,0 1,-2.5 2.5h-24a2.5,2.5 0,0 1,-2.5 -2.5v-17a2.5,2.5 0,0 1,2.5 -2.5z" />
+
+    <path
+        android:fillColor="#40E0A3"
+        android:pathData="M54,56.8a4.2,4.2 0,1 0,0,8.4a4.2,4.2 0,1 0,0,-8.4" />
 </vector>

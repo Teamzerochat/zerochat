@@ -473,6 +473,83 @@ class RendezvousManager @Inject constructor(
     }
 
     /**
+     * Poll for incoming chat messages (TYPE_CHAT) in a single pass.
+     * Returns a list of decrypted chat payloads.
+     *
+     * Unlike poll() which is a Flow designed for handshake-phase single-message retrieval,
+     * this method does one poll pass and returns all TYPE_CHAT messages found.
+     * Used by the Nym chat listener loop in ConnectionManager for continuous message reception.
+     *
+     * ISSUE 1 FIX: This method now:
+     * 1. Checks messageBuffer for previously buffered TYPE_CHAT messages
+     * 2. Buffers non-CHAT messages into messageBuffer for poll() to retrieve later
+     * This prevents the race condition where dual concurrent polling causes message loss.
+     */
+    suspend fun pollChatMessages(
+        point: RendezvousPoint,
+        ignoreBodies: Set<String> = emptySet()
+    ): List<ByteArray> {
+        val mySlotId = activeRendezvousId ?: return emptyList()
+
+        val obfs4StateValue = obfs4State ?: return emptyList()
+
+        // ISSUE 1 FIX: First, check if there are any buffered TYPE_CHAT messages
+        // from previous poll() calls that were waiting for TYPE_HANDLE
+        val bufferedChat = messageBuffer.filter { (type, body) ->
+            type == RendezvousFrame.TYPE_CHAT && !ignoreBodies.contains(body.toHexString())
+        }
+        
+        if (bufferedChat.isNotEmpty()) {
+            messageBuffer.removeAll(bufferedChat)
+            Log.i(TAG, "Extracted ${bufferedChat.size} buffered TYPE_CHAT message(s) from messageBuffer")
+            return bufferedChat.map { it.second }
+        }
+
+        val responses = try {
+            controller.withTransport { it.pollRendezvous(mySlotId, obfs4StateValue) }
+        } catch (e: Exception) {
+            Log.e(TAG, "Chat poll failed: ${e.message}")
+            return emptyList()
+        }
+
+        if (responses.isNullOrEmpty()) return emptyList()
+
+        val chatPayloads = mutableListOf<ByteArray>()
+
+        for (response in responses) {
+            val parsed = RendezvousFrame.parse(response.payload) ?: continue
+            val (type, msgEpoch, msgToken, body) = parsed
+
+            // Epoch validation (post-handshake is lenient)
+            if (!handshakeComplete && msgEpoch != point.epoch) continue
+
+            // Session token validation
+            if (!msgToken.contentEquals(point.sessionToken)) continue
+
+            // Skip our own messages
+            val bodyHex = body.toHexString()
+            if (ignoreBodies.contains(bodyHex)) continue
+
+            // Only accept TYPE_CHAT messages
+            if (type == RendezvousFrame.TYPE_CHAT) {
+                chatPayloads.add(body)
+            } else {
+                // ISSUE 1 FIX: Buffer non-CHAT messages instead of discarding them!
+                // These messages (TYPE_HANDLE, TYPE_SPAKE_*, etc.) will be needed by poll()
+                // during I2P establishment or other handshake phases.
+                Log.i(TAG, "BUFFERED non-CHAT message (Type=0x%02x) for poll() to retrieve".format(type))
+                messageBuffer.add(type to body)
+            }
+        }
+
+        if (chatPayloads.isNotEmpty()) {
+            Log.i(TAG, "Chat poll: received ${chatPayloads.size} message(s)")
+        }
+
+        return chatPayloads
+    }
+
+    /**
      * STEP 4: Success & Teardown
      */
     suspend fun markHandshakeComplete() {
@@ -576,6 +653,7 @@ sealed class RendezvousFrame(val type: Byte) {
         const val TYPE_SPAKE_B: Byte = 0x02
         const val TYPE_CONFIRM: Byte = 0x03
         const val TYPE_HANDLE: Byte = 0x04
+        const val TYPE_CHAT: Byte = 0x05
 
         /**
          * Wrap with strict length prefixing & epoch: [TYPE] [EPOCH(8)] [TOKEN(16)] [LEN_HI] [LEN_LO] [BODY]

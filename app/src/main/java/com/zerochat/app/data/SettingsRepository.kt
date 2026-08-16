@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -29,6 +30,8 @@ class SettingsRepository @Inject constructor(
     companion object {
         private val SKIP_NYM_RENDEZVOUS = booleanPreferencesKey("skip_nym_rendezvous")
         private val METERED_WARNING_SHOWN = booleanPreferencesKey("metered_warning_shown")
+        private val IS_ONBOARDING_COMPLETE = booleanPreferencesKey("is_onboarding_complete")
+        private val COMPLETED_GUIDE_STEPS = stringSetPreferencesKey("completed_guide_steps")
     }
 
     // ── I2P-Only Mode ──────────────────────────────────────────────────
@@ -59,5 +62,31 @@ class SettingsRepository @Inject constructor(
 
     suspend fun getMeteredWarningShownSync(): Boolean {
         return context.dataStore.data.first()[METERED_WARNING_SHOWN] ?: false
+    }
+
+    // ── Onboarding & Guide ─────────────────────────────────────────────
+    val isOnboardingComplete: Flow<Boolean> = context.dataStore.data
+        .map { it[IS_ONBOARDING_COMPLETE] ?: false }
+
+    suspend fun setOnboardingComplete() {
+        context.dataStore.edit { it[IS_ONBOARDING_COMPLETE] = true }
+    }
+
+    suspend fun getOnboardingCompleteSync(): Boolean {
+        return context.dataStore.data.first()[IS_ONBOARDING_COMPLETE] ?: false
+    }
+
+    val completedGuideSteps: Flow<Set<String>> = context.dataStore.data
+        .map { it[COMPLETED_GUIDE_STEPS] ?: emptySet() }
+
+    suspend fun markGuideStepComplete(stepId: String) {
+        context.dataStore.edit { prefs ->
+            val currentSet = prefs[COMPLETED_GUIDE_STEPS] ?: emptySet()
+            prefs[COMPLETED_GUIDE_STEPS] = currentSet + stepId
+        }
+    }
+
+    suspend fun resetGuideSteps() {
+        context.dataStore.edit { it[COMPLETED_GUIDE_STEPS] = emptySet() }
     }
 }

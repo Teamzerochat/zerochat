@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.zerochat.app.domain.connection.ConnectionManager
 import com.zerochat.app.domain.messaging.MessageQueue
 import com.zerochat.app.domain.messaging.ReceivedMessage
+import com.zerochat.app.domain.transport.HybridTransport
+import com.zerochat.app.domain.transport.TransportUiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -13,14 +15,15 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * ChatViewModel - Manages chat messages
+ * ChatViewModel - Manages chat messages with dual-transport UI awareness
  * 
- * Exposes message list and handles sending
+ * Exposes message list, handles sending, and shows transport transition toasts.
  */
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val messageQueue: MessageQueue,
-    private val connectionManager: ConnectionManager
+    private val connectionManager: ConnectionManager,
+    private val hybridTransport: HybridTransport
 ) : ViewModel() {
     
     // Received messages from peer
@@ -38,6 +41,13 @@ class ChatViewModel @Inject constructor(
     private val _messageInput = MutableStateFlow("")
     val messageInput: StateFlow<String> = _messageInput.asStateFlow()
     
+    // Transport UI events (for Toast notifications)
+    private val _transportToast = MutableStateFlow<String?>(null)
+    val transportToast: StateFlow<String?> = _transportToast.asStateFlow()
+    
+    // Current transport phase (for status chip)
+    val transportPhase: StateFlow<HybridTransport.Phase> = hybridTransport.phase
+    
     init {
         // Combine sent and received messages
         viewModelScope.launch {
@@ -45,6 +55,42 @@ class ChatViewModel @Inject constructor(
                 updateAllMessages()
             }
         }
+        
+        // Listen for transport UI events
+        viewModelScope.launch {
+            hybridTransport.uiEvent.collect { event ->
+                when (event) {
+                    is TransportUiEvent.I2PBuilding -> {
+                        _transportToast.value = "Building I2P tunnel in background..."
+                    }
+                    is TransportUiEvent.SwitchingToI2P -> {
+                        // Add synthetic UI jitter to decouple from network timing
+                        kotlinx.coroutines.delay(
+                            hybridTransport.transitionSeed?.let { seed ->
+                                val seq = hybridTransport.currentOutboundSeq()
+                                hybridTransport.deterministicEgressDelay(seed, seq xor 0x5549L) // UI-specific derivation
+                            } ?: 500L
+                        )
+                        _transportToast.value = "Switching to I2P — speeds will improve"
+                    }
+                    is TransportUiEvent.I2PActive -> {
+                        _transportToast.value = "Connected via I2P"
+                    }
+                    null -> { /* No event */ }
+                }
+                // Clear the event after processing
+                if (event != null) {
+                    hybridTransport.clearUiEvent()
+                }
+            }
+        }
+    }
+    
+    /**
+     * Clear the transport toast (called after auto-dismiss timer)
+     */
+    fun clearTransportToast() {
+        _transportToast.value = null
     }
     
     /**
@@ -70,8 +116,8 @@ class ChatViewModel @Inject constructor(
         )
         _sentMessages.value = _sentMessages.value + sent
         
-        // Send through message queue
-        val messageId = messageQueue.sendMessage(text)
+        // Send through message queue (returns sequence number)
+        val seq = messageQueue.sendMessage(text)
         
         // Update status to sent (optimistic)
         viewModelScope.launch {

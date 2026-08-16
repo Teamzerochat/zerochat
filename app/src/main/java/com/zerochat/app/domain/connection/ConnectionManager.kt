@@ -22,17 +22,18 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Connection Manager - Model 3 (Symmetric) with I2P Transport
+ * Connection Manager - Model 3 (Symmetric) with Dual-Transport (v8)
  *
  * Flow:
  * 1. Derive Deterministic Identity (HKDF)
  * 2. Generate Random Election Nonce
  * 3. Publish Nonce / Poll Peer Nonce
  * 4. Derive Role (Initiator/Responder)
- * 5. Symmetric SPAKE2+ Handshake & Confirmation
- * 6. Exchange Encrypted I2P Destinations (Session Key)
- * 7. Teardown Rendezvous
- * 8. Establish I2P Streaming Connection (via SAM Bridge)
+ * 5. Symmetric SPAKE2+ Handshake & Confirmation (FULLY ON NYM)
+ * 6. Exchange I2P Destinations & Initialize HybridTransport
+ * 7. Emit Connected (chat starts on Nym immediately)
+ * 8. Background: Establish I2P Streaming Connection
+ * 9. Background: Teardown Nym only after cover traffic completes
  *
  * TLI Lifecycle (Paper §5.3):
  * - Init → Rendezvous: On handshake start
@@ -63,12 +64,21 @@ class ConnectionManager @Inject constructor(
         private const val TLI_PHASE_ZEROIZED = 4u
     }
     
-    // Coroutine scope for background tasks (churn monitoring, etc.)
+    // Coroutine scope for background tasks (churn monitoring, I2P establishment, etc.)
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     
     // Active encrypted channel for message exchange
     @Volatile
     var encryptedChannel: EncryptedChannel? = null
+        private set
+    
+    // Exposed for MessageQueue Nym routing (dual-transport)
+    @Volatile
+    var rendezvousManagerRef: RendezvousManager? = null
+        private set
+    
+    @Volatile
+    var activeRendezvousPoint: com.zerochat.app.domain.rendezvous.RendezvousPoint? = null
         private set
     
     /**
@@ -319,108 +329,159 @@ class ConnectionManager @Inject constructor(
             // FREEZE EPOCH: Handshake is secure, ignore subsequent epoch shifts
             rendezvousManager.markHandshakeComplete()
             
-            // Phase 8: Exchange Encrypted I2P Destinations
-            send(ConnectionState.ExchangingHandles)
+            // ═══════════════════════════════════════════════════════════════
+            // GOLDEN RULE: SPAKE2+ is COMPLETE. Secure channel established.
+            // Initialize HybridTransport with the shared secret seed.
+            // ═══════════════════════════════════════════════════════════════
+            hybridTransport.initialize(sharedSecret.toByteArray(Charsets.UTF_8))
             
-            // Ensure I2P router is ready before creating SAM session
-            send(ConnectionState.EstablishingI2P)
-            Log.i(TAG, "Waiting for I2P router to be ready...")
+            // ═══════════════════════════════════════════════════════════════
+            // FIX 1: EMIT CONNECTED IMMEDIATELY — Chat starts on Nym now.
+            // I2P handle exchange moved to background job to avoid blocking UI.
+            // DO NOT teardown Nym rendezvous yet. Keep it alive for dual-transport.
+            // ═══════════════════════════════════════════════════════════════
+            rendezvousManagerRef = rendezvousManager
+            activeRendezvousPoint = rendezvousPoint
             
-            val routerReady = I2PRouterService.waitUntilReady()
-            if (!routerReady) {
-                send(ConnectionState.Failed("I2P router not ready: ${I2PRouterService.startError ?: "timeout"}"))
-                return@channelFlow
-            }
-            Log.i(TAG, "✓ I2P router ready")
-            
-            // Create SAM session to get our I2P destination
-            val myDestination = samClient.createSession()
-            val myDestBytes = myDestination.toByteArray(Charsets.UTF_8)
-            val encryptedDest = uniffi.nym_transport.sessionEncryptWrapper(sessionHandle, myDestBytes.map { it.toUByte() })
-                .map { it.toByte() }.toByteArray()
-            
-            ignoreBodies.add(encryptedDest.toHexString())
-            rendezvousManager.publish(rendezvousPoint, RendezvousFrame.wrap(RendezvousFrame.TYPE_HANDLE, rendezvousPoint.epoch, rendezvousPoint.sessionToken, encryptedDest))
-            
-            var peerEncryptedDest: ByteArray? = null
-             try {
-                rendezvousManager.poll(rendezvousPoint, ignoreBodies, RendezvousFrame.TYPE_HANDLE).collect { res ->
-                     if (res is PollResult.Found) { peerEncryptedDest = res.body; throw CancellationException("FOUND") }
-                     else if (res is PollResult.Timeout) throw Exception("Handle timeout")
-                }
-            } catch (e: CancellationException) { if (e.message != "FOUND") throw e }
-            catch (e: Exception) { send(ConnectionState.Failed(e.message ?: "Error")); return@channelFlow }
-            
-            val peerDestBytes = uniffi.nym_transport.sessionDecryptWrapper(
-                sessionHandle,
-                (peerEncryptedDest ?: run {
-                    send(ConnectionState.Failed("No I2P destination received from peer"))
-                    return@channelFlow
-                }).map { it.toUByte() }
-            ).map { it.toByte() }.toByteArray()
-            
-            val peerDestination = String(peerDestBytes, Charsets.UTF_8)
-            Log.i(TAG, "✓ Peer I2P destination received: ${peerDestination.take(32)}...")
-            
-            // Self-connect check
-            if (peerDestination == myDestination) {
-                send(ConnectionState.Failed("Cannot connect to self"))
-                return@channelFlow
-            }
-            
-            // Phase 9: TEARDOWN Rendezvous (session handle stays alive for EncryptedChannel)
-            rendezvousManager.teardownRendezvous()
-            // NOTE: sessionHandle is NOT destroyed here — EncryptedChannel.close() handles it
-
-            // TLI: Transition to Hardened phase (I2P ready, Nym teardown complete)
-            controller.tliTransition(2u) // Hardened phase
-            Log.i(TAG, "TLI: Rendezvous → Hardened")
-
-            // Notify hybrid transport that I2P is ready (starts stochastic delay + cross-fade)
-            hybridTransport.onI2PReady()
-
-            // Phase 10: Establish I2P Streaming Connection
-            Log.i(TAG, "Establishing I2P stream (role=$role)...")
-            
-            val stream = if (role == HandshakeRole.INITIATOR) {
-                // INITIATOR: short delay for responder to start accepting, then connect
-                delay(2_000)
-                
-                var connectedStream: com.zerochat.app.domain.i2p.I2PStream? = null
-                var attempt = 1
-                val maxAttempts = 24 // ~120 seconds total wait
-                
-                while (connectedStream == null && attempt <= maxAttempts) {
-                    try {
-                        Log.i(TAG, "I2P connect attempt $attempt/$maxAttempts")
-                        connectedStream = samClient.connectStream(peerDestination)
-                    } catch (e: Exception) {
-                        val msg = e.message ?: ""
-                        if (msg.contains("LeaseSet not found") || msg.contains("CANT_REACH_PEER")) {
-                            Log.w(TAG, "Attempt $attempt/$maxAttempts failed: LeaseSet not found. Retrying in 5s...")
-                            delay(5_000)
-                            attempt++
-                         } else {
-                            throw e
-                         }
-                    }
-                }
-                
-                connectedStream ?: throw java.io.IOException("Timeout waiting for peer LeaseSet")
-            } else {
-                // RESPONDER: accept incoming connection
-                // R7 FIX: Timeout aligned with INITIATOR's total retry window (~120s) + margin
-                val inbound = withTimeout(150_000) { samClient.acceptStream() }
-                Log.i(TAG, "I2P inbound stream accepted")
-                inbound
-            }
-            
-            Log.i(TAG, "✓ I2P stream established!")
-
-            // Wrap stream with application-layer encryption (handle-based)
-            encryptedChannel = EncryptedChannel(sessionHandle, stream, thermalMonitor)
-
             send(ConnectionState.Connected)
+            Log.i(TAG, "✓ Connected (Nym active). I2P will establish in background.")
+            
+            // Start the message queue egress dispatcher
+            messageQueue.startEgressDispatcher()
+            
+            // ═══════════════════════════════════════════════════════════════
+            // BACKGROUND: Establish I2P Streaming Connection
+            // This runs concurrently while the user is already chatting on Nym.
+            // ═══════════════════════════════════════════════════════════════
+            val i2pEstablishmentJob = scope.launch {
+                try {
+                    // ═══════════════════════════════════════════════════════════════
+                    // FIX 1 (cont): I2P handle exchange runs entirely in background.
+                    // Wait for I2P router, create SAM session, exchange destinations.
+                    // ═══════════════════════════════════════════════════════════════
+                    var myDestination: String? = null
+                    var peerDestination: String? = null
+                    
+                    Log.i(TAG, "[BG] Waiting for I2P router...")
+                    val routerReady = I2PRouterService.waitUntilReady()
+                    if (!routerReady) {
+                        Log.e(TAG, "[BG] I2P router failed to start")
+                        hybridTransport.onI2PFailure()
+                        return@launch
+                    }
+                    myDestination = samClient.createSession()
+                    Log.i(TAG, "[BG] ✓ I2P router ready, SAM session created")
+                    
+                    // Exchange I2P destinations over the secure Nym channel
+                    val myDestBytes = myDestination.toByteArray(Charsets.UTF_8)
+                    val encryptedDest = uniffi.nym_transport.sessionEncryptWrapper(sessionHandle, myDestBytes.map { it.toUByte() })
+                        .map { it.toByte() }.toByteArray()
+                    
+                    rendezvousManager.publish(rendezvousPoint, RendezvousFrame.wrap(RendezvousFrame.TYPE_HANDLE, rendezvousPoint.epoch, rendezvousPoint.sessionToken, encryptedDest))
+                    
+                    // Poll for peer's encrypted I2P destination
+                    var peerEncryptedDest: ByteArray? = null
+                    try {
+                        rendezvousManager.poll(rendezvousPoint, ignoreBodies, RendezvousFrame.TYPE_HANDLE).collect { res ->
+                            if (res is PollResult.Found) { peerEncryptedDest = res.body; throw CancellationException("FOUND") }
+                            else if (res is PollResult.Timeout) throw Exception("Handle exchange timeout")
+                        }
+                    } catch (e: CancellationException) { if (e.message != "FOUND") throw e }
+                    
+                    val peerDestBytes = uniffi.nym_transport.sessionDecryptWrapper(
+                        sessionHandle,
+                        (peerEncryptedDest ?: run {
+                            Log.e(TAG, "[BG] No I2P destination received from peer")
+                            hybridTransport.onI2PFailure()
+                            return@launch
+                        }).map { it.toUByte() }
+                    ).map { it.toByte() }.toByteArray()
+                    
+                    peerDestination = String(peerDestBytes, Charsets.UTF_8)
+                    Log.i(TAG, "[BG] ✓ Peer I2P destination received: ${peerDestination.take(32)}...")
+                    
+                    // Self-connect check
+                    if (peerDestination == myDestination) {
+                        Log.e(TAG, "[BG] Cannot connect to self")
+                        hybridTransport.onI2PFailure()
+                        return@launch
+                    }
+                    
+                    if (peerDestination == null) {
+                        Log.e(TAG, "[BG] No peer destination — cannot establish I2P stream")
+                        hybridTransport.onI2PFailure()
+                        return@launch
+                    }
+                    
+                    Log.i(TAG, "[BG] Establishing I2P stream (role=$role)...")
+                    
+                    val stream = if (role == HandshakeRole.INITIATOR) {
+                        delay(2_000)
+                        
+                        var connectedStream: com.zerochat.app.domain.i2p.I2PStream? = null
+                        var attempt = 1
+                        val maxAttempts = 24
+                        
+                        while (connectedStream == null && attempt <= maxAttempts) {
+                            try {
+                                Log.i(TAG, "[BG] I2P connect attempt $attempt/$maxAttempts")
+                                connectedStream = samClient.connectStream(peerDestination!!)
+                            } catch (e: Exception) {
+                                val msg = e.message ?: ""
+                                if (msg.contains("LeaseSet not found") || msg.contains("CANT_REACH_PEER")) {
+                                    Log.w(TAG, "[BG] Attempt $attempt/$maxAttempts: LeaseSet not found. Retrying in 5s...")
+                                    delay(5_000)
+                                    attempt++
+                                } else {
+                                    throw e
+                                }
+                            }
+                        }
+                        connectedStream ?: throw java.io.IOException("Timeout waiting for peer LeaseSet")
+                    } else {
+                        val inbound = withTimeout(150_000) { samClient.acceptStream() }
+                        Log.i(TAG, "[BG] I2P inbound stream accepted")
+                        inbound
+                    }
+                    
+                    Log.i(TAG, "[BG] ✓ I2P stream established!")
+                    
+                    // Wrap stream with application-layer encryption
+                    encryptedChannel = EncryptedChannel(sessionHandle, stream, thermalMonitor)
+                    
+                    // TLI: Transition to Hardened phase
+                    controller.tliTransition(2u)
+                    Log.i(TAG, "TLI: Rendezvous → Hardened")
+                    
+                    // Signal HybridTransport that I2P is ready
+                    hybridTransport.onI2PReady()
+                    
+                    // Start I2P message listener loop
+                    Log.i(TAG, "[BG] Starting I2P message listener...")
+                    while (currentCoroutineContext().isActive && encryptedChannel?.isConnected() == true) {
+                        try {
+                            val payload = runInterruptible(Dispatchers.IO) {
+                                encryptedChannel?.receive()
+                            }
+                            if (payload != null) {
+                                messageQueue.receiveMessage(payload)
+                            } else {
+                                Log.w(TAG, "[BG] I2P channel returned null payload")
+                                break
+                            }
+                        } catch (e: Exception) {
+                            if (e is CancellationException) throw e
+                            Log.e(TAG, "[BG] I2P read error: ${e.message}")
+                            break
+                        }
+                    }
+                    
+                } catch (e: Exception) {
+                    if (e is CancellationException) throw e
+                    Log.e(TAG, "[BG] I2P establishment failed: ${e.message}")
+                    hybridTransport.onI2PFailure()
+                }
+            }
 
             // Start thermal monitoring (Paper §10, §11.2)
             thermalMonitor.startMonitoring()
@@ -437,6 +498,18 @@ class ConnectionManager @Inject constructor(
                     Log.i(TAG, "Cover traffic thermal throttle: ${if (isThrottled) "ACTIVE" else "OFF"}")
                 }
             }
+            
+            // Monitor NymMode to teardown Nym when cover traffic completes
+            val nymTeardownJob = scope.launch {
+                hybridTransport.nymMode.collect { mode ->
+                    if (mode == HybridTransport.NymMode.OFF) {
+                        Log.i(TAG, "Nym cover decay complete — tearing down rendezvous")
+                        rendezvousManager.teardownRendezvous()
+                        rendezvousManagerRef = null
+                        activeRendezvousPoint = null
+                    }
+                }
+            }
 
             // Start churn monitoring coroutine (Paper §7)
             val churnMonitorJob = scope.launch {
@@ -445,11 +518,14 @@ class ConnectionManager @Inject constructor(
                 val baseBackoffMs = 2_000L
                 val maxBackoffMs = 30_000L
                 
-                while (currentCoroutineContext().isActive && encryptedChannel?.isConnected() == true) {
+                while (currentCoroutineContext().isActive) {
                     delay(500) // 2 Hz sampling
 
+                    // Only check churn when I2P channel is active
+                    if (encryptedChannel?.isConnected() != true) continue
+
                     // Check churn status
-                    val churnDetected = controller.tliCheckChurn(1u) // Heartbeat timeout check
+                    val churnDetected = controller.tliCheckChurn(1u)
 
                     if (churnDetected) {
                         consecutiveFailures++
@@ -459,13 +535,14 @@ class ConnectionManager @Inject constructor(
                             Log.e(TAG, "Churn threshold reached - attempting recovery")
 
                             // TLI: Transition to Fallback
-                            controller.tliTransition(3u) // Fallback phase
+                            controller.tliTransition(3u)
                             Log.i(TAG, "TLI: Hardened → Fallback")
 
-                            // Emit fallback state
                             send(ConnectionState.Fallback("Churn detected"))
+                            
+                            // Fallback: Reset HybridTransport to Nym
+                            hybridTransport.onI2PFailure()
 
-                            // Exponential backoff reconnection
                             var backoffMs = baseBackoffMs
                             var reconnected = false
 
@@ -473,14 +550,11 @@ class ConnectionManager @Inject constructor(
                                 Log.i(TAG, "Reconnection attempt $attempt/5 (backoff: ${backoffMs}ms)")
                                 delay(backoffMs)
 
-                                // Try to reconnect
                                 try {
-                                    val recovered = controller.tliCheckChurn(1u) // Check if churn cleared
-
+                                    val recovered = controller.tliCheckChurn(1u)
                                     if (!recovered) {
                                         Log.i(TAG, "Churn cleared - resuming session")
-                                        controller.tliTransition(1u) // Back to Rendezvous
-                                        Log.i(TAG, "TLI: Fallback → Rendezvous")
+                                        controller.tliTransition(1u)
                                         reconnected = true
                                         consecutiveFailures = 0
                                         break
@@ -493,15 +567,13 @@ class ConnectionManager @Inject constructor(
                             }
 
                             if (!reconnected) {
-                                Log.e(TAG, "Recovery failed after 90s - terminating session")
-                                // Timeout > 90s - terminate session
+                                Log.e(TAG, "Recovery failed - terminating session")
                                 controller.tliTerminateSession()
                                 Log.i(TAG, "TLI: → Zeroized (recovery timeout)")
                                 break
                             }
                         }
                     } else {
-                        // Reset failure counter on success
                         if (consecutiveFailures > 0) {
                             Log.i(TAG, "Churn cleared - resetting failure counter")
                             consecutiveFailures = 0
@@ -510,30 +582,36 @@ class ConnectionManager @Inject constructor(
                 }
             }
 
-            // Phase 11: Listen for Incoming Messages
-            // This loop keeps the flow active and processes incoming data.
-            Log.i(TAG, "Starting I2P message listener loop...")
-            while (currentCoroutineContext().isActive && encryptedChannel?.isConnected() == true) {
+            // ═══════════════════════════════════════════════════════════════
+            // FIX 2: Nym Chat Polling Loop — receives messages over Nym rendezvous
+            // Polls for TYPE_CHAT messages and feeds them into MessageQueue.
+            // Runs until Nym is fully OFF (transition complete to I2P_ONLY).
+            // ═══════════════════════════════════════════════════════════════
+            Log.i(TAG, "Starting Nym chat listener loop...")
+            while (currentCoroutineContext().isActive) {
+                // If Nym is OFF, we are fully on I2P — keep the flow alive via I2P job
+                if (hybridTransport.nymMode.value == HybridTransport.NymMode.OFF) {
+                    // Wait for I2P job to finish
+                    i2pEstablishmentJob.join()
+                    break
+                }
+                
+                // Poll Nym rendezvous for incoming TYPE_CHAT messages
                 try {
-                    // receive() is blocking (runInterruptible for cancellation support)
-                    val payload = runInterruptible(Dispatchers.IO) {
-                         encryptedChannel?.receive()
-                    }
-                    
-                    if (payload != null) {
+                    val chatPayloads = rendezvousManager.pollChatMessages(rendezvousPoint)
+                    for (payload in chatPayloads) {
                         messageQueue.receiveMessage(payload)
-                    } else {
-                        Log.w(TAG, "Channel returned null payload (closing)")
-                        break
                     }
                 } catch (e: Exception) {
                     if (e is CancellationException) throw e
-                    Log.e(TAG, "Read error: ${e.message}")
-                    break
+                    Log.w(TAG, "Nym chat poll error: ${e.message}")
                 }
+                
+                // Poll interval — matches rendezvous polling cadence
+                delay(RendezvousManager.POLL_INTERVAL_MS)
             }
             
-            Log.i(TAG, "I2P listener loop ended")
+            Log.i(TAG, "Main listener loop ended")
             send(ConnectionState.Disconnected)
 
         } catch (e: Exception) {
@@ -571,13 +649,17 @@ class ConnectionManager @Inject constructor(
             controller.coverTrafficStop()
         }
 
+        // Shutdown hybrid transport (stops cover traffic, resets state)
+        hybridTransport.shutdown()
+
         // Cancel churn monitoring
         scope.coroutineContext.cancelChildren()
         
         encryptedChannel?.close()
         encryptedChannel = null
+        rendezvousManagerRef = null
+        activeRendezvousPoint = null
         // R1 FIX: Use fire-and-forget instead of runBlocking to avoid deadlock.
-        // closeInternal() in createSession() ensures cleanup if this races with reconnect.
         CoroutineScope(Dispatchers.IO).launch { samClient.close() }
         handshakeManager.cleanup()
         rendezvousManager.clearAll()

@@ -2,8 +2,10 @@
 /build/
 /app/build/
 /.gradle/
+**/.gradle/
 /nym-transport/target/
 target/
+**/target/
 
 # IDE
 /.idea/
@@ -27,3 +29,10 @@ google-services.json
 # Debug/Test files
 *.apk
 *.aab
+
+i2pd-android/binary/
+i2pd-android/**/boost/
+i2pd-android/**/doc/
+i2pd-android/**/*.html
+i2pd-android/**/*.png
+i2pd-android/**/*.pdf

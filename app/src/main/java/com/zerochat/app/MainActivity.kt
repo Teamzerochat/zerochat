@@ -6,8 +6,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.fillMaxSize
@@ -62,6 +64,23 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate() - orientation=${resources.configuration.orientation}")
 
+        // ── Anti-forensic window hardening ───────────────────────────────
+        // Prevents screenshots, screen recordings, ADB screencap, and
+        // Recents thumbnail leakage.
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_SECURE,
+            WindowManager.LayoutParams.FLAG_SECURE
+        )
+        // Block overlay attacks (Android 12+).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            applyHideOverlayWindows()
+        }
+        // Suppress Recents screenshot (Android 13+).
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            applyDisableRecentsThumbnail()
+        }
+        // ────────────────────────────────────────────────────────────────
+
         // Register screen lock receiver
         val filter = IntentFilter().apply {
             addAction(Intent.ACTION_SCREEN_OFF)
@@ -105,6 +124,21 @@ class MainActivity : ComponentActivity() {
 
         // Security: Clear any cached session data
         // KeyManager will handle volatile key destruction
+    }
+
+    // ── API-gated helpers ─────────────────────────────────────────────────────
+    // Kotlin requires @RequiresApi on the call-site method even when the call
+    // is already guarded by a Build.VERSION.SDK_INT check, because the compiler
+    // performs static API-level verification independently of branch analysis.
+
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.S)
+    private fun applyHideOverlayWindows() {
+        window.setHideOverlayWindows(true)
+    }
+
+    @androidx.annotation.RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun applyDisableRecentsThumbnail() {
+        setRecentsScreenshotEnabled(false)
     }
 }
 

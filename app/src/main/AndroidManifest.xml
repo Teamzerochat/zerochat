@@ -12,6 +12,9 @@
     
     <!-- Wake lock for i2pd bootstrap (prevents CPU sleep during daemon init) -->
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    
+    <!-- Required by Window.setHideOverlayWindows() on Android 12+ -->
+    <uses-permission android:name="android.permission.HIDE_OVERLAY_WINDOWS" />
 
     <application
         android:name=".ZeroChatApplication"
